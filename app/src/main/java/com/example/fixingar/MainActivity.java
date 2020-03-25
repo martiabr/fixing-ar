@@ -20,6 +20,7 @@ import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -27,7 +28,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     private static final String TAG = "MainActivity";
 
     private CameraBridgeViewBase mOpenCvCameraView;
-    //private CameraBridgeViewBase mOpenCvCameraViewFront;
+    private CameraBridgeViewBase mOpenCvCameraView2;
     private int mCameraIndex = CameraBridgeViewBase.CAMERA_ID_BACK;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
@@ -39,6 +40,11 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
                     Log.i(TAG, "OpenCV loaded successfully");
                     mOpenCvCameraView.enableView();
                     mOpenCvCameraView.setOnTouchListener(MainActivity.this);
+
+                    mOpenCvCameraView.setCameraIndex(CameraBridgeViewBase.CAMERA_ID_BACK);
+                    mOpenCvCameraView.setCameraIndex(CameraBridgeViewBase.CAMERA_ID_FRONT);
+
+
                 } break;
                 default:
                 {
@@ -64,14 +70,15 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
         if(getPermission()){
             mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.camera_view);
-            //mOpenCvCameraViewFront = (CameraBridgeViewBase) findViewById(R.id.camera_view_front);
+            mOpenCvCameraView2 = (CameraBridgeViewBase) findViewById(R.id.camera_view2);
 
             mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
-            mOpenCvCameraView.setCameraIndex(mCameraIndex);
             mOpenCvCameraView.setCvCameraViewListener(this);
 
-            //mOpenCvCameraViewFront.setVisibility(SurfaceView.VISIBLE);
-            //mOpenCvCameraViewFront.setCvCameraViewListener(this);
+            mOpenCvCameraView2.setVisibility(SurfaceView.VISIBLE);
+            mOpenCvCameraView2.setCvCameraViewListener(this);
+
+            //TODO: set low res
         }
     }
 
@@ -81,8 +88,8 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         super.onPause();
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
-        //if (mOpenCvCameraViewFront != null)
-            //mOpenCvCameraViewFront.disableView();
+        if (mOpenCvCameraView2 != null)
+            mOpenCvCameraView2.disableView();
     }
 
     @Override
@@ -100,18 +107,15 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
     @Override
     protected List<? extends CameraBridgeViewBase> getCameraViewList() {
-        //if (cameraIndex == 0) {
-            return Collections.singletonList(mOpenCvCameraView);
-        //}
-        //return Collections.singletonList(mOpenCvCameraViewFront);
+        return Arrays.asList(mOpenCvCameraView, mOpenCvCameraView2);
     }
 
     public void onDestroy() {
         super.onDestroy();
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
-        //if (mOpenCvCameraViewFront != null)
-        //    mOpenCvCameraViewFront.disableView();
+        if (mOpenCvCameraView2 != null)
+            mOpenCvCameraView2.disableView();
     }
 
     public void onCameraViewStarted(int width, int height) {
@@ -126,12 +130,12 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
-        Log.i(TAG,"onTouch event");
+        //Log.i(TAG,"onTouch event");
         Toast.makeText(this, "How ya goin cunt", Toast.LENGTH_SHORT).show();
 
         Log.i(TAG, String.valueOf(mCameraIndex));
 
-        if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_BACK) {
+        /* if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_BACK) {
             mCameraIndex = CameraBridgeViewBase.CAMERA_ID_FRONT;
         } else if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_FRONT){
             mCameraIndex = CameraBridgeViewBase.CAMERA_ID_BACK;
@@ -139,30 +143,20 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
         mOpenCvCameraView.disableView();
         mOpenCvCameraView.setCameraIndex(mCameraIndex);
-        mOpenCvCameraView.enableView();
+        mOpenCvCameraView.enableView(); */
 
+        mOpenCvCameraView.setCameraIndex(CameraBridgeViewBase.CAMERA_ID_BACK);
+        mOpenCvCameraView2.setCameraIndex(CameraBridgeViewBase.CAMERA_ID_FRONT);
 
-        /*if (cameraIndex == 0) {
-            Log.i(TAG, String.valueOf(cameraIndex));
-
-            //mOpenCvCameraViewBack.setVisibility(SurfaceView.GONE);
-            mOpenCvCameraViewBack.disableView();
-            mOpenCvCameraViewFront = (CameraBridgeViewBase) findViewById(R.id.camera_view_front);
-            //mOpenCvCameraViewFront.setVisibility(SurfaceView.VISIBLE);
-            mOpenCvCameraViewFront.enableView();
-
-            cameraIndex = 1;
-        } else if (cameraIndex == 1){
-            Log.i(TAG, String.valueOf(cameraIndex));
-
-            //mOpenCvCameraViewFront.setVisibility(SurfaceView.GONE);
-            mOpenCvCameraViewFront.disableView();
-            mOpenCvCameraViewBack = (CameraBridgeViewBase) findViewById(R.id.camera_view_back);
-            //mOpenCvCameraViewBack.setVisibility(SurfaceView.VISIBLE);
-            mOpenCvCameraViewBack.enableView();
-
-            cameraIndex = 0;
-        }*/
+        if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_BACK) {
+            mOpenCvCameraView.disableView();
+            mOpenCvCameraView2.enableView();
+            mCameraIndex = CameraBridgeViewBase.CAMERA_ID_FRONT;
+        } else if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_FRONT){
+            mOpenCvCameraView2.disableView();
+            mOpenCvCameraView.enableView();
+            mCameraIndex = CameraBridgeViewBase.CAMERA_ID_BACK;
+        }
 
         return false;
     }
