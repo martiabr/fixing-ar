@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:opencv="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -8,11 +8,11 @@
     tools:context=".MainActivity">
 
 <org.opencv.android.JavaCamera2View
-    android:id="@+id/camera_view"
-    android:layout_width="fill_parent"
+    android:id="@+id/camera_view_back"
+    android:layout_weight="1"
     android:layout_height="fill_parent"
+    android:layout_width="0dp"
     android:visibility="gone"
-    opencv:show_fps="true"
     opencv:camera_id="any"></org.opencv.android.JavaCamera2View>
 
-</RelativeLayout>
+</LinearLayout>

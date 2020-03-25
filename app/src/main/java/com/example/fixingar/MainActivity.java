@@ -6,8 +6,11 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.SurfaceView;
+import android.view.View;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraActivity;
@@ -20,10 +23,12 @@ import org.opencv.core.Mat;
 import java.util.Collections;
 import java.util.List;
 
-public class MainActivity extends CameraActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
+public class MainActivity extends CameraActivity implements CameraBridgeViewBase.CvCameraViewListener2, View.OnTouchListener {
     private static final String TAG = "MainActivity";
 
-    private CameraBridgeViewBase mOpenCvCameraView;
+    private CameraBridgeViewBase mOpenCvCameraViewBack;
+    //private CameraBridgeViewBase mOpenCvCameraViewFront;
+    private int cameraIndex = 1;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -32,7 +37,8 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
                 case LoaderCallbackInterface.SUCCESS:
                 {
                     Log.i(TAG, "OpenCV loaded successfully");
-                    mOpenCvCameraView.enableView();
+                    mOpenCvCameraViewBack.enableView();
+                    mOpenCvCameraViewBack.setOnTouchListener(MainActivity.this);
                 } break;
                 default:
                 {
@@ -56,9 +62,15 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         setContentView(R.layout.activity_main);
 
         if(getPermission()){
-            mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.camera_view);
-            mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
-            mOpenCvCameraView.setCvCameraViewListener(this);
+            mOpenCvCameraViewBack = (CameraBridgeViewBase) findViewById(R.id.camera_view_back);
+            //mOpenCvCameraViewFront = (CameraBridgeViewBase) findViewById(R.id.camera_view_front);
+
+            mOpenCvCameraViewBack.setVisibility(SurfaceView.VISIBLE);
+            mOpenCvCameraViewBack.setCameraIndex(cameraIndex);
+            mOpenCvCameraViewBack.setCvCameraViewListener(this);
+
+            //mOpenCvCameraViewFront.setVisibility(SurfaceView.VISIBLE);
+            //mOpenCvCameraViewFront.setCvCameraViewListener(this);
         }
     }
 
@@ -66,8 +78,10 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     public void onPause()
     {
         super.onPause();
-        if (mOpenCvCameraView != null)
-            mOpenCvCameraView.disableView();
+        if (mOpenCvCameraViewBack != null)
+            mOpenCvCameraViewBack.disableView();
+        //if (mOpenCvCameraViewFront != null)
+            //mOpenCvCameraViewFront.disableView();
     }
 
     @Override
@@ -85,13 +99,18 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
     @Override
     protected List<? extends CameraBridgeViewBase> getCameraViewList() {
-        return Collections.singletonList(mOpenCvCameraView);
+        //if (cameraIndex == 0) {
+            return Collections.singletonList(mOpenCvCameraViewBack);
+        //}
+        //return Collections.singletonList(mOpenCvCameraViewFront);
     }
 
     public void onDestroy() {
         super.onDestroy();
-        if (mOpenCvCameraView != null)
-            mOpenCvCameraView.disableView();
+        if (mOpenCvCameraViewBack != null)
+            mOpenCvCameraViewBack.disableView();
+        //if (mOpenCvCameraViewFront != null)
+        //    mOpenCvCameraViewFront.disableView();
     }
 
     public void onCameraViewStarted(int width, int height) {
@@ -102,6 +121,49 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
         return inputFrame.rgba();
+    }
+
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        Log.i(TAG,"onTouch event");
+        Toast.makeText(this, "How ya goin cunt", Toast.LENGTH_SHORT).show();
+
+        Log.i(TAG, String.valueOf(cameraIndex));
+
+        if (cameraIndex == 0) {
+            cameraIndex = 1;
+        } else {
+            cameraIndex = 0;
+        }
+
+        mOpenCvCameraViewBack.disableView();
+        mOpenCvCameraViewBack.setCameraIndex(cameraIndex);
+        mOpenCvCameraViewBack.enableView();
+
+
+        /*if (cameraIndex == 0) {
+            Log.i(TAG, String.valueOf(cameraIndex));
+
+            //mOpenCvCameraViewBack.setVisibility(SurfaceView.GONE);
+            mOpenCvCameraViewBack.disableView();
+            mOpenCvCameraViewFront = (CameraBridgeViewBase) findViewById(R.id.camera_view_front);
+            //mOpenCvCameraViewFront.setVisibility(SurfaceView.VISIBLE);
+            mOpenCvCameraViewFront.enableView();
+
+            cameraIndex = 1;
+        } else if (cameraIndex == 1){
+            Log.i(TAG, String.valueOf(cameraIndex));
+
+            //mOpenCvCameraViewFront.setVisibility(SurfaceView.GONE);
+            mOpenCvCameraViewFront.disableView();
+            mOpenCvCameraViewBack = (CameraBridgeViewBase) findViewById(R.id.camera_view_back);
+            //mOpenCvCameraViewBack.setVisibility(SurfaceView.VISIBLE);
+            mOpenCvCameraViewBack.enableView();
+
+            cameraIndex = 0;
+        }*/
+
+        return false;
     }
 
     private boolean getPermission(){
