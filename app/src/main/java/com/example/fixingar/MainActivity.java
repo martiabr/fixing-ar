@@ -31,7 +31,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     private static final int DELAY = 5000;
 
     private CameraBridgeViewBase mOpenCvCameraView;
-    private int mCameraIndex = CameraBridgeViewBase.CAMERA_ID_FRONT;
+    private int mCameraIndex = CameraBridgeViewBase.CAMERA_ID_BACK;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -42,6 +42,10 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
                     Log.i(TAG, "OpenCV loaded successfully");
                     mOpenCvCameraView.enableView();
                     mOpenCvCameraView.setOnTouchListener(MainActivity.this);
+
+                    if (timerRunning) {
+                        mHandler.postDelayed(mCameraSwitchRunnable, DELAY);
+                    }
                 } break;
                 default:
                 {
@@ -62,6 +66,8 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                             WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         setContentView(R.layout.activity_main);
 
@@ -70,11 +76,8 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
             mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
             mOpenCvCameraView.setCameraIndex(mCameraIndex);
+            //mOpenCvCameraView.setMaxFrameSize(320,320);
             mOpenCvCameraView.setCvCameraViewListener(this);
-
-            if (timerRunning) {
-                mHandler.postDelayed(mCameraSwitchRunnable, DELAY);
-            }
         }
     }
 
@@ -82,8 +85,10 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     public void onPause()
     {
         super.onPause();
-        if (mOpenCvCameraView != null)
+        if (mOpenCvCameraView != null) {
             mOpenCvCameraView.disableView();
+            mHandler.removeCallbacks(mCameraSwitchRunnable);
+        }
     }
 
     @Override
@@ -106,8 +111,10 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
     public void onDestroy() {
         super.onDestroy();
-        if (mOpenCvCameraView != null)
+        if (mOpenCvCameraView != null) {
             mOpenCvCameraView.disableView();
+            mHandler.removeCallbacks(mCameraSwitchRunnable);
+        }
     }
 
     public void onCameraViewStarted(int width, int height) {
