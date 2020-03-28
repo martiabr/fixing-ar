@@ -17,6 +17,16 @@ import org.opencv.imgproc.Imgproc;
 
 import android.util.Log;
 
+// Average re-projection error: 0.226845
+//2020-03-28 14:30:00.740 30657-31407/com.example.fixingar I/CameraCalibrator: Camera matrix: [1107.420238521566, 0, 639.5;
+//     0, 1107.420238521566, 359.5;
+//     0, 0, 1]
+//2020-03-28 14:30:00.740 30657-31407/com.example.fixingar I/CameraCalibrator: Distortion coefficients: [0.1777787296818345;
+//     -0.4618245249197365;
+//     0;
+//     0;
+//     -0.1959808318795349]
+
 public class CameraCalibrator {
     private static final String TAG = "CameraCalibrator";
 
@@ -31,7 +41,7 @@ public class CameraCalibrator {
     private Mat mDistortionCoefficients = new Mat();
     private int mFlags;
     private double mRms;
-    private double mSquareSize = 0.0181;
+    private double mSquareSize = 0.04;
     private Size mImageSize;
 
     public CameraCalibrator(int width, int height) {
