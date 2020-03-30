@@ -7,34 +7,62 @@ import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.calib3d.Calib3d;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint2f;
+import org.opencv.core.MatOfPoint3f;
+import org.opencv.core.Point;
+import org.opencv.core.Point3;
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
 
-import android.app.ProgressDialog;
-import android.content.res.Resources;
-import android.os.AsyncTask;
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Environment;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.WindowManager;
-import android.widget.Toast;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Vector;
+
+import es.ava.aruco.CameraParameters;
+import es.ava.aruco.Marker;
+import es.ava.aruco.MarkerDetector;
+
+// Average re-projection error: 0.226845
+//2020-03-28 14:30:00.740 30657-31407/com.example.fixingar I/CameraCalibrator: Camera matrix: [1107.420238521566, 0, 639.5;
+//     0, 1107.420238521566, 359.5;
+//     0, 0, 1]
+//2020-03-28 14:30:00.740 30657-31407/com.example.fixingar I/CameraCalibrator: Distortion coefficients: [0.1777787296818345;
+//     -0.4618245249197365;
+//     0;
+//     0;
+//     -0.1959808318795349]
 
 public class MainActivity extends CameraActivity implements CvCameraViewListener2, OnTouchListener {
-    private static final String TAG = "CameraCalibrator";
+    //Constants
+    private static final String TAG = "Main";
+    private static final float MARKER_SIZE = (float) 0.017;
+
+    //Preferences
+    private static final boolean SHOW_MARKERID = false;
+
+    //You must run a calibration prior to detection
+    // The activity to run calibration is provided in the repository
+    private static final String DATA_FILEPATH = "";
 
     private CameraBridgeViewBase mOpenCvCameraView;
-    private CameraCalibrator mCalibrator;
-    private OnCameraFrameRender mOnCameraFrameRender;
-    private Menu mMenu;
-    private int mWidth;
-    private int mHeight;
+    private boolean              mIsJavaCamera = true;
+    private MenuItem             mItemSwitchCamera = null;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -63,6 +91,18 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         Log.i(TAG, "called onCreate");
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 1);
+        }
 
         setContentView(R.layout.activity_main);
 
@@ -103,120 +143,59 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             mOpenCvCameraView.disableView();
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        super.onCreateOptionsMenu(menu);
-        getMenuInflater().inflate(R.menu.calibration, menu);
-        mMenu = menu;
-        return true;
-    }
-
-    @Override
-    public boolean onPrepareOptionsMenu (Menu menu) {
-        super.onPrepareOptionsMenu(menu);
-        menu.findItem(R.id.preview_mode).setEnabled(true);
-        if (mCalibrator != null && !mCalibrator.isCalibrated()) {
-            menu.findItem(R.id.preview_mode).setEnabled(false);
-        }
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.calibration:
-                mOnCameraFrameRender =
-                        new OnCameraFrameRender(new CalibrationFrameRender(mCalibrator));
-                item.setChecked(true);
-                return true;
-            case R.id.undistortion:
-                mOnCameraFrameRender =
-                        new OnCameraFrameRender(new UndistortionFrameRender(mCalibrator));
-                item.setChecked(true);
-                return true;
-            case R.id.comparison:
-                mOnCameraFrameRender =
-                        new OnCameraFrameRender(new ComparisonFrameRender(mCalibrator, mWidth, mHeight, getResources()));
-                item.setChecked(true);
-                return true;
-            case R.id.calibrate:
-                final Resources res = getResources();
-                if (mCalibrator.getCornersBufferSize() < 2) {
-                    (Toast.makeText(this, res.getString(R.string.more_samples), Toast.LENGTH_SHORT)).show();
-                    return true;
-                }
-
-                mOnCameraFrameRender = new OnCameraFrameRender(new PreviewFrameRender());
-                new AsyncTask<Void, Void, Void>() {
-                    private ProgressDialog calibrationProgress;
-
-                    @Override
-                    protected void onPreExecute() {
-                        calibrationProgress = new ProgressDialog(MainActivity.this);
-                        calibrationProgress.setTitle(res.getString(R.string.calibrating));
-                        calibrationProgress.setMessage(res.getString(R.string.please_wait));
-                        calibrationProgress.setCancelable(false);
-                        calibrationProgress.setIndeterminate(true);
-                        calibrationProgress.show();
-                    }
-
-                    @Override
-                    protected Void doInBackground(Void... arg0) {
-                        mCalibrator.calibrate();
-                        return null;
-                    }
-
-                    @Override
-                    protected void onPostExecute(Void result) {
-                        calibrationProgress.dismiss();
-                        mCalibrator.clearCorners();
-                        mOnCameraFrameRender = new OnCameraFrameRender(new CalibrationFrameRender(mCalibrator));
-                        String resultMessage = (mCalibrator.isCalibrated()) ?
-                                res.getString(R.string.calibration_successful)  + " " + mCalibrator.getAvgReprojectionError() :
-                                res.getString(R.string.calibration_unsuccessful);
-                        (Toast.makeText(MainActivity.this, resultMessage, Toast.LENGTH_SHORT)).show();
-
-                        if (mCalibrator.isCalibrated()) {
-                            CalibrationResult.save(MainActivity.this,
-                                    mCalibrator.getCameraMatrix(), mCalibrator.getDistortionCoefficients());
-                        }
-                    }
-                }.execute();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
-
     public void onCameraViewStarted(int width, int height) {
-        if (mWidth != width || mHeight != height) {
-            mWidth = width;
-            mHeight = height;
-            mCalibrator = new CameraCalibrator(mWidth, mHeight);
-            if (CalibrationResult.tryLoad(this, mCalibrator.getCameraMatrix(), mCalibrator.getDistortionCoefficients())) {
-                mCalibrator.setCalibrated();
-            } else {
-                if (mMenu != null && !mCalibrator.isCalibrated()) {
-                    mMenu.findItem(R.id.preview_mode).setEnabled(false);
-                }
-            }
-
-            mOnCameraFrameRender = new OnCameraFrameRender(new CalibrationFrameRender(mCalibrator));
-        }
     }
 
     public void onCameraViewStopped() {
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-        return mOnCameraFrameRender.render(inputFrame);
+        //Convert input to rgba
+        Mat rgba = inputFrame.rgba();
+
+        //Setup required parameters for detect method
+        MarkerDetector mDetector = new MarkerDetector();
+        Vector<Marker> detectedMarkers = new Vector<>();
+        CameraParameters camParams = new CameraParameters();
+        camParams.readFromFile(Environment.getExternalStorageDirectory().toString() + DATA_FILEPATH);
+        Log.d(TAG, camParams.getCameraMatrix().dump());
+
+        //Populate detectedMarkers
+        mDetector.detect(rgba, detectedMarkers, camParams, MARKER_SIZE);
+
+        //Draw Axis for each marker detected
+        if (detectedMarkers.size() != 0) {
+            for (int i = 0; i < detectedMarkers.size(); i++) {
+                Marker marker = detectedMarkers.get(i);
+                detectedMarkers.get(i).draw3dAxis(rgba, camParams, new Scalar(0,0,0));
+
+                if (SHOW_MARKERID) {
+                    //Setup
+                    int idValue = detectedMarkers.get(i).getMarkerId();
+                    Vector<Point3> points = new Vector<>();
+                    points.add(new Point3(0, 0, 0));
+                    MatOfPoint3f pointMat = new MatOfPoint3f();
+                    pointMat.fromList(points);
+                    MatOfPoint2f outputPoints = new MatOfPoint2f();
+
+                    //Project point to marker origin
+                    Calib3d.projectPoints(pointMat, marker.getRvec(), marker.getTvec(), camParams.getCameraMatrix(), camParams.getDistCoeff(), outputPoints);
+                    List<Point> pts = new Vector<>();
+                    pts = outputPoints.toList();
+
+                    //Draw id number
+                    Imgproc.putText(rgba, Integer.toString(idValue), pts.get(0), Imgproc.FONT_HERSHEY_SIMPLEX, 2, new Scalar(0,0,1));
+                }
+            }
+        }
+
+        return rgba;
     }
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         Log.d(TAG, "onTouch invoked");
 
-        mCalibrator.addCorners();
         return false;
     }
 }
