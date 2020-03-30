@@ -163,7 +163,7 @@ public class CameraParameters {
 		for (Integer i = shift; i < 5 + shift; i++) {
 			distortionCoefficientsArray[i - shift] = sharedPref.getFloat(i.toString(), -1);
 		}
-		distorsionMatrix.put(0, 0, distortionCoefficientsArray);
+		distorsionMatrix.fromArray(distortionCoefficientsArray);
 	}
 }
 

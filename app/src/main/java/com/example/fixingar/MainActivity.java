@@ -167,7 +167,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         //camParams.readFromFile(Environment.getExternalStorageDirectory().toString() + DATA_FILEPATH);
         //camParams.readMagicNumbers();
         camParams.read(this);
-        Log.d(TAG, camParams.getCameraMatrix().dump());
+        Log.d(TAG, camParams.getDistCoeff().dump());
 
         //Populate detectedMarkers
         mDetector.detect(rgba, detectedMarkers, camParams, MARKER_SIZE);
