@@ -17,6 +17,8 @@ import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
 import android.Manifest;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
@@ -63,6 +65,10 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     private CameraBridgeViewBase mOpenCvCameraView;
     private boolean              mIsJavaCamera = true;
     private MenuItem             mItemSwitchCamera = null;
+
+    private static final int CAMERA_MATRIX_ROWS = 3;
+    private static final int CAMERA_MATRIX_COLS = 3;
+    private static final int DISTORTION_COEFFICIENTS_SIZE = 5;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -157,7 +163,10 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         MarkerDetector mDetector = new MarkerDetector();
         Vector<Marker> detectedMarkers = new Vector<>();
         CameraParameters camParams = new CameraParameters();
-        camParams.readFromFile(Environment.getExternalStorageDirectory().toString() + DATA_FILEPATH);
+
+        //camParams.readFromFile(Environment.getExternalStorageDirectory().toString() + DATA_FILEPATH);
+        //camParams.readMagicNumbers();
+        camParams.read(this);
         Log.d(TAG, camParams.getCameraMatrix().dump());
 
         //Populate detectedMarkers

@@ -1,6 +1,11 @@
 package es.ava.aruco;
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
+
+import com.example.fixingar.MainActivity;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -140,5 +145,25 @@ public class CameraParameters {
                 Log.e("IOException: ", e.getMessage());
         }
     }
+
+    public void read(Activity activity) {
+		SharedPreferences sharedPref = activity.getPreferences(Context.MODE_PRIVATE);
+
+		double[] cameraMatrixArray = new double[3 * 3];
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				Integer id = i * 3 + j;
+				cameraMatrixArray[id] = sharedPref.getFloat(id.toString(), -1);
+			}
+		}
+		cameraMatrix.put(0, 0, cameraMatrixArray);
+
+		double[] distortionCoefficientsArray = new double[5];
+		int shift = 3 * 3;
+		for (Integer i = shift; i < 5 + shift; i++) {
+			distortionCoefficientsArray[i - shift] = sharedPref.getFloat(i.toString(), -1);
+		}
+		distorsionMatrix.put(0, 0, distortionCoefficientsArray);
+	}
 }
 
