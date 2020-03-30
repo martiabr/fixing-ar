@@ -1,0 +1,284 @@
+[
+  {
+    "level": "INFO",
+    "message": "Start JSON generation. Platform version: 16 min SDK version: x86_64",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "No CMake version was specified in build.gradle. Using default version 3.10.2.",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "Trying to locate CMake in local SDK repository.",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "- CMake found in SDK at \u0027C:\\Users\\Julia\\AppData\\Local\\Android\\Sdk\\cmake\\3.10.2.4988404\u0027 had version \u00273.10.2\u0027",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "CMake \u00273.6.0\u0027 found in SDK did not match requested version \u00273.10.2\u0027.",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "rebuilding JSON C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\.cxx\\cmake\\release\\x86_64\\android_gradle_build.json due to:",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "- expected json C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\.cxx\\cmake\\release\\x86_64\\android_gradle_build.json file is not present, will remove stale json folder",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "- missing previous command file C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\.cxx\\cmake\\release\\x86_64\\build_command.txt, will remove stale json folder",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "- command changed from previous, will remove stale json folder",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "removing stale contents from \u0027C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\.cxx\\cmake\\release\\x86_64\u0027",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "created folder \u0027C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\.cxx\\cmake\\release\\x86_64\u0027",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "executing cmake Executable : C:\\Users\\Julia\\AppData\\Local\\Android\\Sdk\\cmake\\3.10.2.4988404\\bin\\cmake.exe\narguments : \n-HC:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\n-DCMAKE_BUILD_TYPE\u003dRelease\n-DCMAKE_TOOLCHAIN_FILE\u003dC:\\Users\\Julia\\AppData\\Local\\Android\\Sdk\\ndk\\20.0.5594570\\build\\cmake\\android.toolchain.cmake\n-DANDROID_ABI\u003dx86_64\n-DANDROID_NDK\u003dC:\\Users\\Julia\\AppData\\Local\\Android\\Sdk\\ndk\\20.0.5594570\n-DANDROID_PLATFORM\u003dandroid-16\n-DCMAKE_ANDROID_ARCH_ABI\u003dx86_64\n-DCMAKE_ANDROID_NDK\u003dC:\\Users\\Julia\\AppData\\Local\\Android\\Sdk\\ndk\\20.0.5594570\n-DCMAKE_EXPORT_COMPILE_COMMANDS\u003dON\n-DCMAKE_LIBRARY_OUTPUT_DIRECTORY\u003dC:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\build\\intermediates\\cmake\\release\\obj\\x86_64\n-DCMAKE_MAKE_PROGRAM\u003dC:\\Users\\Julia\\AppData\\Local\\Android\\Sdk\\cmake\\3.10.2.4988404\\bin\\ninja.exe\n-DCMAKE_SYSTEM_NAME\u003dAndroid\n-DCMAKE_SYSTEM_VERSION\u003d16\n-DOpenCV_DIR\u003dapp/src/main/jniLibs\n-DANDROID_TOOLCHAIN\u003dclang\n-DANDROID_STL\u003dc++_shared\n-BC:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\.cxx\\cmake\\release\\x86_64\n-GNinja\njvmArgs : \n\n",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "\n",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "[\u003d\u003d \"CMake Server\" \u003d\u003d[\n",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"supportedProtocolVersions\":[{\"isExperimental\":true,\"major\":1,\"minor\":1}],\"type\":\"hello\"}\n",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "]\u003d\u003d \"CMake Server\" \u003d\u003d]\n",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "{\n  \"type\": \"handshake\",\n  \"cookie\": \"gradle-cmake-cookie\",\n  \"protocolVersion\": {\n    \"isExperimental\": true,\n    \"major\": 1,\n    \"minor\": 1\n  },\n  \"sourceDirectory\": \"C:/Users/Julia/Documents/GitHub/fixing-ar/app/src/main/jniLibs\",\n  \"buildDirectory\": \"C:/Users/Julia/Documents/GitHub/fixing-ar/app/.cxx/cmake/release/x86_64\",\n  \"generator\": \"Ninja\"\n}\n",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"gradle-cmake-cookie\",\"inReplyTo\":\"handshake\",\"type\":\"reply\"}\n",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "{\n  \"type\": \"configure\",\n  \"cacheArguments\": [\n    \"\",\n    \"-DCMAKE_BUILD_TYPE\\u003dRelease\",\n    \"-DCMAKE_TOOLCHAIN_FILE\\u003dC:\\\\Users\\\\Julia\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\ndk\\\\20.0.5594570\\\\build\\\\cmake\\\\android.toolchain.cmake\",\n    \"-DANDROID_ABI\\u003dx86_64\",\n    \"-DANDROID_NDK\\u003dC:\\\\Users\\\\Julia\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\ndk\\\\20.0.5594570\",\n    \"-DANDROID_PLATFORM\\u003dandroid-16\",\n    \"-DCMAKE_ANDROID_ARCH_ABI\\u003dx86_64\",\n    \"-DCMAKE_ANDROID_NDK\\u003dC:\\\\Users\\\\Julia\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\ndk\\\\20.0.5594570\",\n    \"-DCMAKE_EXPORT_COMPILE_COMMANDS\\u003dON\",\n    \"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY\\u003dC:\\\\Users\\\\Julia\\\\Documents\\\\GitHub\\\\fixing-ar\\\\app\\\\build\\\\intermediates\\\\cmake\\\\release\\\\obj\\\\x86_64\",\n    \"-DCMAKE_MAKE_PROGRAM\\u003dC:\\\\Users\\\\Julia\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\cmake\\\\3.10.2.4988404\\\\bin\\\\ninja.exe\",\n    \"-DCMAKE_SYSTEM_NAME\\u003dAndroid\",\n    \"-DCMAKE_SYSTEM_VERSION\\u003d16\",\n    \"-DOpenCV_DIR\\u003dapp/src/main/jniLibs\",\n    \"-DANDROID_TOOLCHAIN\\u003dclang\",\n    \"-DANDROID_STL\\u003dc++_shared\"\n  ]\n}\n",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"Check for working CXX compiler: C:/Users/Julia/AppData/Local/Android/Sdk/ndk/20.0.5594570/toolchains/llvm/prebuilt/windows-x86_64/bin/clang++.exe\",\"type\":\"message\"}\n",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "Check for working CXX compiler: C:/Users/Julia/AppData/Local/Android/Sdk/ndk/20.0.5594570/toolchains/llvm/prebuilt/windows-x86_64/bin/clang++.exe",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"progressCurrent\":33,\"progressMaximum\":1000,\"progressMessage\":\"Configuring\",\"progressMinimum\":0,\"type\":\"progress\"}\n",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"Check for working CXX compiler: C:/Users/Julia/AppData/Local/Android/Sdk/ndk/20.0.5594570/toolchains/llvm/prebuilt/windows-x86_64/bin/clang++.exe -- works\",\"type\":\"message\"}\n",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "Check for working CXX compiler: C:/Users/Julia/AppData/Local/Android/Sdk/ndk/20.0.5594570/toolchains/llvm/prebuilt/windows-x86_64/bin/clang++.exe -- works",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"Detecting CXX compiler ABI info\",\"type\":\"message\"}\n",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "Detecting CXX compiler ABI info",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"progressCurrent\":65,\"progressMaximum\":1000,\"progressMessage\":\"Configuring\",\"progressMinimum\":0,\"type\":\"progress\"}\n",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"Detecting CXX compiler ABI info - done\",\"type\":\"message\"}\n",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "Detecting CXX compiler ABI info - done",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"Detecting CXX compile features\",\"type\":\"message\"}\n",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "Detecting CXX compile features",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"progressCurrent\":96,\"progressMaximum\":1000,\"progressMessage\":\"Configuring\",\"progressMinimum\":0,\"type\":\"progress\"}\n",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"progressCurrent\":126,\"progressMaximum\":1000,\"progressMessage\":\"Configuring\",\"progressMinimum\":0,\"type\":\"progress\"}\n",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"progressCurrent\":155,\"progressMaximum\":1000,\"progressMessage\":\"Configuring\",\"progressMinimum\":0,\"type\":\"progress\"}\n",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"progressCurrent\":184,\"progressMaximum\":1000,\"progressMessage\":\"Configuring\",\"progressMinimum\":0,\"type\":\"progress\"}\n",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"Detecting CXX compile features - done\",\"type\":\"message\"}\n",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "Detecting CXX compile features - done",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"ANDROID_ABI\u003dx86_64\",\"type\":\"message\"}\n",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "ANDROID_ABI\u003dx86_64",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"CMake Error at CMakeLists.txt:13 (find_package):\\n  Could not find a package configuration file provided by \\\"OpenCV\\\" with any\\n  of the following names:\\n\\n    OpenCVConfig.cmake\\n    opencv-config.cmake\\n\\n  Add the installation prefix of \\\"OpenCV\\\" to CMAKE_PREFIX_PATH or set\\n  \\\"OpenCV_DIR\\\" to a directory containing one of the above files.  If \\\"OpenCV\\\"\\n  provides a separate development package or SDK, be sure it has been\\n  installed.\\n\\n\",\"title\":\"Error\",\"type\":\"message\"}\n",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "ERROR",
+    "message": "CMake Error at C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt:13 (find_package):\r\n  Could not find a package configuration file provided by \"OpenCV\" with any\r\n  of the following names:\r\n\r\n    OpenCVConfig.cmake\r\n    opencv-config.cmake\r\n\r\n  Add the installation prefix of \"OpenCV\" to CMAKE_PREFIX_PATH or set\r\n  \"OpenCV_DIR\" to a directory containing one of the above files.  If \"OpenCV\"\r\n  provides a separate development package or SDK, be sure it has been\r\n  installed.\r\n",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"progressCurrent\":1000,\"progressMaximum\":1000,\"progressMessage\":\"Configuring\",\"progressMinimum\":0,\"type\":\"progress\"}\n",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"Configuring incomplete, errors occurred!\\nSee also \\\"C:/Users/Julia/Documents/GitHub/fixing-ar/app/.cxx/cmake/release/x86_64/CMakeFiles/CMakeOutput.log\\\".\",\"type\":\"message\"}\n",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "Configuring incomplete, errors occurred!\r\nSee also \"C:/Users/Julia/Documents/GitHub/fixing-ar/app/.cxx/cmake/release/x86_64/CMakeFiles/CMakeOutput.log\".",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"errorMessage\":\"Configuration failed.\",\"inReplyTo\":\"configure\",\"type\":\"error\"}\n",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "ERROR",
+    "message": "Configuration failed.",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  },
+  {
+    "level": "INFO",
+    "message": "JSON generation completed with problem. Exception: com.android.ide.common.process.ProcessException: Error configuring CMake server (C:\\Users\\Julia\\AppData\\Local\\Android\\Sdk\\cmake\\3.10.2.4988404\\bin).\r\nCheck for working CXX compiler: C:/Users/Julia/AppData/Local/Android/Sdk/ndk/20.0.5594570/toolchains/llvm/prebuilt/windows-x86_64/bin/clang++.exe\nCheck for working CXX compiler: C:/Users/Julia/AppData/Local/Android/Sdk/ndk/20.0.5594570/toolchains/llvm/prebuilt/windows-x86_64/bin/clang++.exe -- works\nDetecting CXX compiler ABI info\nDetecting CXX compiler ABI info - done\nDetecting CXX compile features\nDetecting CXX compile features - done\nANDROID_ABI\u003dx86_64\nCMake Error at CMakeLists.txt:13 (find_package):\n  Could not find a package configuration file provided by \"OpenCV\" with any\n  of the following names:\n\n    OpenCVConfig.cmake\n    opencv-config.cmake\n\n  Add the installation prefix of \"OpenCV\" to CMAKE_PREFIX_PATH or set\n  \"OpenCV_DIR\" to a directory containing one of the above files.  If \"OpenCV\"\n  provides a separate development package or SDK, be sure it has been\n  installed.\n\n\nConfiguring incomplete, errors occurred!\nSee also \"C:/Users/Julia/Documents/GitHub/fixing-ar/app/.cxx/cmake/release/x86_64/CMakeFiles/CMakeOutput.log\".\n",
+    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\CMakeLists.txt",
+    "tag": "release|x86_64"
+  }
+]
