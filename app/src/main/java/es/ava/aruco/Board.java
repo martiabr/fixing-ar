@@ -75,7 +75,7 @@ public class Board extends Vector<Marker>{
 		this.object.setModelViewMatrix(matrix);
 	}
 	
-	public void draw3dAxis(Mat frame, CameraParameters cp, Scalar color){
-		Utils.draw3dAxis(frame, cp, color, 2*this.get(0).ssize, Rvec, Tvec);
+	public void draw3dAxis(Mat frame, CameraParameters cp){
+		Utils.draw3dAxis(frame, cp, 2*this.get(0).ssize, Rvec, Tvec);
 	}
 }

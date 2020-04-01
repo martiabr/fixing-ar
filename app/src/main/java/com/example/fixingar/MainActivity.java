@@ -7,30 +7,22 @@ import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
-import org.opencv.calib3d.Calib3d;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfPoint2f;
-import org.opencv.core.MatOfPoint3f;
-import org.opencv.core.Point;
-import org.opencv.core.Point3;
 import org.opencv.core.Scalar;
-import org.opencv.imgproc.Imgproc;
+import org.w3c.dom.Text;
 
 import android.Manifest;
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.WindowManager;
+import android.widget.TextView;
 
 import java.util.Collections;
 import java.util.List;
@@ -56,19 +48,13 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     private static final float MARKER_SIZE = (float) 0.017;
 
     //Preferences
-    private static final boolean SHOW_MARKERID = false;
+    private static final boolean SHOW_MARKERID = true;
 
     //You must run a calibration prior to detection
     // The activity to run calibration is provided in the repository
-    private static final String DATA_FILEPATH = "";
 
     private CameraBridgeViewBase mOpenCvCameraView;
-    private boolean              mIsJavaCamera = true;
-    private MenuItem             mItemSwitchCamera = null;
-
-    private static final int CAMERA_MATRIX_ROWS = 3;
-    private static final int CAMERA_MATRIX_COLS = 3;
-    private static final int DISTORTION_COEFFICIENTS_SIZE = 5;
+    private TextView mDebugText;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -111,6 +97,8 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         }
 
         setContentView(R.layout.activity_main);
+
+        mDebugText = (TextView) findViewById(R.id.debug_text);
 
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.camera_view);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
@@ -165,9 +153,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         CameraParameters camParams = new CameraParameters();
 
         //camParams.readFromFile(Environment.getExternalStorageDirectory().toString() + DATA_FILEPATH);
-        //camParams.readMagicNumbers();
         camParams.read(this);
-        Log.d(TAG, camParams.getDistCoeff().dump());
 
         //Populate detectedMarkers
         mDetector.detect(rgba, detectedMarkers, camParams, MARKER_SIZE);
@@ -176,9 +162,14 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         if (detectedMarkers.size() != 0) {
             for (int i = 0; i < detectedMarkers.size(); i++) {
                 Marker marker = detectedMarkers.get(i);
-                detectedMarkers.get(i).draw3dAxis(rgba, camParams, new Scalar(0,0,0));
 
-                if (SHOW_MARKERID) {
+                debugMsg(marker.getRvec().dump() + "\n" + marker.getTvec().dump());
+                // Rvec and Tvec are the rotation and translation from the marker frame to the camera frame!
+
+                detectedMarkers.get(i).draw3dAxis(rgba, camParams);
+                detectedMarkers.get(i).draw3dCube(rgba, camParams, new Scalar(255,255,0));
+
+                /*if (SHOW_MARKERID) {
                     //Setup
                     int idValue = detectedMarkers.get(i).getMarkerId();
                     Vector<Point3> points = new Vector<>();
@@ -193,12 +184,21 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                     pts = outputPoints.toList();
 
                     //Draw id number
-                    Imgproc.putText(rgba, Integer.toString(idValue), pts.get(0), Imgproc.FONT_HERSHEY_SIMPLEX, 2, new Scalar(0,0,1));
-                }
+                    Imgproc.putText(rgba, Integer.toString(idValue), pts.get(0), Imgproc.FONT_HERSHEY_SIMPLEX, 2, new Scalar(255,0,0));
+                }*/
             }
         }
-
         return rgba;
+    }
+
+    public void debugMsg(String msg) {
+        final String str = msg;
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mDebugText.setText(str);
+            }
+        });
     }
 
     @Override

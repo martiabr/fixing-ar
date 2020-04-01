@@ -72,7 +72,7 @@ public class MarkerDetector {
 		Imgproc.findContours(thres2, contours2, hierarchy2, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_NONE);
 		
 		// uncomment the following line if you want the contours drawn
-		//Imgproc.drawContours(frameDebug, contours2, -1, new Scalar(255,0,0),2);
+		//Imgproc.drawContours(in, contours2, -1, new Scalar(255,0,0),2);
 		// to each contour analyze if it is a paralelepiped likely to be a marker
 		MatOfPoint2f approxCurve = new MatOfPoint2f();
 //		List<Point> approxPoints = new ArrayList<Point>();

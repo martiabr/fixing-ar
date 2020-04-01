@@ -277,7 +277,7 @@ public abstract class Utils {
         argConvGLcpara2( cparam, size.width, size.height, gnear, gfar, proj_matrix, invert );
     }
     
-	public static void draw3dAxis(Mat frame, CameraParameters cp, Scalar color, double height, Mat Rvec, Mat Tvec){
+	public static void draw3dAxis(Mat frame, CameraParameters cp, double height, Mat Rvec, Mat Tvec){
 //		Mat objectPoints = new Mat(4,3,CvType.CV_32FC1);;
 		MatOfPoint3f objectPoints = new MatOfPoint3f();
 		Vector<Point3> points = new Vector<Point3>();
@@ -293,13 +293,17 @@ public abstract class Utils {
 		List<Point> pts = new Vector<Point>();
 		Converters.Mat_to_vector_Point(imagePoints, pts);
 
-		Imgproc.line(frame ,pts.get(0),pts.get(1), color, 2);
-		Imgproc.line(frame ,pts.get(0),pts.get(2), color, 2);
-		Imgproc.line(frame ,pts.get(0),pts.get(3), color, 2);
+		Scalar colorX = new Scalar(255,0,0);
+		Scalar colorY = new Scalar(0,255,0);
+		Scalar colorZ = new Scalar(0,0,255);
 
-		Imgproc.putText(frame, "X", pts.get(1), Imgproc.FONT_HERSHEY_SIMPLEX, 2.0,  color,2);
-		Imgproc.putText(frame, "Y", pts.get(2), Imgproc.FONT_HERSHEY_SIMPLEX, 2.0,  color,2);
-		Imgproc.putText(frame, "Z", pts.get(3), Imgproc.FONT_HERSHEY_SIMPLEX, 2.0,  color,2);
+		Imgproc.line(frame ,pts.get(0),pts.get(1), colorX, 8);
+		Imgproc.line(frame ,pts.get(0),pts.get(2), colorY, 8);
+		Imgproc.line(frame ,pts.get(0),pts.get(3), colorZ, 8);
+
+		Imgproc.putText(frame, "X", pts.get(1), Imgproc.FONT_HERSHEY_SIMPLEX, 2.0,  colorX,5);
+		Imgproc.putText(frame, "Y", pts.get(2), Imgproc.FONT_HERSHEY_SIMPLEX, 2.0,  colorY,5);
+		Imgproc.putText(frame, "Z", pts.get(3), Imgproc.FONT_HERSHEY_SIMPLEX, 2.0,  colorZ,5);
 	}
     
 	private static void argConvGLcpara2(double[][] cparam, double width, double height, double gnear,
