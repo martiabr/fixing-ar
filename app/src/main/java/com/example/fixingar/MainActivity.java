@@ -58,6 +58,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
     private float                  mRelativeFaceSize   = 0.2f;
     private int                    mAbsoluteFaceSize   = 0;
+    private int                    FaceLength;
 
     private CameraBridgeViewBase mOpenCvCameraView;
 
@@ -203,9 +204,11 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         else {
             Log.e(TAG, "Detection method is not selected!");
         }
-        Rect[] facesArray = faces.toArray();
+        Rect[] facesArray;
+        facesArray = faces.toArray();
         for (int i = 0; i < facesArray.length; i++)
             Imgproc.rectangle(mRgba, facesArray[i].tl(), facesArray[i].br(), FACE_RECT_COLOR, 3);
+        FaceLength = facesArray.length;
 
         return mRgba;
 
