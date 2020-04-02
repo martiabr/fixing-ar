@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.fixingar"
-        minSdkVersion 16
+        minSdkVersion 21
         targetSdkVersion 29
         versionCode 1
         versionName "1.0"
@@ -30,11 +30,14 @@ android {
         }
     }
     externalNativeBuild {
-        cmake {
-            path 'src/main/jniLibs/CMakeLists.txt'
+        ndkBuild {
+            path 'src/main/jniLibs/Android.mk'
         }
     }
-
+    ndkVersion = '21.0.6113669'
+    packagingOptions {
+        pickFirst 'lib/*/libc++_shared.so'
+    }
 }
 
 dependencies {

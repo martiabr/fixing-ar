@@ -25,6 +25,7 @@ import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.CascadeClassifier;
+import org.opencv.samples.facedetect.DetectionBasedTracker;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -50,7 +51,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     private Mat                    mGray;
     private File                   mCascadeFile;
     private CascadeClassifier      mJavaDetector;
-    private DetectionBasedTracker  mNativeDetector;
+    private DetectionBasedTracker mNativeDetector;
 
     private int                    mDetectorType       = JAVA_DETECTOR;
     private String[]               mDetectorName;

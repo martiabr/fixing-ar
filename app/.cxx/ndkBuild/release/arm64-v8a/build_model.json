@@ -1,17 +1,17 @@
 {
   "abi": "ARM64_V8A",
-  "abiPlatformVersion": 16,
+  "abiPlatformVersion": 21,
   "buildSettings": {
     "environmentVariables": []
   },
-  "cxxBuildFolder": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\.cxx\\ndkBuild\\release\\arm64-v8a",
+  "cxxBuildFolder": "C:\\Users\\Caroline\\Desktop\\ethz\\3D_vision\\fixing-ar\\fixing-ar\\app\\.cxx\\ndkBuild\\release\\arm64-v8a",
   "info": {
     "abi": "ARM64_V8A",
     "bitness": 64,
     "deprecated": false,
     "default": true
   },
-  "originalCxxBuildFolder": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\.cxx\\ndkBuild\\release\\arm64-v8a",
+  "originalCxxBuildFolder": "C:\\Users\\Caroline\\Desktop\\ethz\\3D_vision\\fixing-ar\\fixing-ar\\app\\.cxx\\ndkBuild\\release\\arm64-v8a",
   "variant": {
     "buildSystemArgumentList": [],
     "buildTargetSet": [],
@@ -21,20 +21,20 @@
     "isDebuggableEnabled": false,
     "module": {
       "buildSystem": "NDK_BUILD",
-      "cmakeToolchainFile": "C:\\Users\\Julia\\AppData\\Local\\Android\\Sdk\\ndk\\20.0.5594570\\build\\cmake\\android.toolchain.cmake",
-      "cxxFolder": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\.cxx",
+      "cmakeToolchainFile": "C:\\Users\\Caroline\\AppData\\Local\\Android\\Sdk\\ndk\\21.0.6113669\\build\\cmake\\android.toolchain.cmake",
+      "cxxFolder": "C:\\Users\\Caroline\\Desktop\\ethz\\3D_vision\\fixing-ar\\fixing-ar\\app\\.cxx",
       "gradleModulePathName": ":app",
-      "intermediatesFolder": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\build\\intermediates",
-      "makeFile": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\Android.mk",
-      "moduleBuildFile": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\build.gradle",
-      "moduleRootFolder": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app",
+      "intermediatesFolder": "C:\\Users\\Caroline\\Desktop\\ethz\\3D_vision\\fixing-ar\\fixing-ar\\app\\build\\intermediates",
+      "makeFile": "C:\\Users\\Caroline\\Desktop\\ethz\\3D_vision\\fixing-ar\\fixing-ar\\app\\src\\main\\jniLibs\\Android.mk",
+      "moduleBuildFile": "C:\\Users\\Caroline\\Desktop\\ethz\\3D_vision\\fixing-ar\\fixing-ar\\app\\build.gradle",
+      "moduleRootFolder": "C:\\Users\\Caroline\\Desktop\\ethz\\3D_vision\\fixing-ar\\fixing-ar\\app",
       "ndkDefaultAbiList": [
         "ARMEABI_V7A",
         "ARM64_V8A",
         "X86",
         "X86_64"
       ],
-      "ndkFolder": "C:\\Users\\Julia\\AppData\\Local\\Android\\Sdk\\ndk\\20.0.5594570",
+      "ndkFolder": "C:\\Users\\Caroline\\AppData\\Local\\Android\\Sdk\\ndk\\21.0.6113669",
       "ndkMetaAbiList": [
         {
           "abi": "ARMEABI_V7A",
@@ -88,30 +88,30 @@
         "X86",
         "X86_64"
       ],
-      "ndkVersion": "20.0.5594570",
+      "ndkVersion": "21.0.6113669",
       "project": {
-        "compilerSettingsCacheFolder": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\.cxx",
-        "cxxFolder": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\.cxx",
+        "compilerSettingsCacheFolder": "C:\\Users\\Caroline\\Desktop\\ethz\\3D_vision\\fixing-ar\\fixing-ar\\.cxx",
+        "cxxFolder": "C:\\Users\\Caroline\\Desktop\\ethz\\3D_vision\\fixing-ar\\fixing-ar\\.cxx",
         "isBuildOnlyTargetAbiEnabled": true,
         "isCmakeBuildCohabitationEnabled": false,
         "isNativeCompilerSettingsCacheEnabled": false,
-        "rootBuildGradleFolder": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar",
-        "sdkFolder": "C:\\Users\\Julia\\AppData\\Local\\Android\\Sdk"
+        "rootBuildGradleFolder": "C:\\Users\\Caroline\\Desktop\\ethz\\3D_vision\\fixing-ar\\fixing-ar",
+        "sdkFolder": "C:\\Users\\Caroline\\AppData\\Local\\Android\\Sdk"
       },
       "splitsAbiFilterSet": [],
       "stlSharedObjectMap": {
         "LIBCXX_SHARED": {
-          "ARMEABI_V7A": "C:\\Users\\Julia\\AppData\\Local\\Android\\Sdk\\ndk\\20.0.5594570\\toolchains\\llvm\\prebuilt\\windows-x86_64\\sysroot\\usr\\lib\\arm-linux-androideabi\\libc++_shared.so",
-          "ARM64_V8A": "C:\\Users\\Julia\\AppData\\Local\\Android\\Sdk\\ndk\\20.0.5594570\\toolchains\\llvm\\prebuilt\\windows-x86_64\\sysroot\\usr\\lib\\aarch64-linux-android\\libc++_shared.so",
-          "X86": "C:\\Users\\Julia\\AppData\\Local\\Android\\Sdk\\ndk\\20.0.5594570\\toolchains\\llvm\\prebuilt\\windows-x86_64\\sysroot\\usr\\lib\\i686-linux-android\\libc++_shared.so",
-          "X86_64": "C:\\Users\\Julia\\AppData\\Local\\Android\\Sdk\\ndk\\20.0.5594570\\toolchains\\llvm\\prebuilt\\windows-x86_64\\sysroot\\usr\\lib\\x86_64-linux-android\\libc++_shared.so"
+          "ARMEABI_V7A": "C:\\Users\\Caroline\\AppData\\Local\\Android\\Sdk\\ndk\\21.0.6113669\\toolchains\\llvm\\prebuilt\\windows-x86_64\\sysroot\\usr\\lib\\arm-linux-androideabi\\libc++_shared.so",
+          "ARM64_V8A": "C:\\Users\\Caroline\\AppData\\Local\\Android\\Sdk\\ndk\\21.0.6113669\\toolchains\\llvm\\prebuilt\\windows-x86_64\\sysroot\\usr\\lib\\aarch64-linux-android\\libc++_shared.so",
+          "X86": "C:\\Users\\Caroline\\AppData\\Local\\Android\\Sdk\\ndk\\21.0.6113669\\toolchains\\llvm\\prebuilt\\windows-x86_64\\sysroot\\usr\\lib\\i686-linux-android\\libc++_shared.so",
+          "X86_64": "C:\\Users\\Caroline\\AppData\\Local\\Android\\Sdk\\ndk\\21.0.6113669\\toolchains\\llvm\\prebuilt\\windows-x86_64\\sysroot\\usr\\lib\\x86_64-linux-android\\libc++_shared.so"
         },
         "LIBCXX_STATIC": {},
         "NONE": {},
         "SYSTEM": {}
       }
     },
-    "objFolder": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\build\\intermediates\\ndkBuild\\release\\obj\\local",
+    "objFolder": "C:\\Users\\Caroline\\Desktop\\ethz\\3D_vision\\fixing-ar\\fixing-ar\\app\\build\\intermediates\\ndkBuild\\release\\obj\\local",
     "variantName": "release",
     "validAbiList": [
       "ARMEABI_V7A",
