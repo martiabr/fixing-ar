@@ -9,7 +9,6 @@ import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
-import org.w3c.dom.Text;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
@@ -18,11 +17,10 @@ import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.View.OnTouchListener;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,10 +42,10 @@ import es.ava.aruco.MarkerDetector;
 //     0;
 //     -0.1959808318795349]
 
-public class MainActivity extends CameraActivity implements CvCameraViewListener2, OnTouchListener {
+public class MainActivity extends CameraActivity implements CvCameraViewListener2, View.OnClickListener {
     //Constants
     private static final String TAG = "Main";
-    private static final float MARKER_SIZE = (float) 0.017;
+    private static final float MARKER_SIZE = (float) 0.13;
 
     //Preferences
     private static final boolean SHOW_MARKERID = true;
@@ -55,6 +53,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     private CameraBridgeViewBase mOpenCvCameraView;
     private int mCameraIndex = CameraBridgeViewBase.CAMERA_ID_BACK;
     private TextView mDebugText;
+    private Button mCameraButton;
 
     private Handler mHandler = new Handler();
     private boolean timerRunning = true;
@@ -68,7 +67,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 {
                     Log.i(TAG, "OpenCV loaded successfully");
                     mOpenCvCameraView.enableView();
-                    mOpenCvCameraView.setOnTouchListener(MainActivity.this);
+                    mCameraButton.setOnClickListener(MainActivity.this);
 
                     if (timerRunning) {
                         mHandler.postDelayed(mCameraSwitchRunnable, DELAY);
@@ -107,6 +106,8 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         setContentView(R.layout.activity_main);
 
         mDebugText = (TextView) findViewById(R.id.debug_text);
+
+        mCameraButton = (Button) findViewById(R.id.camera_button);
 
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.camera_view);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
@@ -159,13 +160,13 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         //Convert input to rgba
         Mat rgba = inputFrame.rgba();
 
+        // Do marker detection if we use the back camera:
         if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_BACK) {
             //Setup required parameters for detect method
             MarkerDetector mDetector = new MarkerDetector();
             Vector<Marker> detectedMarkers = new Vector<>();
             CameraParameters camParams = new CameraParameters();
 
-            //camParams.readFromFile(Environment.getExternalStorageDirectory().toString() + DATA_FILEPATH);
             camParams.read(this);
 
             //Populate detectedMarkers
@@ -189,6 +190,8 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                     detectedMarkers.get(i).draw3dCube(rgba, camParams, new Scalar(255,255,0));
                 }
             }
+        } else if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_FRONT) {
+            // Do facial recognition here
         }
 
         return rgba;
@@ -204,28 +207,9 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         });
     }
 
-    @Override
-    public boolean onTouch(View v, MotionEvent event) {
-        Log.d(TAG, "onTouch invoked");
-
-        if (timerRunning) {
-            Toast.makeText(this, "Turning off", Toast.LENGTH_SHORT).show();
-            mHandler.removeCallbacks(mCameraSwitchRunnable);
-        } else {
-            Toast.makeText(this, "Turning on", Toast.LENGTH_SHORT).show();
-            mCameraSwitchRunnable.run();
-        }
-
-        timerRunning = !timerRunning;
-
-        return true;
-    }
-
     private Runnable mCameraSwitchRunnable = new Runnable() {
         @Override
         public void run() {
-            Log.i(TAG, String.valueOf(mCameraIndex));
-
             switchCameras();
 
             mHandler.postDelayed(this, DELAY);
@@ -240,11 +224,29 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         }
 
         Toast.makeText(MainActivity.this, "Switching camera to " + mCameraIndex, Toast.LENGTH_SHORT).show();
+        Log.i(TAG, "Switching camera to " + mCameraIndex);
 
         mOpenCvCameraView.disableView();
         mOpenCvCameraView.setCameraIndex(mCameraIndex);
         mOpenCvCameraView.enableView();
 
         return true;  // TODO: check success somehow?
+    }
+
+    @Override
+    public void onClick(View v) {
+        Log.d(TAG, "onClick invoked");
+
+        if (timerRunning) {
+            Toast.makeText(this, "Turning off", Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "Turning off");
+            mHandler.removeCallbacks(mCameraSwitchRunnable);
+        } else {
+            Toast.makeText(this, "Turning on", Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "Turning on");
+            mCameraSwitchRunnable.run();
+        }
+
+        timerRunning = !timerRunning;
     }
 }
