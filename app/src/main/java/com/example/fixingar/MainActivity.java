@@ -25,6 +25,7 @@ import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.CascadeClassifier;
+import org.opencv.samples.facedetect.DetectionBasedTracker;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -50,13 +51,14 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     private Mat                    mGray;
     private File                   mCascadeFile;
     private CascadeClassifier      mJavaDetector;
-    private DetectionBasedTracker  mNativeDetector;
+    private DetectionBasedTracker mNativeDetector;
 
     private int                    mDetectorType       = JAVA_DETECTOR;
     private String[]               mDetectorName;
 
     private float                  mRelativeFaceSize   = 0.2f;
     private int                    mAbsoluteFaceSize   = 0;
+    private int                    FaceLength;
 
     private CameraBridgeViewBase mOpenCvCameraView;
 
@@ -202,9 +204,11 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         else {
             Log.e(TAG, "Detection method is not selected!");
         }
-        Rect[] facesArray = faces.toArray();
+        Rect[] facesArray;
+        facesArray = faces.toArray();
         for (int i = 0; i < facesArray.length; i++)
             Imgproc.rectangle(mRgba, facesArray[i].tl(), facesArray[i].br(), FACE_RECT_COLOR, 3);
+        FaceLength = facesArray.length;
 
         return mRgba;
 
