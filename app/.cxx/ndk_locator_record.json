@@ -1,5 +1,5 @@
 {
-  "ndkFolder": "C:\\Users\\Caroline\\AppData\\Local\\Android\\Sdk\\ndk\\21.0.6113669",
+  "ndkFolder": "C:\\Users\\Julia\\AppData\\Local\\Android\\Sdk\\ndk-bundle",
   "messages": [
     {
       "level": "INFO",
@@ -15,31 +15,19 @@
     },
     {
       "level": "INFO",
-      "message": "sdkFolder is C:\\Users\\Caroline\\AppData\\Local\\Android\\Sdk"
+      "message": "sdkFolder is C:\\Users\\Julia\\AppData\\Local\\Android\\Sdk"
     },
     {
       "level": "INFO",
-      "message": "Considering C:\\Users\\Caroline\\AppData\\Local\\Android\\Sdk\\ndk-bundle in SDK ndk-bundle folder"
+      "message": "Considering C:\\Users\\Julia\\AppData\\Local\\Android\\Sdk\\ndk-bundle in SDK ndk-bundle folder"
     },
     {
       "level": "INFO",
-      "message": "Considering C:\\Users\\Caroline\\AppData\\Local\\Android\\Sdk\\ndk\\21.0.6113669 in SDK ndk folder"
+      "message": "Considering C:\\Users\\Julia\\AppData\\Local\\Android\\Sdk\\ndk\\20.0.5594570 in SDK ndk folder"
     },
     {
       "level": "INFO",
-      "message": "Found 2 NDK folders that matched requested version 21.0.6113669:"
-    },
-    {
-      "level": "INFO",
-      "message": " (1) C:\\Users\\Caroline\\AppData\\Local\\Android\\Sdk\\ndk\\21.0.6113669 in SDK ndk folder"
-    },
-    {
-      "level": "INFO",
-      "message": " (2) C:\\Users\\Caroline\\AppData\\Local\\Android\\Sdk\\ndk-bundle in SDK ndk-bundle folder"
-    },
-    {
-      "level": "INFO",
-      "message": "  choosing C:\\Users\\Caroline\\AppData\\Local\\Android\\Sdk\\ndk\\21.0.6113669"
+      "message": "Found requested NDK version 21.0.6113669 at C:\\Users\\Julia\\AppData\\Local\\Android\\Sdk\\ndk-bundle"
     }
   ]
 }
