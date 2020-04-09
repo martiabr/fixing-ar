@@ -58,7 +58,9 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
     private float                  mRelativeFaceSize   = 0.2f;
     private int                    mAbsoluteFaceSize   = 0;
-    private int                    FaceLength;
+    private int                    NumFaces;
+    private int[][]                AllEyeCoordinates;
+    private int[]                  EyeCoordinates; //contains x & y coordinate, dist, 1 or 2 to define if one eye or two were found
 
     private CameraBridgeViewBase mOpenCvCameraView;
 
@@ -182,7 +184,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         mRgba = inputFrame.rgba();
         mGray = inputFrame.gray();
 
-        if (mAbsoluteFaceSize == 0) {
+        if (mAbsoluteFaceSize == 0) { // TODO: adjust min face size to min eye size
             int height = mGray.rows();
             if (Math.round(height * mRelativeFaceSize) > 0) {
                 mAbsoluteFaceSize = Math.round(height * mRelativeFaceSize);
@@ -204,11 +206,75 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         else {
             Log.e(TAG, "Detection method is not selected!");
         }
+        // Here the eye coordinates and distance are found in bits in the array "EyeCoordinates".
+        // The app always finds the biggest eye. I implemented two scenarios: either the app finds
+        // a second eye belonging to the first one (found by smallest distance) or not. The last
+        // entry in "EyeCoordinates" describes which case we are in:
+        // If EyeCoordinates[3] = 1: Only one eye was found. In this case:
+        // EyeCoordinates[0] contains the x coordinate in bits.
+        // EyeCoordinates[1] contains the y coordinate in bits.
+        // EyeCoordinates[2] contains the width of the square in bits.
+        // If EyeCoordinates[3] = 2: Two eyes were found. In this case:
+        // EyeCoordinates[0] contains the x location between both eyes in bits.
+        // EyeCoordinates[1] contains the y location between both eyes in bits.
+        // EyeCoordinates[2] contains the distance between the eyes in bits.
         Rect[] facesArray;
         facesArray = faces.toArray();
-        for (int i = 0; i < facesArray.length; i++)
+        NumFaces = facesArray.length;
+        AllEyeCoordinates = new int[NumFaces][3];
+        EyeCoordinates = new int[4];
+        for (int i = 0; i < NumFaces; i++) {
             Imgproc.rectangle(mRgba, facesArray[i].tl(), facesArray[i].br(), FACE_RECT_COLOR, 3);
-        FaceLength = facesArray.length;
+            if (NumFaces > 0) {
+                AllEyeCoordinates[i][0] = facesArray[i].x;
+                AllEyeCoordinates[i][1] = facesArray[i].y;
+                AllEyeCoordinates[i][2] = facesArray[i].width;
+                }
+        }
+        if (NumFaces == 1) {
+                EyeCoordinates[0] = AllEyeCoordinates[0][0];
+                EyeCoordinates[1] = AllEyeCoordinates[0][1];
+                EyeCoordinates[2] = AllEyeCoordinates[0][2];
+                EyeCoordinates[3] = 1;
+            }
+        else if (NumFaces > 1) {
+            int width = AllEyeCoordinates[0][2];
+            int index1 = 0;
+            for (int i = 0; i < NumFaces; i++) {
+                if (AllEyeCoordinates[i][2] > width) {
+                    index1 = i;
+                    width = AllEyeCoordinates[index1][2];
+                }
+            }
+            int index2 = 0;
+            int dist = 10000000;
+            for (int i = 0; i < NumFaces && i != index1; i++){
+                int find = ((AllEyeCoordinates[index1][0]-AllEyeCoordinates[i][0])^2+(AllEyeCoordinates[index1][1]-AllEyeCoordinates[i][1])^2)^(1/2);
+                if (find<dist) {
+                    index2 = i;
+                    dist = find;
+                }
+            }
+            EyeCoordinates[3] = 2;
+            for (int i = 0; i < NumFaces && i != index1 && i!= index2; i++){
+                int find = ((AllEyeCoordinates[index2][0]-AllEyeCoordinates[i][0])^2+(AllEyeCoordinates[index2][1]-AllEyeCoordinates[i][1])^2)^(1/2);
+                if (find<dist) {
+                    EyeCoordinates[3] = 1;
+                }
+            }
+            if (EyeCoordinates[3] == 1) {
+                EyeCoordinates[0] = AllEyeCoordinates[index1][0];
+                EyeCoordinates[1] = AllEyeCoordinates[index1][1];
+                EyeCoordinates[2] = AllEyeCoordinates[index1][2];
+            }
+            else {
+                EyeCoordinates[0] = (AllEyeCoordinates[index1][0]+AllEyeCoordinates[index2][0])/2;
+                EyeCoordinates[1] = (AllEyeCoordinates[index1][1]+AllEyeCoordinates[index2][1])/2;
+                EyeCoordinates[2] = dist;
+            }
+
+        }
+
 
         return mRgba;
 
