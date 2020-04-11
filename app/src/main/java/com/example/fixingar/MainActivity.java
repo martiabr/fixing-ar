@@ -239,14 +239,15 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
             }
         else if (NumFaces > 1) {
             int width = AllEyeCoordinates[0][2];
-            int index1 = 0;
+            int index1 = 0; // index de l'oeil le plus grand
             for (int i = 0; i < NumFaces; i++) {
                 if (AllEyeCoordinates[i][2] > width) {
                     index1 = i;
                     width = AllEyeCoordinates[index1][2];
                 }
             }
-            int index2 = 0;
+            int index2 = 0; // trouve la distance entre les yeux et prends la dist la plus petite
+            // avec le plus grand oeil
             int dist = 10000000;
             for (int i = 0; i < NumFaces && i != index1; i++){
                 int find = ((AllEyeCoordinates[index1][0]-AllEyeCoordinates[i][0])^2+(AllEyeCoordinates[index1][1]-AllEyeCoordinates[i][1])^2)^(1/2);
@@ -256,10 +257,11 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
                 }
             }
             EyeCoordinates[3] = 2;
+            // check pour savoir si index 1 et index 2 appartiennent au meme oeil
             for (int i = 0; i < NumFaces && i != index1 && i!= index2; i++){
                 int find = ((AllEyeCoordinates[index2][0]-AllEyeCoordinates[i][0])^2+(AllEyeCoordinates[index2][1]-AllEyeCoordinates[i][1])^2)^(1/2);
                 if (find<dist) {
-                    EyeCoordinates[3] = 1;
+                    EyeCoordinates[3] = 1; // s'il trouve un oeil plus grand
                 }
             }
             if (EyeCoordinates[3] == 1) {
@@ -267,7 +269,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
                 EyeCoordinates[1] = AllEyeCoordinates[index1][1];
                 EyeCoordinates[2] = AllEyeCoordinates[index1][2];
             }
-            else {
+            else { // s'il y a deux yeux, il prend le point du milieu entre les deux yeux
                 EyeCoordinates[0] = (AllEyeCoordinates[index1][0]+AllEyeCoordinates[index2][0])/2;
                 EyeCoordinates[1] = (AllEyeCoordinates[index1][1]+AllEyeCoordinates[index2][1])/2;
                 EyeCoordinates[2] = dist;
