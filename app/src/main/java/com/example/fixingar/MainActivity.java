@@ -56,7 +56,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
     private int                    mDetectorType       = JAVA_DETECTOR;
     private String[]               mDetectorName;
 
-    private float                  mRelativeFaceSize   = 0.2f;
+    private float                  mRelativeFaceSize   = 0.1f; // change this parameter to adjust min Eye size
     private int                    mAbsoluteFaceSize   = 0;
     private int                    NumFaces;
     private int[][]                AllEyeCoordinates;
