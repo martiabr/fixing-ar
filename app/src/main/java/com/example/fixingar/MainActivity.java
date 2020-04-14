@@ -37,11 +37,12 @@ import java.util.List;
 public class MainActivity extends CameraActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
     private static final String TAG = "MainActivity";
 
-    private static final Scalar FACE_RECT_COLOR     = new Scalar(0, 255, 0, 255);
+    private static final Scalar EYE_RECT_COLOR     = new Scalar(0, 150, 0, 150);
+    private static final Scalar FACE_RECT_COLOR     = new Scalar(150, 0, 150, 0);
     public static final int        JAVA_DETECTOR       = 0;
     public static final int        NATIVE_DETECTOR     = 1;
 
-    private MenuItem mItemFace50;
+    private MenuItem               mItemFace50;
     private MenuItem               mItemFace40;
     private MenuItem               mItemFace30;
     private MenuItem               mItemFace20;
@@ -49,18 +50,27 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
     private Mat                    mRgba;
     private Mat                    mGray;
-    private File                   mCascadeFile;
-    private CascadeClassifier      mJavaDetector;
-    private DetectionBasedTracker mNativeDetector;
+    private File                   mCascadeFile1;
+    private File                   mCascadeFile2;
+    private CascadeClassifier      mJavaDetector1;
+    private DetectionBasedTracker mNativeDetector1;
+    private CascadeClassifier      mJavaDetector2;
+    private DetectionBasedTracker mNativeDetector2;
 
     private int                    mDetectorType       = JAVA_DETECTOR;
     private String[]               mDetectorName;
 
-    private float                  mRelativeFaceSize   = 0.1f; // change this parameter to adjust min Eye size
-    private int                    mAbsoluteFaceSize   = 0;
-    private int                    NumFaces;
+    private float                  mRelativeEyeSize   = 0.1f; // change this parameter to adjust min Eye size
+    private int                    mAbsoluteEyeSize   = 0;
+    private int                    NumEyes;
     private int[][]                AllEyeCoordinates;
     private int[]                  EyeCoordinates; //contains x & y coordinate, dist, 1 or 2 to define if one eye or two were found
+
+    private float                  mRelativeFaceSize   = 0.2f; // change this parameter to adjust min Face size
+    private int                    mAbsoluteFaceSize   = 0;
+    private int                    NumFaces;
+    private int[][]                AllFaceCoordinates;
+    private int[]                  FaceCoordinates; //contains x & y coordinate, width
 
     private CameraBridgeViewBase mOpenCvCameraView;
 
@@ -78,8 +88,8 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
                         // load cascade file from application resources
                         InputStream is = getResources().openRawResource(R.raw.haarcascade_eye);
                         File cascadeDir = getDir("cascade", Context.MODE_PRIVATE);
-                        mCascadeFile = new File(cascadeDir, "haarcascade_eye.xml");
-                        FileOutputStream os = new FileOutputStream(mCascadeFile);
+                        mCascadeFile1 = new File(cascadeDir, "haarcascade_eye.xml");
+                        FileOutputStream os = new FileOutputStream(mCascadeFile1);
 
                         byte[] buffer = new byte[4096];
                         int bytesRead;
@@ -89,14 +99,44 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
                         is.close();
                         os.close();
 
-                        mJavaDetector = new CascadeClassifier(mCascadeFile.getAbsolutePath());
-                        if (mJavaDetector.empty()) {
+                        mJavaDetector1 = new CascadeClassifier(mCascadeFile1.getAbsolutePath());
+                        if (mJavaDetector1.empty()) {
                             Log.e(TAG, "Failed to load cascade classifier");
-                            mJavaDetector = null;
+                            mJavaDetector1 = null;
                         } else
-                            Log.i(TAG, "Loaded cascade classifier from " + mCascadeFile.getAbsolutePath());
+                            Log.i(TAG, "Loaded cascade classifier from " + mCascadeFile1.getAbsolutePath());
 
-                        mNativeDetector = new DetectionBasedTracker(mCascadeFile.getAbsolutePath(), 0);
+                        mNativeDetector1 = new DetectionBasedTracker(mCascadeFile1.getAbsolutePath(), 0);
+
+                        cascadeDir.delete();
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        Log.e(TAG, "Failed to load cascade. Exception thrown: " + e);
+                    }
+                    try {
+                        // load cascade file from application resources
+                        InputStream is = getResources().openRawResource(R.raw.lbpcascade_frontalface);
+                        File cascadeDir = getDir("cascade", Context.MODE_PRIVATE);
+                        mCascadeFile2 = new File(cascadeDir, "lbpcascade_frontalface.xml");
+                        FileOutputStream os = new FileOutputStream(mCascadeFile2);
+
+                        byte[] buffer = new byte[4096];
+                        int bytesRead;
+                        while ((bytesRead = is.read(buffer)) != -1) {
+                            os.write(buffer, 0, bytesRead);
+                        }
+                        is.close();
+                        os.close();
+
+                        mJavaDetector2 = new CascadeClassifier(mCascadeFile2.getAbsolutePath());
+                        if (mJavaDetector2.empty()) {
+                            Log.e(TAG, "Failed to load cascade classifier");
+                            mJavaDetector2 = null;
+                        } else
+                            Log.i(TAG, "Loaded cascade classifier from " + mCascadeFile2.getAbsolutePath());
+
+                        mNativeDetector2 = new DetectionBasedTracker(mCascadeFile2.getAbsolutePath(), 0);
 
                         cascadeDir.delete();
 
@@ -184,24 +224,44 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         mRgba = inputFrame.rgba();
         mGray = inputFrame.gray();
 
-        if (mAbsoluteFaceSize == 0) { // TODO: adjust min face size to min eye size
+        if (mAbsoluteEyeSize == 0) {
+            int height = mGray.rows();
+            if (Math.round(height * mRelativeEyeSize) > 0) {
+                mAbsoluteEyeSize = Math.round(height * mRelativeEyeSize);
+            }
+            mNativeDetector1.setMinFaceSize(mAbsoluteEyeSize);
+        }
+        if (mAbsoluteFaceSize == 0) {
             int height = mGray.rows();
             if (Math.round(height * mRelativeFaceSize) > 0) {
                 mAbsoluteFaceSize = Math.round(height * mRelativeFaceSize);
             }
-            mNativeDetector.setMinFaceSize(mAbsoluteFaceSize);
+            mNativeDetector2.setMinFaceSize(mAbsoluteFaceSize);
         }
 
+        MatOfRect eyes = new MatOfRect();
         MatOfRect faces = new MatOfRect();
 
         if (mDetectorType == JAVA_DETECTOR) {
-            if (mJavaDetector != null)
-                mJavaDetector.detectMultiScale(mGray, faces, 1.1, 2, 2, // TODO: objdetect.CV_HAAR_SCALE_IMAGE
+            if (mJavaDetector1 != null)
+                mJavaDetector1.detectMultiScale(mGray, eyes, 1.1, 2, 2, // TODO: objdetect.CV_HAAR_SCALE_IMAGE
+                        new Size(mAbsoluteEyeSize, mAbsoluteEyeSize), new Size());
+        }
+        else if (mDetectorType == NATIVE_DETECTOR) {
+            if (mNativeDetector1 != null)
+                mNativeDetector1.detect(mGray, eyes);
+        }
+        else {
+            Log.e(TAG, "Detection method is not selected!");
+        }
+        if (mDetectorType == JAVA_DETECTOR) {
+            if (mJavaDetector2 != null)
+                mJavaDetector2.detectMultiScale(mGray, faces, 1.1, 2, 2, // TODO: objdetect.CV_HAAR_SCALE_IMAGE
                         new Size(mAbsoluteFaceSize, mAbsoluteFaceSize), new Size());
         }
         else if (mDetectorType == NATIVE_DETECTOR) {
-            if (mNativeDetector != null)
-                mNativeDetector.detect(mGray, faces);
+            if (mNativeDetector2 != null)
+                mNativeDetector2.detect(mGray, faces);
         }
         else {
             Log.e(TAG, "Detection method is not selected!");
@@ -218,29 +278,29 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         // EyeCoordinates[0] contains the x location between both eyes in bits.
         // EyeCoordinates[1] contains the y location between both eyes in bits.
         // EyeCoordinates[2] contains the distance between the eyes in bits.
-        Rect[] facesArray;
-        facesArray = faces.toArray();
-        NumFaces = facesArray.length;
-        AllEyeCoordinates = new int[NumFaces][3];
+        Rect[] eyesArray;
+        eyesArray = eyes.toArray();
+        NumEyes = eyesArray.length;
+        AllEyeCoordinates = new int[NumEyes][3];
         EyeCoordinates = new int[4];
-        for (int i = 0; i < NumFaces; i++) {
-            Imgproc.rectangle(mRgba, facesArray[i].tl(), facesArray[i].br(), FACE_RECT_COLOR, 3);
-            if (NumFaces > 0) {
-                AllEyeCoordinates[i][0] = facesArray[i].x;
-                AllEyeCoordinates[i][1] = facesArray[i].y;
-                AllEyeCoordinates[i][2] = facesArray[i].width;
+        for (int i = 0; i < NumEyes; i++) {
+            Imgproc.rectangle(mRgba, eyesArray[i].tl(), eyesArray[i].br(), EYE_RECT_COLOR, 3);
+            if (NumEyes > 0) {
+                AllEyeCoordinates[i][0] = eyesArray[i].x;
+                AllEyeCoordinates[i][1] = eyesArray[i].y;
+                AllEyeCoordinates[i][2] = eyesArray[i].width;
                 }
         }
-        if (NumFaces == 1) {
+        if (NumEyes == 1) {
                 EyeCoordinates[0] = AllEyeCoordinates[0][0];
                 EyeCoordinates[1] = AllEyeCoordinates[0][1];
                 EyeCoordinates[2] = AllEyeCoordinates[0][2];
                 EyeCoordinates[3] = 1;
             }
-        else if (NumFaces > 1) {
+        else if (NumEyes > 1) {
             int width = AllEyeCoordinates[0][2];
             int index1 = 0;
-            for (int i = 0; i < NumFaces; i++) {
+            for (int i = 0; i < NumEyes; i++) {
                 if (AllEyeCoordinates[i][2] > width) {
                     index1 = i;
                     width = AllEyeCoordinates[index1][2];
@@ -248,7 +308,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
             }
             int index2 = 0;
             int dist = 10000000;
-            for (int i = 0; i < NumFaces && i != index1; i++){
+            for (int i = 0; i < NumEyes && i != index1; i++){
                 int find = ((AllEyeCoordinates[index1][0]-AllEyeCoordinates[i][0])^2+(AllEyeCoordinates[index1][1]-AllEyeCoordinates[i][1])^2)^(1/2);
                 if (find<dist) {
                     index2 = i;
@@ -256,7 +316,7 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
                 }
             }
             EyeCoordinates[3] = 2;
-            for (int i = 0; i < NumFaces && i != index1 && i!= index2; i++){
+            for (int i = 0; i < NumEyes && i != index1 && i!= index2; i++){
                 int find = ((AllEyeCoordinates[index2][0]-AllEyeCoordinates[i][0])^2+(AllEyeCoordinates[index2][1]-AllEyeCoordinates[i][1])^2)^(1/2);
                 if (find<dist) {
                     EyeCoordinates[3] = 1;
@@ -274,6 +334,14 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
             }
 
         }
+        Rect[] facesArray;
+        facesArray = faces.toArray();
+        NumFaces = facesArray.length;
+        AllFaceCoordinates = new int[NumFaces][3];
+        FaceCoordinates = new int[3];
+        for (int i = 0; i < NumFaces; i++) {
+            Imgproc.rectangle(mRgba, facesArray[i].tl(), facesArray[i].br(), FACE_RECT_COLOR, 3);
+            }
 
 
         return mRgba;
@@ -314,6 +382,10 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
         mRelativeFaceSize = faceSize;
         mAbsoluteFaceSize = 0;
     }
+    private void setMinEyeSize(float eyeSize) {
+        mRelativeEyeSize = eyeSize;
+        mAbsoluteEyeSize = 0;
+    }
 
     private void setDetectorType(int type) {
         if (mDetectorType != type) {
@@ -321,10 +393,12 @@ public class MainActivity extends CameraActivity implements CameraBridgeViewBase
 
             if (type == NATIVE_DETECTOR) {
                 Log.i(TAG, "Detection Based Tracker enabled");
-                mNativeDetector.start();
+                mNativeDetector1.start();
+                mNativeDetector2.start();
             } else {
                 Log.i(TAG, "Cascade detector enabled");
-                mNativeDetector.stop();
+                mNativeDetector1.stop();
+                mNativeDetector2.stop();
             }
         }
     }
