@@ -11,6 +11,7 @@ import org.opencv.calib3d.Calib3d;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfDouble;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.MatOfPoint3f;
 import org.opencv.core.Point3;
@@ -169,6 +170,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
         //Convert input to rgba
         Mat rgba = inputFrame.rgba();
+        Size rgbaSize = rgba.size();
 
         // Do marker detection if we use the back camera:
         if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_BACK) {
@@ -266,7 +268,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 tEye2Device.put(2, 0, 0.4);  // Z (backwards)
 
                 Mat tDevice2Cam = Mat.zeros(3, 1, CvType.CV_64FC1);
-                tDevice2Cam.put(0, 0, 0.2);  // X (shift to move camera to phone center)
+                tDevice2Cam.put(0, 0, 0.05);  // X (shift to move camera to phone center)
                 // TODO: add calibration procedure for x and y offset. Just some sliders for x and y could work fine i guess?
 
                 Mat tEye2Cam = Mat.zeros(3, 1, CvType.CV_64FC1);
@@ -275,15 +277,23 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 Mat tEye2Marker = Mat.zeros(3, 1, CvType.CV_64FC1);
                 Core.add(tEye2Device, marker.getTvec(), tEye2Marker);
 
+                Log.d("Wtf:", camParams.getCameraMatrix().toString());
+                Mat EyeCamMatrix = Mat.eye(3,3,CvType.CV_32FC1);
+                EyeCamMatrix.put(0,0,0.4);
+                EyeCamMatrix.put(1,1,0.4);
+                EyeCamMatrix.put(2,2,1.0);
+                EyeCamMatrix.put(0,2,0.0711);
+                EyeCamMatrix.put(1,2,0.03495);
+
                 MatOfPoint2f dstPointsProj = new MatOfPoint2f();
-                Calib3d.projectPoints(cornerPoints, marker.getRvec(), tEye2Marker, camParams.getCameraMatrix(), camParams.getDistCoeff(), dstPointsProj);
+                Calib3d.projectPoints(cornerPoints, marker.getRvec(), tEye2Marker, EyeCamMatrix, new MatOfDouble(0,0,0,0,0,0,0,0), dstPointsProj); // camParams.getCameraMatrix()
 
                 List<Point> srcPointsProjList = new Vector<Point>();
                 srcPointsProjList = srcPointsProj.toList();
 
                 List<Point> dstPointsProjList = new Vector<Point>();
                 dstPointsProjList = dstPointsProj.toList();
-
+/*
                 // Draw squares:
                 Scalar color = new Scalar(255,255,0);
                 for (int i = 0; i < 4; i++){
@@ -291,10 +301,39 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                     Imgproc.line(rgba, dstPointsProjList.get(i), dstPointsProjList.get((i+1)%4), color, 2);
                     Imgproc.line(rgba, dstPointsProjList.get(i), srcPointsProjList.get(i), color, 2);
                 }
-
+*/
                 Mat H = Calib3d.findHomography(dstPointsProj, srcPointsProj);
+
+                // Generate corner points in screen plane and then transform to source plane.
+                MatOfPoint2f cornerOfDevice = new MatOfPoint2f();
+                Vector<Point> DevicePoints = new Vector<Point>();
+                DevicePoints.add(new Point(-0.0711,  0.03495));
+                DevicePoints.add(new Point(-0.0711, -0.03495));
+                DevicePoints.add(new Point( 0.0711, -0.03495));
+                DevicePoints.add(new Point( 0.0711,  0.03495));
+                cornerOfDevice.fromList(DevicePoints);
+                MatOfPoint2f newP = new MatOfPoint2f();
+                Imgproc.warpPerspective(cornerOfDevice,newP,H,cornerOfDevice.size());
+                Log.d("newP",newP.toString());
+
+                // Corner points on image in screen.
+                MatOfPoint2f screenCorners = new MatOfPoint2f();
+                Vector<Point> screeen = new Vector<Point>();
+                screeen.add(new Point( 0, 0));
+                screeen.add(new Point( 0,  rgbaSize.height));
+                screeen.add(new Point(rgbaSize.width, rgbaSize.height));
+                screeen.add(new Point(rgbaSize.width,  0));
+                screenCorners.fromList(screeen);
+                Log.d("screenCorners",screenCorners.toString());
+
+                // Find the final homography between points.
+                Mat finalTr = Calib3d.findHomography(newP,screenCorners);
+                Log.d("final",finalTr.toString());
+
+                // TODO: WHY THE FUCK IS finalTr not defined!??
+
                 Mat dst = new Mat(rgba.size(), CvType.CV_64FC1);
-                Imgproc.warpPerspective(rgba, dst, H, rgba.size());
+                Imgproc.warpPerspective(rgba, dst, finalTr, rgba.size());
                 return dst;
             }
 
