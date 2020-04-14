@@ -335,6 +335,10 @@ public class Marker extends MatOfPoint2f implements Comparable<Marker>{
 		return ssize;
 	}
 
+	public List<Point> getPoints(){
+		return points;
+	}
+
     //Added to Library
 	public Mat getRvec() {return Rvec;}
 
