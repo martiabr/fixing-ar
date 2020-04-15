@@ -230,6 +230,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 EyeCamMatrix.put(2,2,1.0);
                 EyeCamMatrix.put(0,2,0.0711);
                 EyeCamMatrix.put(1,2,0.03495);
+                Log.d("EyeCameraMatrix:", EyeCamMatrix.dump());
 
                 MatOfPoint2f dstPointsProj = new MatOfPoint2f();
                 Calib3d.projectPoints(cornerPoints, marker.getRvec(), tEye2Marker, EyeCamMatrix, new MatOfDouble(0,0,0,0,0,0,0,0), dstPointsProj); // camParams.getCameraMatrix()
@@ -259,22 +260,22 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 DevicePoints.add(new Point( 0.0711,  0.03495));
                 cornerOfDevice.fromList(DevicePoints);
                 MatOfPoint2f newP = new MatOfPoint2f();
-                Imgproc.warpPerspective(cornerOfDevice,newP,H,cornerOfDevice.size());
+                Core.perspectiveTransform(cornerOfDevice, newP, H);
                 Log.d("newP",newP.dump());
 
                 // Corner points on image in screen.
                 MatOfPoint2f screenCorners = new MatOfPoint2f();
-                Vector<Point> screeen = new Vector<Point>();
-                screeen.add(new Point( 0, 0));
-                screeen.add(new Point( 0,  rgbaSize.height));
-                screeen.add(new Point(rgbaSize.width, rgbaSize.height));
-                screeen.add(new Point(rgbaSize.width,  0));
-                screenCorners.fromList(screeen);
+                Vector<Point> screenCornersList = new Vector<Point>();
+                screenCornersList.add(new Point( 0, 0));
+                screenCornersList.add(new Point( 0,  rgbaSize.height));
+                screenCornersList.add(new Point(rgbaSize.width, rgbaSize.height));
+                screenCornersList.add(new Point(rgbaSize.width,  0));
+                screenCorners.fromList(screenCornersList);
                 Log.d("screenCorners",screenCorners.dump());
 
                 // Find the final homography between points.
                 Mat finalTr = Calib3d.findHomography(newP,screenCorners);
-                Log.d("final",finalTr.dump());
+                Log.d("Final:",finalTr.dump());
 
                 // TODO: WHY THE FUCK IS finalTr not defined!??
 
