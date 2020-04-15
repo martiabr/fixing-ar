@@ -190,66 +190,12 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 debugMsg(marker.getPoints().get(0) + "\n" + marker.getPoints().get(1) + "\n" + marker.getPoints().get(2) + "\n" + marker.getPoints().get(3) + "\n");
                 //debugMsg(marker.getRvec().dump() + "\n" + marker.getTvec().dump());
 
-
-                // Try perspective transform:
-                /*
-                MatOfPoint2f srcPoints = new MatOfPoint2f();
-                srcPoints.fromList(marker.getPoints());
-
-                MatOfPoint2f dstPoints = new MatOfPoint2f();
-                List<Point> dstPointList = Arrays.asList(new Point(600, 300), new Point(300, 300), new Point(300, 600), new Point(600, 600));
-                dstPoints.fromList(dstPointList);
-
-                Mat H = Calib3d.findHomography(srcPoints, dstPoints);
-                //debugMsg(H.dump()); */
-
-
-                // Try some hacky shit from stack overflow, assuming no rotation R = I, only translation x:
-                /* Mat t = new Mat(3, 1, CvType.CV_32FC1);
-                t.put(0, 0, 0.0);
-                t.put(1, 0, 0.0);
-                t.put(2, 0, -1.0);
-
-                Mat zeros = Mat.zeros(3, 3, CvType.CV_32FC1);
-                Mat res = new Mat(3, 1, CvType.CV_32FC1);
-                Core.gemm(camParams.getCameraMatrix(), t, 1, zeros, 0, res, 0);
-
-                Mat H = Mat.zeros(3, 3, CvType.CV_32FC1);
-                H.put(0, 0, 1.0);
-                H.put(1, 1, 1.0);
-                H.put(0, 2, res.get(0, 0));
-                H.put(1, 2, res.get(1, 0));
-                H.put(2, 2, res.get(2, 0));
-
-                Mat dst = new Mat(rgba.size(), CvType.CV_64FC1);
-                Imgproc.warpPerspective(rgba, dst, H, rgba.size());
-                return dst; */
-
-                // We have 4 corner points in the image plane and the rotation and translation of
-                // the center point relative to the camera.
-
-                // Find rotation matrix:
-                /*
-                Mat R = Mat.zeros(3, 3, CvType.CV_32FC1);
-                Calib3d.Rodrigues(marker.getRvec(), R);
-                 */
-
-                // Find camera position:
-                /*
-                Mat zeros = Mat.zeros(3, 3, CvType.CV_32FC1);
-                Mat tCamera = Mat.zeros(3, 1, CvType.CV_32FC1);
-                Core.gemm(R, marker.getTvec(), -1, zeros, 0, tCamera, 0);
-                 */
-
                 // Estimate 3D position of corner points:
                 // We have the normal and the size so it should be simple to estimate their positions in 3D space
 
                 // Then if we can add another translation and rotation from the camera frame to the eye frame
                 // and project the 3D corner points in this new frame we can get the end corner positions.
                 // Then we just need to do FindHomography + WarpPerspective and we are done.
-
-                // ProjectPoints:
-                // public static void projectPoints​(MatOfPoint3f objectPoints, Mat rvec, Mat tvec, Mat cameraMatrix, MatOfDouble distCoeffs, MatOfPoint2f imagePoints)
 
                 // The estimated 4 corner points in 3D marker frame:
                 MatOfPoint3f cornerPoints = new MatOfPoint3f();
@@ -277,7 +223,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 Mat tEye2Marker = Mat.zeros(3, 1, CvType.CV_64FC1);
                 Core.add(tEye2Device, marker.getTvec(), tEye2Marker);
 
-                Log.d("Wtf:", camParams.getCameraMatrix().toString());
+                Log.d("CameraMatrix:", camParams.getCameraMatrix().dump());
                 Mat EyeCamMatrix = Mat.eye(3,3,CvType.CV_32FC1);
                 EyeCamMatrix.put(0,0,0.4);
                 EyeCamMatrix.put(1,1,0.4);
@@ -314,7 +260,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 cornerOfDevice.fromList(DevicePoints);
                 MatOfPoint2f newP = new MatOfPoint2f();
                 Imgproc.warpPerspective(cornerOfDevice,newP,H,cornerOfDevice.size());
-                Log.d("newP",newP.toString());
+                Log.d("newP",newP.dump());
 
                 // Corner points on image in screen.
                 MatOfPoint2f screenCorners = new MatOfPoint2f();
@@ -324,11 +270,11 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 screeen.add(new Point(rgbaSize.width, rgbaSize.height));
                 screeen.add(new Point(rgbaSize.width,  0));
                 screenCorners.fromList(screeen);
-                Log.d("screenCorners",screenCorners.toString());
+                Log.d("screenCorners",screenCorners.dump());
 
                 // Find the final homography between points.
                 Mat finalTr = Calib3d.findHomography(newP,screenCorners);
-                Log.d("final",finalTr.toString());
+                Log.d("final",finalTr.dump());
 
                 // TODO: WHY THE FUCK IS finalTr not defined!??
 
