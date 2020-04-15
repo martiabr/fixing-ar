@@ -254,9 +254,9 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 // Generate corner points in screen plane and then transform to source plane.
                 MatOfPoint2f cornerOfDevice = new MatOfPoint2f();
                 Vector<Point> DevicePoints = new Vector<Point>();
-                DevicePoints.add(new Point(-0.0711,  0.03495));
-                DevicePoints.add(new Point(-0.0711, -0.03495));
                 DevicePoints.add(new Point( 0.0711, -0.03495));
+                DevicePoints.add(new Point(-0.0711, -0.03495));
+                DevicePoints.add(new Point(-0.0711,  0.03495));
                 DevicePoints.add(new Point( 0.0711,  0.03495));
                 cornerOfDevice.fromList(DevicePoints);
                 MatOfPoint2f newP = new MatOfPoint2f();
@@ -266,15 +266,15 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 // Corner points on image in screen.
                 MatOfPoint2f screenCorners = new MatOfPoint2f();
                 Vector<Point> screenCornersList = new Vector<Point>();
-                screenCornersList.add(new Point( 0, 0));
-                screenCornersList.add(new Point( 0,  rgbaSize.height));
-                screenCornersList.add(new Point(rgbaSize.width, rgbaSize.height));
-                screenCornersList.add(new Point(rgbaSize.width,  0));
+                screenCornersList.add(new Point( rgbaSize.width, 0));
+                screenCornersList.add(new Point( 0,  0));
+                screenCornersList.add(new Point(0, rgbaSize.height));
+                screenCornersList.add(new Point(rgbaSize.width,  rgbaSize.height));
                 screenCorners.fromList(screenCornersList);
                 Log.d("screenCorners",screenCorners.dump());
 
                 // Find the final homography between points.
-                Mat finalTr = Calib3d.findHomography(newP,screenCorners);
+                Mat finalTr = Calib3d.findHomography(screenCorners, newP);
                 Log.d("Final:",finalTr.dump());
 
                 // TODO: WHY THE FUCK IS finalTr not defined!??
