@@ -212,14 +212,12 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 // Test by adding additional translation:
                 Mat tEye2Device = Mat.zeros(3, 1, CvType.CV_64FC1);
                 tEye2Device.put(2, 0, 0.4);  // Z (backwards)
-
                 Mat tDevice2Cam = Mat.zeros(3, 1, CvType.CV_64FC1);
-                tDevice2Cam.put(0, 0, 0.05);  // X (shift to move camera to phone center)
+                tDevice2Cam.put(0, 0, -0.05);  // X (shift to move camera to phone center)
                 // TODO: add calibration procedure for x and y offset. Just some sliders for x and y could work fine i guess?
 
                 Mat tEye2Cam = Mat.zeros(3, 1, CvType.CV_64FC1);
                 Core.add(tEye2Device, tDevice2Cam, tEye2Cam);
-
                 Mat tEye2Marker = Mat.zeros(3, 1, CvType.CV_64FC1);
                 Core.add(tEye2Device, marker.getTvec(), tEye2Marker);
 
@@ -229,7 +227,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 EyeCamMatrix.put(1,1,0.4);
                 EyeCamMatrix.put(2,2,1.0);
                 EyeCamMatrix.put(0,2,0.0711);
-                EyeCamMatrix.put(1,2,0.03495);
+                EyeCamMatrix.put(1,2,0.03495); // 0
                 Log.d("EyeCameraMatrix:", EyeCamMatrix.dump());
 
                 MatOfPoint2f dstPointsProj = new MatOfPoint2f();
@@ -250,14 +248,15 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 }
 */
                 Mat H = Calib3d.findHomography(dstPointsProj, srcPointsProj);
+                Log.d("Cam2Dev",H.dump());
 
                 // Generate corner points in screen plane and then transform to source plane.
                 MatOfPoint2f cornerOfDevice = new MatOfPoint2f();
                 Vector<Point> DevicePoints = new Vector<Point>();
-                DevicePoints.add(new Point( 0.0711, -0.03495));
-                DevicePoints.add(new Point(-0.0711, -0.03495));
-                DevicePoints.add(new Point(-0.0711,  0.03495));
-                DevicePoints.add(new Point( 0.0711,  0.03495));
+                DevicePoints.add(new Point( 0.0711*2, 0));
+                DevicePoints.add(new Point(0, 0));
+                DevicePoints.add(new Point(0,  0.03495*2));
+                DevicePoints.add(new Point( 0.0711*2,  0.03495*2));
                 cornerOfDevice.fromList(DevicePoints);
                 MatOfPoint2f newP = new MatOfPoint2f();
                 Core.perspectiveTransform(cornerOfDevice, newP, H);
@@ -274,14 +273,20 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 Log.d("screenCorners",screenCorners.dump());
 
                 // Find the final homography between points.
-                Mat finalTr = Calib3d.findHomography(screenCorners, newP);
+                Mat finalTr = Calib3d.findHomography(newP,screenCorners);
                 Log.d("Final:",finalTr.dump());
-
-                // TODO: WHY THE FUCK IS finalTr not defined!??
 
                 Mat dst = new Mat(rgba.size(), CvType.CV_64FC1);
                 Imgproc.warpPerspective(rgba, dst, finalTr, rgba.size());
-                return dst;
+                Point[] coloredP = newP.toArray();
+
+                Log.d("ColoredP",coloredP[0].toString()+coloredP[1].toString()+coloredP[2].toString()+coloredP[3].toString());
+                for (int i = 0; i < 4; i++) {
+                   MyLine(rgba,coloredP[i%4],coloredP[(i+1)%4]);
+                }
+
+                return rgba;
+                //return dst;
             }
 
             //Draw Axis for each marker detected
@@ -305,8 +310,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         } else if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_FRONT) {
             // Do facial recognition here
         }
-
-        return rgba;
+            return rgba;
     }
 
     public void debugMsg(String msg) {
@@ -361,4 +365,18 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
         timerRunning = !timerRunning;
     }
+    private void MyLine( Mat img, Point start, Point end ) {
+        int thickness = 2;
+        int lineType = 8;
+        int shift = 0;
+        Imgproc.line( img,
+                start,
+                end,
+                new Scalar( 255, 0, 0 ),
+                thickness,
+                lineType,
+                shift );
+    }
 }
+
+
