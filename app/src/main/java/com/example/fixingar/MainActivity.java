@@ -70,7 +70,7 @@ import es.ava.aruco.MarkerDetector;
 //     0;
 //     -0.1959808318795349]
 
-public class MainActivity extends CameraActivity implements CvCameraViewListener2, OnTouchListener {
+public class MainActivity extends CameraActivity implements CvCameraViewListener2 {
     //Constants
     private static final String TAG = "Main";
     private static final float MARKER_SIZE = (float) 0.017;
@@ -192,7 +192,6 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                         Log.e(TAG, "Failed to load cascade. Exception thrown: " + e);
                     }
                     mOpenCvCameraView.enableView();
-                    mOpenCvCameraView.setOnTouchListener(MainActivity.this);
                 } break;
                 default:
                 {
@@ -487,20 +486,15 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
     }
 
-    public void debugMsg(String msg) {
-        final String str = msg;
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mDebugText.setText(str);
-            }
-        });
-    }
-
-    @Override
-    public boolean onTouch(View v, MotionEvent event) {
-        Log.d(TAG, "onTouch invoked");
-
+    private boolean getPermission(){
+        if (ContextCompat.checkSelfPermission(MainActivity.this,
+                Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]
+                            {Manifest.permission.CAMERA},
+                    50);
+        } else {
+            return true;
+        }
         return false;
     }
 }
