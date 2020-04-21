@@ -6,21 +6,12 @@ android {
 
     defaultConfig {
         applicationId "com.example.fixingar"
-        minSdkVersion 21
+        minSdkVersion 16
         targetSdkVersion 29
         versionCode 1
         versionName "1.0"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
-        externalNativeBuild {
-            cmake {
-                arguments "-DOpenCV_DIR=" + "app/src/main/jniLibs",
-                        "-DANDROID_TOOLCHAIN=clang",
-                        "-DANDROID_STL=c++_shared"
-                targets "detection_based_tracker"
-            }
-        }
     }
 
     buildTypes {
@@ -29,15 +20,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-    externalNativeBuild {
-        ndkBuild {
-            path 'src/main/jniLibs/Android.mk'
-        }
-    }
-    ndkVersion = '21.0.6113669'
-    packagingOptions {
-        pickFirst 'lib/*/libc++_shared.so'
-    }
+
 }
 
 dependencies {
