@@ -283,10 +283,10 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
       //Setup required parameters for detect method
         MarkerDetector mDetector = new MarkerDetector();
         Vector<Marker> detectedMarkers = new Vector<>();
-        CameraParameters camParams = new CameraParameters();
+        CameraParameters camParams_f = new CameraParameters();
 
         //camParams.readFromFile(Environment.getExternalStorageDirectory().toString() + DATA_FILEPATH);
-        camParams.read(this);
+        camParams_f.read(this);
 
         mRgba = inputFrame.rgba();
         mGray = inputFrame.gray();
@@ -377,9 +377,9 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 }
             }
             else {
-                for (int i = 0; i < (NumFaces-1); i++) {
-                    for (int j = i+1; j < NumFaces; j++) {
-                        if (Coordinates[3] != 2) {
+                for (int i = 0; i < NumEyes-1; i++) {
+                    for (int j = i+1; j < NumEyes; j++) {
+                        if (Coordinates[3] != 2 && j>i) {
                             int x1 = AllEyeCoordinates[i][0];
                             int x2 = AllEyeCoordinates[j][0];
                             int y1 = AllEyeCoordinates[i][1];
