@@ -34,6 +34,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     private static final String TAG = "CameraCalibrator";
 
     private CameraBridgeViewBase mOpenCvCameraView;
+    private int mCameraIndex = CameraBridgeViewBase.CAMERA_ID_FRONT;
     private CameraCalibrator mCalibrator;
     private OnCameraFrameRender mOnCameraFrameRender;
     private Menu mMenu;
@@ -47,6 +48,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 case LoaderCallbackInterface.SUCCESS:
                 {
                     Log.i(TAG, "OpenCV loaded successfully");
+                    mOpenCvCameraView.setCameraIndex(mCameraIndex);
                     mOpenCvCameraView.enableView();
                     mOpenCvCameraView.setOnTouchListener(MainActivity.this);
                 } break;
