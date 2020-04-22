@@ -38,10 +38,12 @@ public class CameraParameters {
 	private Mat cameraMatrix;
 	private MatOfDouble distorsionMatrix;
 	private Size camSize;
+	public String FrontBack;
 	
-	public CameraParameters(){
+	public CameraParameters(String frontOrBack){
 		cameraMatrix = new Mat(3,3,CvType.CV_32FC1);
 		distorsionMatrix = new MatOfDouble();
+		FrontBack = frontOrBack;
 	}
 	
     /**Indicates whether this object is valid
@@ -147,7 +149,7 @@ public class CameraParameters {
     }
 
     public void read(Activity activity) {
-		SharedPreferences sharedPref = activity.getPreferences(Context.MODE_PRIVATE);
+    	SharedPreferences sharedPref = activity.getSharedPreferences(FrontBack, Context.MODE_PRIVATE);
 
 		double[] cameraMatrixArray = new double[3 * 3];
 		for (int i = 0; i < 3; i++) {

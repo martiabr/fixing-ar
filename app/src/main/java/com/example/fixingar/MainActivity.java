@@ -86,6 +86,8 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     public static final int        JAVA_DETECTOR       = 0;
     public static final int        NATIVE_DETECTOR     = 1;
 
+    public String                  FrontOrBack      = "front";
+
     private MenuItem               mItemFace50;
     private MenuItem               mItemFace40;
     private MenuItem               mItemFace30;
@@ -279,11 +281,12 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
+        FrontOrBack = "front";
 
       //Setup required parameters for detect method
         MarkerDetector mDetector = new MarkerDetector();
         Vector<Marker> detectedMarkers = new Vector<>();
-        CameraParameters camParams_f = new CameraParameters();
+        CameraParameters camParams_f = new CameraParameters(FrontOrBack);
 
         //camParams.readFromFile(Environment.getExternalStorageDirectory().toString() + DATA_FILEPATH);
         camParams_f.read(this);
