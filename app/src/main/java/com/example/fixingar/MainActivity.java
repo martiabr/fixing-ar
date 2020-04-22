@@ -86,7 +86,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     public static final int        JAVA_DETECTOR       = 0;
     public static final int        NATIVE_DETECTOR     = 1;
 
-    public String                  FrontOrBack      = "front";
+    public String                  FrontOrBack;
 
     private MenuItem               mItemFace50;
     private MenuItem               mItemFace40;
@@ -281,7 +281,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-        FrontOrBack = "front";
+        FrontOrBack = "back"; // ToDo: adjust here after merge with master
 
       //Setup required parameters for detect method
         MarkerDetector mDetector = new MarkerDetector();
