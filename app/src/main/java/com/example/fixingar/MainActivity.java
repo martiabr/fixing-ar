@@ -47,6 +47,8 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     private static final String TAG = "Main";
     private static final float MARKER_SIZE = (float) 0.13;
 
+    public String                  FrontOrBack;
+
     //Preferences
     private static final boolean SHOW_MARKERID = true;
 
@@ -162,10 +164,11 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
         // Do marker detection if we use the back camera:
         if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_BACK) {
+            FrontOrBack = "back";
             //Setup required parameters for detect method
             MarkerDetector mDetector = new MarkerDetector();
             Vector<Marker> detectedMarkers = new Vector<>();
-            CameraParameters camParams = new CameraParameters();
+            CameraParameters camParams = new CameraParameters(FrontOrBack);
 
             camParams.read(this);
 
@@ -191,6 +194,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 }
             }
         } else if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_FRONT) {
+            FrontOrBack = "front";
             // Do facial recognition here
         }
 
