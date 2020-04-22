@@ -34,7 +34,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     private static final String TAG = "CameraCalibrator";
 
     private CameraBridgeViewBase mOpenCvCameraView;
-    private int mCameraIndex = CameraBridgeViewBase.CAMERA_ID_FRONT;
+    private int mCameraIndex = CameraBridgeViewBase.CAMERA_ID_BACK;
     private CameraCalibrator mCalibrator;
     private OnCameraFrameRender mOnCameraFrameRender;
     private Menu mMenu;
