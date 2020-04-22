@@ -15,11 +15,11 @@ public abstract class CalibrationResult {
     private static final int CAMERA_MATRIX_COLS = 3;
     private static final int DISTORTION_COEFFICIENTS_SIZE = 5;
 
-    public static final String front = "front";
+    public static final String back = "back";
 
     @SuppressLint("LongLogTag")
     public static void save(Activity activity, Mat cameraMatrix, Mat distortionCoefficients) {
-        SharedPreferences sharedPref = activity.getSharedPreferences(front, Context.MODE_PRIVATE);
+        SharedPreferences sharedPref = activity.getSharedPreferences(back, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
 
         double[] cameraMatrixArray = new double[CAMERA_MATRIX_ROWS * CAMERA_MATRIX_COLS];
@@ -45,7 +45,7 @@ public abstract class CalibrationResult {
 
     @SuppressLint("LongLogTag")
     public static boolean tryLoad(Activity activity, Mat cameraMatrix, Mat distortionCoefficients) {
-        SharedPreferences sharedPref = activity.getSharedPreferences(front, Context.MODE_PRIVATE);
+        SharedPreferences sharedPref = activity.getSharedPreferences(back, Context.MODE_PRIVATE);
         if (sharedPref.getFloat("0", -1) == -1) {
             Log.i(TAG, "No previous calibration results found");
             return false;
