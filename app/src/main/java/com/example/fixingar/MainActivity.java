@@ -92,8 +92,6 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     public static final int        JAVA_DETECTOR       = 0;
     public static final int        NATIVE_DETECTOR     = 1;
 
-    public String                  FrontOrBack;
-
     private MenuItem               mItemFace50;
     private MenuItem               mItemFace40;
     private MenuItem               mItemFace30;
@@ -318,7 +316,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             camParams.read(this);
 
             //Populate detectedMarkers
-            mDetector.detect(rgba, detectedMarkers, camParams, MARKER_SIZE);
+            mDetector.detect(mRgba, detectedMarkers, camParams, MARKER_SIZE);
 
             //Draw Axis for each marker detected
             if (detectedMarkers.size() != 0) {
@@ -334,8 +332,8 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                     // SolvePnP finds an object pose from 3D-2D point correspondences
                     // warpPerspective applies a perspective transformation to an image
 
-                    detectedMarkers.get(i).draw3dAxis(rgba, camParams);
-                    detectedMarkers.get(i).draw3dCube(rgba, camParams, new Scalar(255,255,0));
+                    detectedMarkers.get(i).draw3dAxis(mRgba, camParams);
+                    detectedMarkers.get(i).draw3dCube(mRgba, camParams, new Scalar(255,255,0));
                 }
             }
           
