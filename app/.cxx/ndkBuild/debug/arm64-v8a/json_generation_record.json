@@ -2,19 +2,19 @@
   {
     "level": "INFO",
     "message": "Start JSON generation. Platform version: 21 min SDK version: arm64-v8a",
-    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\Android.mk",
+    "file": "C:\\Users\\Caroline\\Desktop\\ethz\\3D_vision\\fixing-ar\\fixing-ar\\app\\src\\main\\jniLibs\\Android.mk",
     "tag": "debug|arm64-v8a"
   },
   {
     "level": "INFO",
-    "message": "JSON \u0027C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\.cxx\\ndkBuild\\debug\\arm64-v8a\\android_gradle_build.json\u0027 was up-to-date",
-    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\Android.mk",
+    "message": "JSON \u0027C:\\Users\\Caroline\\Desktop\\ethz\\3D_vision\\fixing-ar\\fixing-ar\\app\\.cxx\\ndkBuild\\debug\\arm64-v8a\\android_gradle_build.json\u0027 was up-to-date",
+    "file": "C:\\Users\\Caroline\\Desktop\\ethz\\3D_vision\\fixing-ar\\fixing-ar\\app\\src\\main\\jniLibs\\Android.mk",
     "tag": "debug|arm64-v8a"
   },
   {
     "level": "INFO",
     "message": "JSON generation completed without problems",
-    "file": "C:\\Users\\Julia\\Documents\\GitHub\\fixing-ar\\app\\src\\main\\jniLibs\\Android.mk",
+    "file": "C:\\Users\\Caroline\\Desktop\\ethz\\3D_vision\\fixing-ar\\fixing-ar\\app\\src\\main\\jniLibs\\Android.mk",
     "tag": "debug|arm64-v8a"
   }
 ]
