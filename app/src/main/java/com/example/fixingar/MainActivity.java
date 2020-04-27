@@ -122,8 +122,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     private float                  EstimatedFaceWidth   = 0.14f; // in m
     private float                  EstimatedEyeDist     = 0.06f; // in m
     public float                  DistFace;
-    public Mat                     camMatrix = CameraParameters.getCameraMatrix(); // TO DO : find
-    // a way to access to camera matrix
+
 
     private CameraBridgeViewBase mOpenCvCameraView;
     private TextView mDebugText;
@@ -295,6 +294,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
         //camParams.readFromFile(Environment.getExternalStorageDirectory().toString() + DATA_FILEPATH);
         camParams_f.read(this);
+        Mat camParams = camParams_f.getCameraMatrix();
 
         mRgba = inputFrame.rgba();
         mGray = inputFrame.gray();
@@ -435,8 +435,8 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         }
         double focalLength = 3.75*0.001;//real size in m, usually val between 4 and 6 mm TBD
         double ObjSize = EstimatedEyeDist; //real size in m of the eye dist
-        double[] fx = camMatrix.get(1,1);// in pix
-        double[] fy = camMatrix.get(2,2);// in pix
+        double[] fx = camParams.get(1,1);// in pix
+        double[] fy = camParams.get(2,2);// in pix
         double f = Math.round((fx[1]+fy[1])/2); // round fct to get an integer
         double m= f/focalLength;// from fx = f*mx
         double conv = 1920/1754*m;// conversion of resolution in px/m
@@ -448,28 +448,6 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         return mRgba;
 
     }
-    //public double DistanceObject(Mat camMatrix){
-          /*CameraCharacteristics characteristics = CameraManager.getCameraCharacteristics(FrontOrBack);
-        int[] capabilities = characteristics
-                .get(CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES);*/
-
-          /*Based on this https://www.devicespecifications.com/en/model/b7cb4ffe
-        found focal length and resolution*/
-
-        /*double focalLength = 3.75*0.001;//real size in m, usually val between 4 and 6 mm TBD
-        double ObjSize = EstimatedEyeDist; //real size in m of the eye dist
-        double[] fx = camMatrix.get(1,1);// in pix
-        double[] fy = camMatrix.get(2,2);// in pix
-        double f = Math.round((fx[1]+fy[1])/2); // round fct to get an integer
-        double m= f/focalLength;// from fx = f*mx
-        double conv = 1920/1754*m;// conversion of resolution in px/m
-        //width of the image is 1754 pix (1754*1240), phone resolution : 1920*1080
-        double objImSensor = Coordinates[2]/conv ;// object size in pix/conv in px/m => m
-        DistFace = ObjSize * focalLength / objImSensor;// in m
-
-        return DistFace;
-    }
-    */
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
