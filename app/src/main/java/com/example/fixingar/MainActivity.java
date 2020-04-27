@@ -125,13 +125,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
 
     private CameraBridgeViewBase mOpenCvCameraView;
-    private int mCameraIndex = CameraBridgeViewBase.CAMERA_ID_BACK;
     private TextView mDebugText;
-    private Button mCameraButton;
-
-    private Handler mHandler = new Handler();
-    private boolean timerRunning = true;
-    private static final int DELAY = 5000;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
