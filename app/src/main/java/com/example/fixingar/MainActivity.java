@@ -121,11 +121,17 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
     private float                  EstimatedFaceWidth   = 0.14f; // in m
     private float                  EstimatedEyeDist     = 0.06f; // in m
-    public float                  DistFace;
+    public float                   DistFace;
 
 
     private CameraBridgeViewBase mOpenCvCameraView;
+    private int mCameraIndex = CameraBridgeViewBase.CAMERA_ID_BACK;
     private TextView mDebugText;
+    private Button mCameraButton;
+
+    private Handler mHandler = new Handler();
+    private boolean timerRunning = true;
+    private static final int DELAY = 5000;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -433,8 +439,16 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             Coordinates[1] = AllFaceCoordinates[index1][1];
             Coordinates[2] = AllFaceCoordinates[index1][2];
         }
+        double ObjSize = 0;
+        // case for 2 eyes detected
+        if (Coordinates[3] ==2){
+            ObjSize = EstimatedEyeDist; //real size in m of the eye dist
+        }
+        // case for no eyes detected
+        if (Coordinates[3] ==0){
+            ObjSize = EstimatedFaceWidth; //real size in m of face
+        }
         double focalLength = 3.75*0.001;//real size in m, usually val between 4 and 6 mm TBD
-        double ObjSize = EstimatedEyeDist; //real size in m of the eye dist
         double[] fx = camParams.get(1,1);// in pix
         double[] fy = camParams.get(2,2);// in pix
         double f = Math.round((fx[1]+fy[1])/2); // round fct to get an integer
