@@ -57,6 +57,7 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Vector;
+import java.lang.Math;
 
 import es.ava.aruco.CameraParameters;
 import es.ava.aruco.Marker;
@@ -123,6 +124,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
     private float                  EstimatedFaceWidth   = 0.14f; // in m
     private float                  EstimatedEyeDist     = 0.06f; // in m
+    private float                  DistFace;//in m
 
     private CameraBridgeViewBase mOpenCvCameraView;
     private int mCameraIndex = CameraBridgeViewBase.CAMERA_ID_BACK;
@@ -344,8 +346,9 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
         //camParams.readFromFile(Environment.getExternalStorageDirectory().toString() + DATA_FILEPATH);
         camParams_f.read(this);
+        Mat Cmat = camParams_f.getCameraMatrix();
           
-                  if (mAbsoluteEyeSize == 0) {
+        if (mAbsoluteEyeSize == 0) {
             int height = mGray.rows();
             if (Math.round(height * mRelativeEyeSize) > 0) {
                 mAbsoluteEyeSize = Math.round(height * mRelativeEyeSize);
@@ -478,6 +481,29 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             Coordinates[0] = AllFaceCoordinates[index1][0];
             Coordinates[1] = AllFaceCoordinates[index1][1];
             Coordinates[2] = AllFaceCoordinates[index1][2];
+        }
+        if (Coordinates[3] !=0){
+            double ObjSize = 0;
+            // case for 2 eyes detected
+            if (Coordinates[3] ==2){
+                ObjSize = EstimatedEyeDist; //real size in m of the eye dist
+            }
+            // case for no eyes detected
+            if (Coordinates[3] ==0){
+                ObjSize = EstimatedFaceWidth; //real size in m of face
+            }
+            double focalLength = 3.75*0.001;//real size in m, usually val between 4 and 6 mm TBD
+            double[] fx = Cmat.get(1,1);// in pix
+            double[] fy = Cmat.get(2,2);// in pix
+            double f = Math.round((fx[1]+fy[1])/2); // round fct to get an integer
+            double m= f/focalLength;// from fx = f*mx
+            double conv = 1920/width*m;// conversion of resolution in px/m
+            //width of the image, Julia's phone resolution for video recording with front camera
+            // : 1920*1080
+            double objImSensor = Coordinates[2]/conv ;// object size in pix/conv in px/m => m
+
+            DistFace = (float)ObjSize * (float)focalLength / (float)objImSensor;// in m and conv from
+            //double to float
         }
           
         }
