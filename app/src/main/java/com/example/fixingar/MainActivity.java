@@ -506,11 +506,11 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             double[] fy = Cmat.get(2,2);// in pix
             double f = Math.round((fx[0]+fy[0])/2); // round fct to get an integer
             double m= f/focalLength;// from fx = f*mx
-            double conv = 1920/width*m;// conversion of resolution in px/m
+            double conv = m*1920/width;// conversion of resolution in px/m
             //width of the image, Julia's phone resolution for video recording with front camera
             // : 1920*1080
             double objImSensor = Coordinates[2]/conv ;// object size in pix/conv in px/m => m
-            double est = 2.3; // to correct the distance
+            double est = 1; // to correct the distance
 
             DistFace = (float) (ObjSize * focalLength / objImSensor * est);// in m and conv from
             //double to float
