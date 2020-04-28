@@ -290,11 +290,11 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
         //camParams.readFromFile(Environment.getExternalStorageDirectory().toString() + DATA_FILEPATH);
         camParams_f.read(this);
-
         mRgba = inputFrame.rgba();
         mGray = inputFrame.gray();
 
         if (mAbsoluteEyeSize == 0) {
+                  if (mAbsoluteEyeSize == 0) {
             int height = mGray.rows();
             if (Math.round(height * mRelativeEyeSize) > 0) {
                 mAbsoluteEyeSize = Math.round(height * mRelativeEyeSize);
@@ -427,6 +427,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             Coordinates[0] = AllFaceCoordinates[index1][0];
             Coordinates[1] = AllFaceCoordinates[index1][1];
             Coordinates[2] = AllFaceCoordinates[index1][2];
+        }
         }
 
         return mRgba;
