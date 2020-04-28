@@ -9,12 +9,12 @@ import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
-import org.w3c.dom.Text;
 
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -27,10 +27,12 @@ import android.view.MenuItem;
 
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.View.OnTouchListener;
 import android.view.WindowManager;
 
+import android.widget.Button;
+
 import android.widget.TextView;
+import android.widget.Toast;
 
 
 import org.opencv.android.BaseLoaderCallback;
@@ -72,10 +74,14 @@ import es.ava.aruco.MarkerDetector;
 //     0;
 //     -0.1959808318795349]
 
-public class MainActivity extends CameraActivity implements CvCameraViewListener2 {
+
+public class MainActivity extends CameraActivity implements CvCameraViewListener2, View.OnClickListener {
+
     //Constants
     private static final String TAG = "Main";
-    private static final float MARKER_SIZE = (float) 0.017;
+    private static final float MARKER_SIZE = (float) 0.13;
+
+    public String                  FrontOrBack;
 
     //Preferences
     private static final boolean SHOW_MARKERID = true;
@@ -87,8 +93,6 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     private static final Scalar FACE_RECT_COLOR     = new Scalar(150, 0, 150, 0);
     public static final int        JAVA_DETECTOR       = 0;
     public static final int        NATIVE_DETECTOR     = 1;
-
-    public String                  FrontOrBack;
 
     private MenuItem               mItemFace50;
     private MenuItem               mItemFace40;
@@ -125,7 +129,13 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
 
     private CameraBridgeViewBase mOpenCvCameraView;
+    private int mCameraIndex = CameraBridgeViewBase.CAMERA_ID_BACK;
     private TextView mDebugText;
+    private Button mCameraButton;
+
+    private Handler mHandler = new Handler();
+    private boolean timerRunning = true;
+    private static final int DELAY = 5000;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -198,6 +208,11 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                         Log.e(TAG, "Failed to load cascade. Exception thrown: " + e);
                     }
                     mOpenCvCameraView.enableView();
+                    mCameraButton.setOnClickListener(MainActivity.this);
+
+                    if (timerRunning) {
+                        mHandler.postDelayed(mCameraSwitchRunnable, DELAY);
+                    }
                 } break;
                 default:
                 {
@@ -237,6 +252,8 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
         mDebugText = (TextView) findViewById(R.id.debug_text);
 
+        mCameraButton = (Button) findViewById(R.id.camera_button);
+
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.camera_view);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
@@ -246,8 +263,10 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     public void onPause()
     {
         super.onPause();
-        if (mOpenCvCameraView != null)
+        if (mOpenCvCameraView != null) {
             mOpenCvCameraView.disableView();
+            mHandler.removeCallbacks(mCameraSwitchRunnable);
+        }
     }
 
     @Override
@@ -270,8 +289,10 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
     public void onDestroy() {
         super.onDestroy();
-        if (mOpenCvCameraView != null)
+        if (mOpenCvCameraView != null) {
             mOpenCvCameraView.disableView();
+            mHandler.removeCallbacks(mCameraSwitchRunnable);
+        }
     }
 
     public void onCameraViewStarted(int width, int height) {
@@ -285,11 +306,44 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-        FrontOrBack = "back"; // ToDo: adjust here after merge with master
+        mRgba = inputFrame.rgba();
+        mGray = inputFrame.gray();
 
-      //Setup required parameters for detect method
-        MarkerDetector mDetector = new MarkerDetector();
-        Vector<Marker> detectedMarkers = new Vector<>();
+        // Do marker detection if we use the back camera:
+        if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_BACK) {
+            FrontOrBack = "back";
+            //Setup required parameters for detect method
+            MarkerDetector mDetector = new MarkerDetector();
+            Vector<Marker> detectedMarkers = new Vector<>();
+            CameraParameters camParams = new CameraParameters(FrontOrBack);
+
+            camParams.read(this);
+
+            //Populate detectedMarkers
+            mDetector.detect(mRgba, detectedMarkers, camParams, MARKER_SIZE);
+
+            //Draw Axis for each marker detected
+            if (detectedMarkers.size() != 0) {
+                for (int i = 0; i < detectedMarkers.size(); i++) {
+                    Marker marker = detectedMarkers.get(i);
+
+                    debugMsg(marker.getRvec().dump() + "\n" + marker.getTvec().dump());
+                    // Rvec and Tvec are the rotation and translation from the marker frame to the camera frame!
+                    // Use Rodriguez() method from calib3d to turn rotation vector into rotation matrix if we need this.
+                    // The x,y,z position of the camera is: cameraPosition = -rotM.T * tvec
+                    // ProjectPoints projects 3D points to image plane
+                    // EstimateAffine3D computes an optimal affine transformation between two 3D point sets
+                    // SolvePnP finds an object pose from 3D-2D point correspondences
+                    // warpPerspective applies a perspective transformation to an image
+
+                    detectedMarkers.get(i).draw3dAxis(mRgba, camParams);
+                    detectedMarkers.get(i).draw3dCube(mRgba, camParams, new Scalar(255,255,0));
+                }
+            }
+          
+        } else if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_FRONT) {
+            FrontOrBack = "front";
+            // Do facial recognition here
         CameraParameters camParams_f = new CameraParameters(FrontOrBack);
 
         //camParams.readFromFile(Environment.getExternalStorageDirectory().toString() + DATA_FILEPATH);
@@ -455,7 +509,16 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         //double to float
 
         return mRgba;
-
+    }
+  
+      public void debugMsg(String msg) {
+        final String str = msg;
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mDebugText.setText(str);
+            }
+        });
     }
 
     @Override
@@ -469,7 +532,48 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         return true;
     }
 
+    private Runnable mCameraSwitchRunnable = new Runnable() {
+        @Override
+        public void run() {
+            switchCameras();
+
+            mHandler.postDelayed(this, DELAY);
+        }
+    };
+
+    private boolean switchCameras() {
+        if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_BACK) {
+            mCameraIndex = CameraBridgeViewBase.CAMERA_ID_FRONT;
+        } else if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_FRONT){
+            mCameraIndex = CameraBridgeViewBase.CAMERA_ID_BACK;
+        }
+
+        Toast.makeText(MainActivity.this, "Switching camera to " + mCameraIndex, Toast.LENGTH_SHORT).show();
+        Log.i(TAG, "Switching camera to " + mCameraIndex);
+        mOpenCvCameraView.disableView();
+        mOpenCvCameraView.setCameraIndex(mCameraIndex);
+        mOpenCvCameraView.enableView();
+
+        return true;  // TODO: check success somehow?
+    }
+
     @Override
+    public void onClick(View v) {
+        Log.d(TAG, "onClick invoked");
+
+        if (timerRunning) {
+            Toast.makeText(this, "Turning off", Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "Turning off");
+            mHandler.removeCallbacks(mCameraSwitchRunnable);
+        } else {
+            Toast.makeText(this, "Turning on", Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "Turning on");
+            mCameraSwitchRunnable.run();
+        }
+
+        timerRunning = !timerRunning;
+}
+
     public boolean onOptionsItemSelected(MenuItem item) {
         Log.i(TAG, "called onOptionsItemSelected; selected item: " + item);
         if (item == mItemFace50)
