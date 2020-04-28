@@ -9,16 +9,15 @@ import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
+import org.w3c.dom.Text;
 
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.hardware.camera2.*; // to get the focal length of the phone lens
 
 import android.view.MotionEvent;
 
@@ -27,12 +26,10 @@ import android.view.MenuItem;
 
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.View.OnTouchListener;
 import android.view.WindowManager;
 
-import android.widget.Button;
-
 import android.widget.TextView;
-import android.widget.Toast;
 
 
 import org.opencv.android.BaseLoaderCallback;
@@ -58,7 +55,6 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Vector;
-import java.lang.Math;
 
 import es.ava.aruco.CameraParameters;
 import es.ava.aruco.Marker;
@@ -74,14 +70,10 @@ import es.ava.aruco.MarkerDetector;
 //     0;
 //     -0.1959808318795349]
 
-
-public class MainActivity extends CameraActivity implements CvCameraViewListener2, View.OnClickListener {
-
+public class MainActivity extends CameraActivity implements CvCameraViewListener2 {
     //Constants
     private static final String TAG = "Main";
-    private static final float MARKER_SIZE = (float) 0.13;
-
-    public String                  FrontOrBack;
+    private static final float MARKER_SIZE = (float) 0.017;
 
     //Preferences
     private static final boolean SHOW_MARKERID = true;
@@ -93,6 +85,8 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     private static final Scalar FACE_RECT_COLOR     = new Scalar(150, 0, 150, 0);
     public static final int        JAVA_DETECTOR       = 0;
     public static final int        NATIVE_DETECTOR     = 1;
+
+    public String                  FrontOrBack;
 
     private MenuItem               mItemFace50;
     private MenuItem               mItemFace40;
@@ -125,17 +119,9 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
     private float                  EstimatedFaceWidth   = 0.14f; // in m
     private float                  EstimatedEyeDist     = 0.06f; // in m
-    public float                   DistFace;
-
 
     private CameraBridgeViewBase mOpenCvCameraView;
-    private int mCameraIndex = CameraBridgeViewBase.CAMERA_ID_BACK;
     private TextView mDebugText;
-    private Button mCameraButton;
-
-    private Handler mHandler = new Handler();
-    private boolean timerRunning = true;
-    private static final int DELAY = 5000;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -208,11 +194,6 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                         Log.e(TAG, "Failed to load cascade. Exception thrown: " + e);
                     }
                     mOpenCvCameraView.enableView();
-                    mCameraButton.setOnClickListener(MainActivity.this);
-
-                    if (timerRunning) {
-                        mHandler.postDelayed(mCameraSwitchRunnable, DELAY);
-                    }
                 } break;
                 default:
                 {
@@ -252,8 +233,6 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
         mDebugText = (TextView) findViewById(R.id.debug_text);
 
-        mCameraButton = (Button) findViewById(R.id.camera_button);
-
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.camera_view);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
@@ -263,10 +242,8 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     public void onPause()
     {
         super.onPause();
-        if (mOpenCvCameraView != null) {
+        if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
-            mHandler.removeCallbacks(mCameraSwitchRunnable);
-        }
     }
 
     @Override
@@ -289,10 +266,8 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
     public void onDestroy() {
         super.onDestroy();
-        if (mOpenCvCameraView != null) {
+        if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
-            mHandler.removeCallbacks(mCameraSwitchRunnable);
-        }
     }
 
     public void onCameraViewStarted(int width, int height) {
@@ -306,49 +281,15 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-        mRgba = inputFrame.rgba();
-        mGray = inputFrame.gray();
+        FrontOrBack = "back"; // ToDo: adjust here after merge with master
 
-        // Do marker detection if we use the back camera:
-        if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_BACK) {
-            FrontOrBack = "back";
-            //Setup required parameters for detect method
-            MarkerDetector mDetector = new MarkerDetector();
-            Vector<Marker> detectedMarkers = new Vector<>();
-            CameraParameters camParams = new CameraParameters(FrontOrBack);
-
-            camParams.read(this);
-
-            //Populate detectedMarkers
-            mDetector.detect(mRgba, detectedMarkers, camParams, MARKER_SIZE);
-
-            //Draw Axis for each marker detected
-            if (detectedMarkers.size() != 0) {
-                for (int i = 0; i < detectedMarkers.size(); i++) {
-                    Marker marker = detectedMarkers.get(i);
-
-                    debugMsg(marker.getRvec().dump() + "\n" + marker.getTvec().dump());
-                    // Rvec and Tvec are the rotation and translation from the marker frame to the camera frame!
-                    // Use Rodriguez() method from calib3d to turn rotation vector into rotation matrix if we need this.
-                    // The x,y,z position of the camera is: cameraPosition = -rotM.T * tvec
-                    // ProjectPoints projects 3D points to image plane
-                    // EstimateAffine3D computes an optimal affine transformation between two 3D point sets
-                    // SolvePnP finds an object pose from 3D-2D point correspondences
-                    // warpPerspective applies a perspective transformation to an image
-
-                    detectedMarkers.get(i).draw3dAxis(mRgba, camParams);
-                    detectedMarkers.get(i).draw3dCube(mRgba, camParams, new Scalar(255,255,0));
-                }
-            }
-          
-        } else if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_FRONT) {
-            FrontOrBack = "front";
-            // Do facial recognition here
+      //Setup required parameters for detect method
+        MarkerDetector mDetector = new MarkerDetector();
+        Vector<Marker> detectedMarkers = new Vector<>();
         CameraParameters camParams_f = new CameraParameters(FrontOrBack);
 
         //camParams.readFromFile(Environment.getExternalStorageDirectory().toString() + DATA_FILEPATH);
         camParams_f.read(this);
-        Mat camParams = camParams_f.getCameraMatrix();
 
         mRgba = inputFrame.rgba();
         mGray = inputFrame.gray();
@@ -487,38 +428,9 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             Coordinates[1] = AllFaceCoordinates[index1][1];
             Coordinates[2] = AllFaceCoordinates[index1][2];
         }
-        double ObjSize = 0;
-        // case for 2 eyes detected
-        if (Coordinates[3] ==2){
-            ObjSize = EstimatedEyeDist; //real size in m of the eye dist
-        }
-        // case for no eyes detected
-        if (Coordinates[3] ==0){
-            ObjSize = EstimatedFaceWidth; //real size in m of face
-        }
-        double focalLength = 3.75*0.001;//real size in m, usually val between 4 and 6 mm TBD
-        double[] fx = camParams.get(1,1);// in pix
-        double[] fy = camParams.get(2,2);// in pix
-        double f = Math.round((fx[1]+fy[1])/2); // round fct to get an integer
-        double m= f/focalLength;// from fx = f*mx
-        double conv = 1920/width*m;// conversion of resolution in px/m
-        //width of the image, Julia's phone resolution for video recording with front camera
-        // : 1920*1080
-        double objImSensor = Coordinates[2]/conv ;// object size in pix/conv in px/m => m
-        DistFace = (float)ObjSize * (float)focalLength / (float)objImSensor;// in m and conv from
-        //double to float
 
         return mRgba;
-    }
-  
-      public void debugMsg(String msg) {
-        final String str = msg;
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mDebugText.setText(str);
-            }
-        });
+
     }
 
     @Override
@@ -532,48 +444,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         return true;
     }
 
-    private Runnable mCameraSwitchRunnable = new Runnable() {
-        @Override
-        public void run() {
-            switchCameras();
-
-            mHandler.postDelayed(this, DELAY);
-        }
-    };
-
-    private boolean switchCameras() {
-        if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_BACK) {
-            mCameraIndex = CameraBridgeViewBase.CAMERA_ID_FRONT;
-        } else if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_FRONT){
-            mCameraIndex = CameraBridgeViewBase.CAMERA_ID_BACK;
-        }
-
-        Toast.makeText(MainActivity.this, "Switching camera to " + mCameraIndex, Toast.LENGTH_SHORT).show();
-        Log.i(TAG, "Switching camera to " + mCameraIndex);
-        mOpenCvCameraView.disableView();
-        mOpenCvCameraView.setCameraIndex(mCameraIndex);
-        mOpenCvCameraView.enableView();
-
-        return true;  // TODO: check success somehow?
-    }
-
     @Override
-    public void onClick(View v) {
-        Log.d(TAG, "onClick invoked");
-
-        if (timerRunning) {
-            Toast.makeText(this, "Turning off", Toast.LENGTH_SHORT).show();
-            Log.d(TAG, "Turning off");
-            mHandler.removeCallbacks(mCameraSwitchRunnable);
-        } else {
-            Toast.makeText(this, "Turning on", Toast.LENGTH_SHORT).show();
-            Log.d(TAG, "Turning on");
-            mCameraSwitchRunnable.run();
-        }
-
-        timerRunning = !timerRunning;
-}
-
     public boolean onOptionsItemSelected(MenuItem item) {
         Log.i(TAG, "called onOptionsItemSelected; selected item: " + item);
         if (item == mItemFace50)
