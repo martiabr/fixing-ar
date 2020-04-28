@@ -9,12 +9,12 @@ import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
-import org.w3c.dom.Text;
 
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -26,10 +26,12 @@ import android.view.MenuItem;
 
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.View.OnTouchListener;
 import android.view.WindowManager;
 
+import android.widget.Button;
+
 import android.widget.TextView;
+import android.widget.Toast;
 
 
 import org.opencv.android.BaseLoaderCallback;
@@ -55,6 +57,7 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Vector;
+import java.lang.Math;
 
 import es.ava.aruco.CameraParameters;
 import es.ava.aruco.Marker;
@@ -70,10 +73,14 @@ import es.ava.aruco.MarkerDetector;
 //     0;
 //     -0.1959808318795349]
 
-public class MainActivity extends CameraActivity implements CvCameraViewListener2 {
+
+public class MainActivity extends CameraActivity implements CvCameraViewListener2, View.OnClickListener {
+
     //Constants
     private static final String TAG = "Main";
-    private static final float MARKER_SIZE = (float) 0.017;
+    private static final float MARKER_SIZE = (float) 0.13;
+
+    public String                  FrontOrBack;
 
     //Preferences
     private static final boolean SHOW_MARKERID = true;
@@ -81,12 +88,10 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     //You must run a calibration prior to detection
     // The activity to run calibration is provided in the repository
 
-    private static final Scalar EYE_RECT_COLOR     = new Scalar(0, 150, 0, 150);
-    private static final Scalar FACE_RECT_COLOR     = new Scalar(150, 0, 150, 0);
+    private static final Scalar     COLOR1     = new Scalar(0, 150, 0, 150);
+    private static final Scalar     COLOR2     = new Scalar(150, 0, 150, 0);
     public static final int        JAVA_DETECTOR       = 0;
     public static final int        NATIVE_DETECTOR     = 1;
-
-    public String                  FrontOrBack;
 
     private MenuItem               mItemFace50;
     private MenuItem               mItemFace40;
@@ -111,6 +116,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     private int                    NumEyes;
     private int[][]                AllEyeCoordinates;
     private int[]                  Coordinates; //contains x & y coordinate, dist, 1 or 2 to define if one eye or two were found
+    private float[]                mCoordinates; //x and y position in m
 
     private float                  mRelativeFaceSize   = 0.2f; // change this parameter to adjust min Face size
     private int                    mAbsoluteFaceSize   = 0;
@@ -119,9 +125,16 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
     private float                  EstimatedFaceWidth   = 0.14f; // in m
     private float                  EstimatedEyeDist     = 0.06f; // in m
+    private float                  DistFace;//in m
 
     private CameraBridgeViewBase mOpenCvCameraView;
+    private int mCameraIndex = CameraBridgeViewBase.CAMERA_ID_BACK;
     private TextView mDebugText;
+    private Button mCameraButton;
+
+    private Handler mHandler = new Handler();
+    private boolean timerRunning = true;
+    private static final int DELAY = 5000;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -194,6 +207,11 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                         Log.e(TAG, "Failed to load cascade. Exception thrown: " + e);
                     }
                     mOpenCvCameraView.enableView();
+                    mCameraButton.setOnClickListener(MainActivity.this);
+
+                    if (timerRunning) {
+                        mHandler.postDelayed(mCameraSwitchRunnable, DELAY);
+                    }
                 } break;
                 default:
                 {
@@ -233,6 +251,8 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
         mDebugText = (TextView) findViewById(R.id.debug_text);
 
+        mCameraButton = (Button) findViewById(R.id.camera_button);
+
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.camera_view);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
@@ -242,8 +262,10 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     public void onPause()
     {
         super.onPause();
-        if (mOpenCvCameraView != null)
+        if (mOpenCvCameraView != null) {
             mOpenCvCameraView.disableView();
+            mHandler.removeCallbacks(mCameraSwitchRunnable);
+        }
     }
 
     @Override
@@ -266,8 +288,10 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
     public void onDestroy() {
         super.onDestroy();
-        if (mOpenCvCameraView != null)
+        if (mOpenCvCameraView != null) {
             mOpenCvCameraView.disableView();
+            mHandler.removeCallbacks(mCameraSwitchRunnable);
+        }
     }
 
     public void onCameraViewStarted(int width, int height) {
@@ -281,19 +305,50 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-        FrontOrBack = "back"; // ToDo: adjust here after merge with master
+        mRgba = inputFrame.rgba();
+        mGray = inputFrame.gray();
 
-      //Setup required parameters for detect method
-        MarkerDetector mDetector = new MarkerDetector();
-        Vector<Marker> detectedMarkers = new Vector<>();
+        // Do marker detection if we use the back camera:
+        if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_BACK) {
+            FrontOrBack = "back";
+            //Setup required parameters for detect method
+            MarkerDetector mDetector = new MarkerDetector();
+            Vector<Marker> detectedMarkers = new Vector<>();
+            CameraParameters camParams = new CameraParameters(FrontOrBack);
+
+            camParams.read(this);
+
+            //Populate detectedMarkers
+            mDetector.detect(mRgba, detectedMarkers, camParams, MARKER_SIZE);
+
+            //Draw Axis for each marker detected
+            if (detectedMarkers.size() != 0) {
+                for (int i = 0; i < detectedMarkers.size(); i++) {
+                    Marker marker = detectedMarkers.get(i);
+
+                    debugMsg(marker.getRvec().dump() + "\n" + marker.getTvec().dump());
+                    // Rvec and Tvec are the rotation and translation from the marker frame to the camera frame!
+                    // Use Rodriguez() method from calib3d to turn rotation vector into rotation matrix if we need this.
+                    // The x,y,z position of the camera is: cameraPosition = -rotM.T * tvec
+                    // ProjectPoints projects 3D points to image plane
+                    // EstimateAffine3D computes an optimal affine transformation between two 3D point sets
+                    // SolvePnP finds an object pose from 3D-2D point correspondences
+                    // warpPerspective applies a perspective transformation to an image
+
+                    detectedMarkers.get(i).draw3dAxis(mRgba, camParams);
+                    detectedMarkers.get(i).draw3dCube(mRgba, camParams, new Scalar(255,255,0));
+                }
+            }
+          
+        } else if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_FRONT) {
+            FrontOrBack = "front";
+            // Do facial recognition here
         CameraParameters camParams_f = new CameraParameters(FrontOrBack);
 
         //camParams.readFromFile(Environment.getExternalStorageDirectory().toString() + DATA_FILEPATH);
         camParams_f.read(this);
-
-        mRgba = inputFrame.rgba();
-        mGray = inputFrame.gray();
-
+        Mat Cmat = camParams_f.getCameraMatrix();
+          
         if (mAbsoluteEyeSize == 0) {
             int height = mGray.rows();
             if (Math.round(height * mRelativeEyeSize) > 0) {
@@ -355,7 +410,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         AllEyeCoordinates = new int[NumEyes][2];
         Coordinates = new int[4];
         for (int i = 0; i < NumEyes; i++) {
-            Imgproc.rectangle(mRgba, eyesArray[i].tl(), eyesArray[i].br(), EYE_RECT_COLOR, 3);
+            Imgproc.rectangle(mRgba, eyesArray[i].tl(), eyesArray[i].br(), COLOR1, 3);
             if (NumEyes > 0) {
                 AllEyeCoordinates[i][0] = eyesArray[i].x;
                 AllEyeCoordinates[i][1] = eyesArray[i].y;
@@ -372,11 +427,13 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 int y2 = AllEyeCoordinates[1][1];
                 int dist = ((x1 - x2) ^ 2 + (y1 - y2) ^ 2) ^ (1 / 2);
                 int disty = ((y1 - y2) ^ 2) ^ (1 / 2);
-                if (dist > Math.round(width * 0.1) && disty < Math.round(height * 0.05)) {
+                if (dist > Math.round(width * 0.1) && disty < Math.round(height * 0.005)) {
                     Coordinates[0] = (x1 + x2) / 2;
                     Coordinates[1] = (y1 + y2) / 2;
                     Coordinates[2] = dist;
                     Coordinates[3] = 2;
+                    Imgproc.rectangle(mRgba, eyesArray[0].tl(), eyesArray[0].br(), COLOR2, 5);
+                    Imgproc.rectangle(mRgba, eyesArray[1].tl(), eyesArray[1].br(), COLOR2, 5);
                 }
             }
             else {
@@ -389,11 +446,13 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                             int y2 = AllEyeCoordinates[j][1];
                             int dist = ((x1 - x2) ^ 2 + (y1 - y2) ^ 2) ^ (1 / 2);
                             int disty = ((y1 - y2) ^ 2) ^ (1 / 2);
-                            if (dist > Math.round(width * 0.1) && disty < Math.round(height * 0.05)) {
+                            if (dist > Math.round(width * 0.1) && disty < Math.round(height * 0.001)) {
                                 Coordinates[0] = (x1 + x2) / 2;
                                 Coordinates[1] = (y1 + y2) / 2;
                                 Coordinates[2] = dist;
                                 Coordinates[3] = 2;
+                                Imgproc.rectangle(mRgba, eyesArray[i].tl(), eyesArray[i].br(), COLOR2, 5);
+                                Imgproc.rectangle(mRgba, eyesArray[j].tl(), eyesArray[j].br(), COLOR2, 5);
                             }
                         }
                     }
@@ -408,7 +467,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         NumFaces = facesArray.length;
         AllFaceCoordinates = new int[NumFaces][3];
         for (int i = 0; i < NumFaces; i++) {
-            Imgproc.rectangle(mRgba, facesArray[i].tl(), facesArray[i].br(), FACE_RECT_COLOR, 3);
+            Imgproc.rectangle(mRgba, facesArray[i].tl(), facesArray[i].br(), COLOR1, 3);
             if (NumFaces > 0) {
                 AllFaceCoordinates[i][0] = facesArray[i].x;
                 AllFaceCoordinates[i][1] = facesArray[i].y;
@@ -416,21 +475,70 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             }
         }
         if (NumFaces > 0 && Coordinates[3] != 2) {
-            width = AllFaceCoordinates[0][2];
+            int face_width = AllFaceCoordinates[0][2];
             int index1 = 0;
             for (int i = 0; i < NumFaces; i++) {
-                if (AllFaceCoordinates[i][2] > width) {
+                if (AllFaceCoordinates[i][2] > face_width) {
                     index1 = i;
-                    width = AllFaceCoordinates[index1][2];
+                    face_width = AllFaceCoordinates[index1][2];
                 }
             }
+            Imgproc.rectangle(mRgba, facesArray[index1].tl(), facesArray[index1].br(), COLOR2, 5);
             Coordinates[0] = AllFaceCoordinates[index1][0];
             Coordinates[1] = AllFaceCoordinates[index1][1];
             Coordinates[2] = AllFaceCoordinates[index1][2];
         }
+        if (Coordinates[3] !=0){
+            double ObjSize = 0;
+            String mess1 = "?, ";
+            // case for 2 eyes detected
+            if (Coordinates[3] ==2){
+                ObjSize = EstimatedEyeDist; //real size in m of the eye dist
+                mess1 = "eyes, ";
+            }
+            // case for no eyes detected
+            if (Coordinates[3] ==1){
+                ObjSize = EstimatedFaceWidth; //real size in m of face
+                mess1 = "face, ";
+            }
+            double focalLength = 3.75*0.001;//real size in m, usually val between 4 and 6 mm TBD
+            double[] fx = Cmat.get(1,1);// in pix
+            double[] fy = Cmat.get(2,2);// in pix
+            double f = Math.round((fx[0]+fy[0])/2); // round fct to get an integer
+            double m= f/focalLength;// from fx = f*mx
+            double conv = 1920/width*m;// conversion of resolution in px/m
+            //width of the image, Julia's phone resolution for video recording with front camera
+            // : 1920*1080
+            double objImSensor = Coordinates[2]/conv ;// object size in pix/conv in px/m => m
+            double est = 2.3; // to correct the distance
+
+            DistFace = (float) (ObjSize * focalLength / objImSensor * est);// in m and conv from
+            //double to float
+
+            double x_coor = Coordinates[0] - width/2;
+            double y_coor = Coordinates[1] - height/2;
+            mCoordinates = new float[2];
+            double mul = DistFace/focalLength*width/m/1920;
+            mCoordinates[0] = (float) (mul*x_coor);
+            mCoordinates[1] = (float) (mul*y_coor);
+
+            String mess = mess1 + "Dist: " + Float.toString(DistFace) + "m, x: " + Float.toString(mCoordinates[0]) + "m, y: " + Float.toString(mCoordinates[1]) + "m";
+            debugMsg(mess);
+        }
+          
+        }
 
         return mRgba;
-
+    }
+  
+      public void debugMsg(String msg) {
+        final String str = msg;
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mDebugText.setText(str);
+            }
+        });
     }
 
     @Override
@@ -444,7 +552,48 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         return true;
     }
 
+    private Runnable mCameraSwitchRunnable = new Runnable() {
+        @Override
+        public void run() {
+            switchCameras();
+
+            mHandler.postDelayed(this, DELAY);
+        }
+    };
+
+    private boolean switchCameras() {
+        if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_BACK) {
+            mCameraIndex = CameraBridgeViewBase.CAMERA_ID_FRONT;
+        } else if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_FRONT){
+            mCameraIndex = CameraBridgeViewBase.CAMERA_ID_BACK;
+        }
+
+        Toast.makeText(MainActivity.this, "Switching camera to " + mCameraIndex, Toast.LENGTH_SHORT).show();
+        Log.i(TAG, "Switching camera to " + mCameraIndex);
+        mOpenCvCameraView.disableView();
+        mOpenCvCameraView.setCameraIndex(mCameraIndex);
+        mOpenCvCameraView.enableView();
+
+        return true;  // TODO: check success somehow?
+    }
+
     @Override
+    public void onClick(View v) {
+        Log.d(TAG, "onClick invoked");
+
+        if (timerRunning) {
+            Toast.makeText(this, "Turning off", Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "Turning off");
+            mHandler.removeCallbacks(mCameraSwitchRunnable);
+        } else {
+            Toast.makeText(this, "Turning on", Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "Turning on");
+            mCameraSwitchRunnable.run();
+        }
+
+        timerRunning = !timerRunning;
+}
+
     public boolean onOptionsItemSelected(MenuItem item) {
         Log.i(TAG, "called onOptionsItemSelected; selected item: " + item);
         if (item == mItemFace50)

@@ -149,7 +149,7 @@ public class CameraParameters {
     }
 
     public void read(Activity activity) {
-    	SharedPreferences sharedPref = activity.getSharedPreferences(FrontBack, Context.MODE_PRIVATE);
+		SharedPreferences sharedPref = activity.getSharedPreferences(FrontBack, Context.MODE_PRIVATE);
 
 		double[] cameraMatrixArray = new double[3 * 3];
 		for (int i = 0; i < 3; i++) {
