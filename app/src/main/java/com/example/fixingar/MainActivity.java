@@ -426,8 +426,8 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 int y1 = AllEyeCoordinates[0][1];
                 int y2 = AllEyeCoordinates[1][1];
                 int dist = ((x1 - x2) ^ 2 + (y1 - y2) ^ 2) ^ (1 / 2);
-                int disty = ((y1 - y2) ^ 2) ^ (1 / 2);
-                if (dist > Math.round(width * 0.1) && disty < Math.round(height * 0.005)) {
+                int disty = Math.abs(y1-y2);
+                if (dist > Math.round(width * 0.1) && disty < Math.round(height * 0.2)) {
                     Coordinates[0] = (x1 + x2) / 2;
                     Coordinates[1] = (y1 + y2) / 2;
                     Coordinates[2] = dist;
@@ -445,8 +445,8 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                             int y1 = AllEyeCoordinates[i][1];
                             int y2 = AllEyeCoordinates[j][1];
                             int dist = ((x1 - x2) ^ 2 + (y1 - y2) ^ 2) ^ (1 / 2);
-                            int disty = ((y1 - y2) ^ 2) ^ (1 / 2);
-                            if (dist > Math.round(width * 0.1) && disty < Math.round(height * 0.001)) {
+                            int disty = Math.abs(y1-y2);
+                            if (dist > Math.round(width * 0.1) && disty < Math.round(height * 0.2)) {
                                 Coordinates[0] = (x1 + x2) / 2;
                                 Coordinates[1] = (y1 + y2) / 2;
                                 Coordinates[2] = dist;
