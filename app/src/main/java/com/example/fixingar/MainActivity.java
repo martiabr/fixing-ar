@@ -425,9 +425,9 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 int x2 = AllEyeCoordinates[1][0];
                 int y1 = AllEyeCoordinates[0][1];
                 int y2 = AllEyeCoordinates[1][1];
-                int dist = ((x1 - x2) ^ 2 + (y1 - y2) ^ 2) ^ (1 / 2);
-                int disty = Math.abs(y1-y2);
-                if (dist > Math.round(width * 0.1) && disty < Math.round(height * 0.2)) {
+                int dist = Math.abs(((x1 - x2) ^ 2 + (y1 - y2) ^ 2) ^ (1 / 2));
+                int disty = Math.abs(y2-y1);
+                if (dist > Math.round(width * 0.1) && disty < Math.round(height * 0.05)) {
                     Coordinates[0] = (x1 + x2) / 2;
                     Coordinates[1] = (y1 + y2) / 2;
                     Coordinates[2] = dist;
@@ -437,16 +437,16 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 }
             }
             else {
-                for (int i = 0; i < NumEyes-1; i++) {
-                    for (int j = i+1; j < NumEyes; j++) {
-                        if (Coordinates[3] != 2 && j>i) {
+                for (int i = 0; i < NumEyes; i++) {
+                    for (int j = 0; j < NumEyes; j++) {
+                        if (Coordinates[3] != 2 && j!=i) {
                             int x1 = AllEyeCoordinates[i][0];
                             int x2 = AllEyeCoordinates[j][0];
                             int y1 = AllEyeCoordinates[i][1];
                             int y2 = AllEyeCoordinates[j][1];
-                            int dist = ((x1 - x2) ^ 2 + (y1 - y2) ^ 2) ^ (1 / 2);
-                            int disty = Math.abs(y1-y2);
-                            if (dist > Math.round(width * 0.1) && disty < Math.round(height * 0.2)) {
+                            int dist = Math.abs(((x1 - x2) ^ 2 + (y1 - y2) ^ 2) ^ (1 / 2));
+                            int disty = Math.abs(y2-y1);
+                            if (dist > Math.round(width * 0.1) && disty < Math.round(height * 0.05)) {
                                 Coordinates[0] = (x1 + x2) / 2;
                                 Coordinates[1] = (y1 + y2) / 2;
                                 Coordinates[2] = dist;
