@@ -116,6 +116,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     private int                    NumEyes;
     private int[][]                AllEyeCoordinates;
     private int[]                  Coordinates; //contains x & y coordinate, dist, 1 or 2 to define if one eye or two were found
+    private float[]                mCoordinates; //x and y position in m
 
     private float                  mRelativeFaceSize   = 0.2f; // change this parameter to adjust min Face size
     private int                    mAbsoluteFaceSize   = 0;
@@ -484,13 +485,16 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         }
         if (Coordinates[3] !=0){
             double ObjSize = 0;
+            String mess1 = "?, ";
             // case for 2 eyes detected
             if (Coordinates[3] ==2){
                 ObjSize = EstimatedEyeDist; //real size in m of the eye dist
+                mess1 = "eyes, ";
             }
             // case for no eyes detected
             if (Coordinates[3] ==1){
                 ObjSize = EstimatedFaceWidth; //real size in m of face
+                mess1 = "face, ";
             }
             double focalLength = 3.75*0.001;//real size in m, usually val between 4 and 6 mm TBD
             double[] fx = Cmat.get(1,1);// in pix
@@ -504,6 +508,16 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
             DistFace = (float)ObjSize * (float)focalLength / (float)objImSensor;// in m and conv from
             //double to float
+
+            double x_coor = Coordinates[0] - width/2;
+            double y_coor = Coordinates[1] - height/2;
+            mCoordinates = new float[2];
+            double mul = DistFace/focalLength*width/m/1920;
+            mCoordinates[0] = (float) (mul*x_coor);
+            mCoordinates[1] = (float) (mul*y_coor);
+
+            String mess = mess1 + "Dist: " + Float.toString(DistFace) + "m, x: " + Float.toString(mCoordinates[0]) + "m, y: " + Float.toString(mCoordinates[1]) + "m";
+            debugMsg(mess);
         }
           
         }
