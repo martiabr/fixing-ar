@@ -510,7 +510,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             //width of the image, Julia's phone resolution for video recording with front camera
             // : 1920*1080
             double objImSensor = Coordinates[2]/conv ;// object size in pix/conv in px/m => m
-            double est = 1; // to correct the distance
+            double est = 1.3; // to correct the distance
 
             DistFace = (float) (ObjSize * focalLength / objImSensor * est);// in m and conv from
             //double to float
