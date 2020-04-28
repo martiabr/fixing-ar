@@ -516,7 +516,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             //double to float
 
             double x_coor = Coordinates[0] - width/2;
-            double y_coor = Coordinates[1] - height/2;
+            double y_coor = height/2 - Coordinates[1];
             mCoordinates = new float[2];
             double mul = DistFace/focalLength*width/m/1920;
             mCoordinates[0] = (float) (mul*x_coor);
