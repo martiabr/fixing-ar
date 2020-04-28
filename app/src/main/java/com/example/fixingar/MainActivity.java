@@ -126,8 +126,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     }
 
     @Override
-    public void onPause()
-    {
+    public void onPause() {
         super.onPause();
         if (mOpenCvCameraView != null) {
             mOpenCvCameraView.disableView();
@@ -136,8 +135,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     }
 
     @Override
-    public void onResume()
-    {
+    public void onResume() {
         super.onResume();
         if (!OpenCVLoader.initDebug()) {
             Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
@@ -188,107 +186,9 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 Marker marker = detectedMarkers.get(0);
                 //Log.d(TAG, String.valueOf(marker.getPoints().get(0)));
                 debugMsg(marker.getPoints().get(0) + "\n" + marker.getPoints().get(1) + "\n" + marker.getPoints().get(2) + "\n" + marker.getPoints().get(3) + "\n");
-                //debugMsg(marker.getRvec().dump() + "\n" + marker.getTvec().dump());
+                debugMsg(marker.getRvec().dump() + "\n" + marker.getTvec().dump());
 
-                // Estimate 3D position of corner points:
-                // We have the normal and the size so it should be simple to estimate their positions in 3D space
-
-                // Then if we can add another translation and rotation from the camera frame to the eye frame
-                // and project the 3D corner points in this new frame we can get the end corner positions.
-                // Then we just need to do FindHomography + WarpPerspective and we are done.
-
-                // The estimated 4 corner points in 3D marker frame:
-                MatOfPoint3f cornerPoints = new MatOfPoint3f();
-                double halfSize = MARKER_SIZE/2.0;
-                Vector<Point3> points = new Vector<Point3>();
-                points.add(new Point3( halfSize, -halfSize, 0));
-                points.add(new Point3(-halfSize, -halfSize, 0));
-                points.add(new Point3(-halfSize,  halfSize, 0));
-                points.add(new Point3( halfSize,  halfSize, 0));
-                cornerPoints.fromList(points);
-                MatOfPoint2f srcPointsProj = new MatOfPoint2f();
-                Calib3d.projectPoints(cornerPoints, marker.getRvec(), marker.getTvec(), camParams.getCameraMatrix(), camParams.getDistCoeff(), srcPointsProj);
-                Log.d("srcpoints",srcPointsProj.dump());
-
-                // Test by adding additional translation:
-                Mat tEye2Device = Mat.zeros(3, 1, CvType.CV_64FC1);
-                tEye2Device.put(2, 0, 0.4);  // Z (backwards)
-                Mat tDevice2Cam = Mat.zeros(3, 1, CvType.CV_64FC1);
-                tDevice2Cam.put(0, 0, 0.05);  // X (shift to move camera to phone center)
-                // TODO: add calibration procedure for x and y offset. Just some sliders for x and y could work fine i guess?
-
-                Mat tEye2Cam = Mat.zeros(3, 1, CvType.CV_64FC1);
-                Core.add(tEye2Device, tDevice2Cam, tEye2Cam);
-                Mat tEye2Marker = Mat.zeros(3, 1, CvType.CV_64FC1);
-                Core.add(tEye2Device, marker.getTvec(), tEye2Marker);
-
-                Log.d("CameraMatrix:", camParams.getCameraMatrix().dump());
-                Mat EyeCamMatrix = Mat.eye(3,3,CvType.CV_32FC1);
-                EyeCamMatrix.put(0,0,0.4);
-                EyeCamMatrix.put(1,1,0.4);
-                EyeCamMatrix.put(2,2,1.0);
-                EyeCamMatrix.put(0,2,-0.0711);
-                EyeCamMatrix.put(1,2,-0.03495); // 0
-                Log.d("EyeCameraMatrix:", EyeCamMatrix.dump());
-
-                MatOfPoint2f dstPointsProj = new MatOfPoint2f();
-                Calib3d.projectPoints(cornerPoints, marker.getRvec(), tEye2Marker, EyeCamMatrix, new MatOfDouble(0,0,0,0,0,0,0,0), dstPointsProj); // camParams.getCameraMatrix()
-                Log.d("dstpoints",dstPointsProj.dump());
-
-                List<Point> srcPointsProjList = new Vector<Point>();
-                srcPointsProjList = srcPointsProj.toList();
-
-                List<Point> dstPointsProjList = new Vector<Point>();
-                dstPointsProjList = dstPointsProj.toList();
-/*
-                // Draw squares:
-                Scalar color = new Scalar(255,255,0);
-                for (int i = 0; i < 4; i++){
-                    Imgproc.line(rgba, srcPointsProjList.get(i), srcPointsProjList.get((i+1)%4), color, 2);
-                    Imgproc.line(rgba, dstPointsProjList.get(i), dstPointsProjList.get((i+1)%4), color, 2);
-                    Imgproc.line(rgba, dstPointsProjList.get(i), srcPointsProjList.get(i), color, 2);
-                }
-*/
-
-
-                Mat H = Calib3d.findHomography(dstPointsProj, srcPointsProj);
-                Log.d("Cam2Dev",H.dump());
-
-                // Generate corner points in screen plane and then transform to source plane.
-                MatOfPoint2f cornerOfDevice = new MatOfPoint2f();
-                Vector<Point> DevicePoints = new Vector<Point>();
-                DevicePoints.add(new Point( 0.0711*2, 0));
-                DevicePoints.add(new Point(0, 0));
-                DevicePoints.add(new Point(0,  0.03495*2));
-                DevicePoints.add(new Point( 0.0711*2,  0.03495*2));
-                cornerOfDevice.fromList(DevicePoints);
-                MatOfPoint2f cornerOfDeviceTr = new MatOfPoint2f();
-                Core.perspectiveTransform(cornerOfDevice, cornerOfDeviceTr, H);
-                Log.d("cornerOfDeviceTr",cornerOfDeviceTr.dump());
-
-                // Corner points on image in screen.
-                MatOfPoint2f imageCorners = new MatOfPoint2f();
-                Vector<Point> imageCornersList = new Vector<Point>();
-                imageCornersList.add(new Point( rgbaSize.width, 0));
-                imageCornersList.add(new Point( 0,  0));
-                imageCornersList.add(new Point(0, rgbaSize.height));
-                imageCornersList.add(new Point(rgbaSize.width,  rgbaSize.height));
-                imageCorners.fromList(imageCornersList);
-                Log.d("screenCorners",imageCorners.dump());
-
-                // Find the final homography between points.
-                Mat finalTr = Calib3d.findHomography(cornerOfDeviceTr,imageCorners);
-                Log.d("Final:",finalTr.dump());
-
-                Mat dst = new Mat(rgba.size(), CvType.CV_64FC1);
-                Imgproc.warpPerspective(rgba, dst, finalTr, rgba.size());
-                Point[] coloredP = cornerOfDeviceTr.toArray();
-
-                Log.d("ColoredP",coloredP[0].toString()+coloredP[1].toString()+coloredP[2].toString()+coloredP[3].toString());
-                for (int i = 0; i < 4; i++) {
-                   MyLine(rgba,coloredP[i%4],coloredP[(i+1)%4]);
-                }
-
+                Mat dst = fixPerspective(rgba,marker,camParams);
                 return rgba;
                 //return dst;
             }
@@ -306,6 +206,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                     warpPerspective applies a perspective transformation to an image
                      */
 
+
                     //Marker marker = detectedMarkers.get(i);
                     //marker.draw3dAxis(rgba, camParams);
                     //marker.draw3dCube(rgba, camParams, new Scalar(255,255,0));
@@ -315,6 +216,124 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             // Do facial recognition here
         }
             return rgba;
+    }
+
+    private MatOfPoint3f getArucoPoints() {
+        MatOfPoint3f cornerPoints = new MatOfPoint3f();
+        double halfSize = MARKER_SIZE/2.0;
+        Vector<Point3> points = new Vector<Point3>();
+        points.add(new Point3( halfSize, -halfSize, 0));
+        points.add(new Point3(-halfSize, -halfSize, 0));
+        points.add(new Point3(-halfSize,  halfSize, 0));
+        points.add(new Point3( halfSize,  halfSize, 0));
+        cornerPoints.fromList(points);
+        return cornerPoints;
+    }
+
+    private Mat createCameraMatrix (double fx, double fy, double x0, double y0) {
+        Mat EyeCamMatrix = Mat.eye(3,3,CvType.CV_32FC1);
+        EyeCamMatrix.put(0,0,fx);
+        EyeCamMatrix.put(1,1,fy);
+        EyeCamMatrix.put(2,2,1.0);
+        EyeCamMatrix.put(0,2,x0);
+        EyeCamMatrix.put(1,2,y0);
+        return EyeCamMatrix;
+    }
+
+    private MatOfPoint2f create4Points (double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4) {
+        MatOfPoint2f cornerOfDevice = new MatOfPoint2f();
+        Vector<Point> DevicePoints = new Vector<Point>();
+        DevicePoints.add(new Point(x1, y1));
+        DevicePoints.add(new Point(x2, y2));
+        DevicePoints.add(new Point(x3, y3));
+        DevicePoints.add(new Point(x4, y4));
+        cornerOfDevice.fromList(DevicePoints);
+        return cornerOfDevice;
+    }
+
+    private Mat fixPerspective(Mat rgba, Marker marker, CameraParameters camParams) {
+        Size rgbaSize = rgba.size();
+
+        // The estimated 4 corner points in 3D marker frame:
+        MatOfPoint3f cornerPoints = getArucoPoints();
+        Log.d("Arucopoints",cornerPoints.dump());
+
+        // Project points into camera image.
+        MatOfPoint2f srcPointsProj = new MatOfPoint2f();
+        Calib3d.projectPoints(cornerPoints, marker.getRvec(), marker.getTvec(), camParams.getCameraMatrix(), camParams.getDistCoeff(), srcPointsProj);
+        Log.d("srcpoints",srcPointsProj.dump());
+        Log.d("CameraMatrix:", camParams.getCameraMatrix().dump());
+
+        // Create translation vector from camera to the focus point of the pinhole camera constituted by the eyes and camera screen.
+        Mat tEye2Device = Mat.zeros(3, 1, CvType.CV_64FC1);
+        tEye2Device.put(2, 0, 0.4);  // Z (backwards)
+        Mat tDevice2Cam = Mat.zeros(3, 1, CvType.CV_64FC1);
+        tDevice2Cam.put(0, 0, 0);  // X (shift to move camera to phone center)
+        Mat tEye2Cam = Mat.zeros(3, 1, CvType.CV_64FC1);
+        Core.add(tEye2Device, tDevice2Cam, tEye2Cam);
+        // TODO: add calibration procedure for x and y offset and set input as the estimates by the eye tracking software (x,y and z). Just some sliders for x and y could work fine i guess?
+
+        // Get translation vector from marker to EyeCamera. Therefore we have the definite extrinsic matrix since the rotation vector.
+        Mat tEye2Marker = Mat.zeros(3, 1, CvType.CV_64FC1);
+        Core.add(tEye2Device, marker.getTvec(), tEye2Marker);
+
+        // Create estimation of intrinsic camera matrix for the EyeCamera.
+        Mat EyeCamMatrix = createCameraMatrix(0.4,0.4,0.0711,0.03495);
+        Log.d("EyeCameraMatrix:", EyeCamMatrix.dump());
+
+        // Project Aruco points onto the screen through the Eye Camera matrix.
+        MatOfPoint2f dstPointsProj = new MatOfPoint2f();
+        Calib3d.projectPoints(cornerPoints, marker.getRvec(), tEye2Marker, EyeCamMatrix, new MatOfDouble(0,0,0,0,0,0,0,0), dstPointsProj); // camParams.getCameraMatrix()
+        Log.d("dstpoints",dstPointsProj.dump());
+
+        /* Make this entire section about drawing squares into its own method.
+        List<Point> srcPointsProjList = new Vector<Point>();
+        srcPointsProjList = srcPointsProj.toList();
+
+        List<Point> dstPointsProjList = new Vector<Point>();
+        dstPointsProjList = dstPointsProj.toList();
+
+                // Draw squares:
+                Scalar color = new Scalar(255,255,0);
+                for (int i = 0; i < 4; i++){
+                    Imgproc.line(rgba, srcPointsProjList.get(i), srcPointsProjList.get((i+1)%4), color, 2);
+                    Imgproc.line(rgba, dstPointsProjList.get(i), dstPointsProjList.get((i+1)%4), color, 2);
+                    Imgproc.line(rgba, dstPointsProjList.get(i), srcPointsProjList.get(i), color, 2);
+                }
+*/
+
+        // Use findHomography to get a transform matrix between phone image and EyeCamera image.
+        Mat H = Imgproc.getPerspectiveTransform(dstPointsProj, srcPointsProj);
+        Log.d("Cam2Dev",H.dump());
+
+        // Generate corner points in screen plane.
+        MatOfPoint2f cornerOfDevice =create4Points(0.0711*2, 0,0, 0,0,  0.03495*2,0.0711*2,  0.03495*2);
+
+        // Transform corner-of-device points into phone camera image.
+        MatOfPoint2f cornerOfDeviceTr = new MatOfPoint2f();
+        Imgproc.warpPerspective(cornerOfDevice, cornerOfDeviceTr, H,cornerOfDeviceTr.size());
+        Log.d("cornerOfDeviceTr",cornerOfDeviceTr.dump());
+
+        // Corner points on image in screen.
+        MatOfPoint2f imageCorners = create4Points(rgbaSize.width, 0,0,  0,0, rgbaSize.height, rgbaSize.width, rgbaSize.height);
+        Log.d("screenCorners",imageCorners.dump());
+
+        // Convert src and dst to Mat and then find the final transformation to stretch points to corners of image.
+
+        Mat finalTr = Imgproc.getPerspectiveTransform(cornerOfDeviceTr,imageCorners);
+        Log.d("Final:",finalTr.dump());
+
+        // Transform to corners for the final image to show on screen!
+        Mat dst = new Mat(rgba.size(), CvType.CV_64FC1);
+        Imgproc.warpPerspective(rgba, dst, finalTr, rgba.size());
+
+        // Following used for debugging, instead of
+        Point[] coloredP = cornerOfDeviceTr.toArray();
+        Log.d("ColoredP",coloredP[0].toString()+coloredP[1].toString()+coloredP[2].toString()+coloredP[3].toString());
+        for (int i = 0; i < 4; i++) {
+            MyLine(rgba,coloredP[i%4],coloredP[(i+1)%4]);
+        }
+        return dst;
     }
 
     public void debugMsg(String msg) {
@@ -331,7 +350,6 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         @Override
         public void run() {
             switchCameras();
-
             mHandler.postDelayed(this, DELAY);
         }
     };
