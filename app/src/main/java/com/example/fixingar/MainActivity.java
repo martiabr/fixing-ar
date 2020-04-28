@@ -268,7 +268,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         Mat tEye2Device = Mat.zeros(3, 1, CvType.CV_64FC1);
         tEye2Device.put(2, 0, 0.4);  // Z (backwards)
         Mat tDevice2Cam = Mat.zeros(3, 1, CvType.CV_64FC1);
-        tDevice2Cam.put(0, 0, 0);  // X (shift to move camera to phone center)
+        tDevice2Cam.put(0, 0, -0.05);  // X (shift to move camera to phone center)
         Mat tEye2Cam = Mat.zeros(3, 1, CvType.CV_64FC1);
         Core.add(tEye2Device, tDevice2Cam, tEye2Cam);
         // TODO: add calibration procedure for x and y offset and set input as the estimates by the eye tracking software (x,y and z). Just some sliders for x and y could work fine i guess?
@@ -280,6 +280,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         // Create estimation of intrinsic camera matrix for the EyeCamera.
         Mat EyeCamMatrix = createCameraMatrix(0.4,0.4,0.0711,0.03495);
         Log.d("EyeCameraMatrix:", EyeCamMatrix.dump());
+        // TODO: Insert parameters from eye detection here as well.
 
         // Project Aruco points onto the screen through the Eye Camera matrix.
         MatOfPoint2f dstPointsProj = new MatOfPoint2f();
@@ -318,8 +319,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         MatOfPoint2f imageCorners = create4Points(rgbaSize.width, 0,0,  0,0, rgbaSize.height, rgbaSize.width, rgbaSize.height);
         Log.d("screenCorners",imageCorners.dump());
 
-        // Convert src and dst to Mat and then find the final transformation to stretch points to corners of image.
-
+        // find the final transformation to stretch points to corners of image.
         Mat finalTr = Imgproc.getPerspectiveTransform(cornerOfDeviceTr,imageCorners);
         Log.d("Final:",finalTr.dump());
 
