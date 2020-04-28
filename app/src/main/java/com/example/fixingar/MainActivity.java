@@ -88,8 +88,8 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     //You must run a calibration prior to detection
     // The activity to run calibration is provided in the repository
 
-    private static final Scalar EYE_RECT_COLOR     = new Scalar(0, 150, 0, 150);
-    private static final Scalar FACE_RECT_COLOR     = new Scalar(150, 0, 150, 0);
+    private static final Scalar     COLOR1     = new Scalar(0, 150, 0, 150);
+    private static final Scalar     COLOR2     = new Scalar(150, 0, 150, 0);
     public static final int        JAVA_DETECTOR       = 0;
     public static final int        NATIVE_DETECTOR     = 1;
 
@@ -410,7 +410,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         AllEyeCoordinates = new int[NumEyes][2];
         Coordinates = new int[4];
         for (int i = 0; i < NumEyes; i++) {
-            Imgproc.rectangle(mRgba, eyesArray[i].tl(), eyesArray[i].br(), EYE_RECT_COLOR, 3);
+            Imgproc.rectangle(mRgba, eyesArray[i].tl(), eyesArray[i].br(), COLOR1, 3);
             if (NumEyes > 0) {
                 AllEyeCoordinates[i][0] = eyesArray[i].x;
                 AllEyeCoordinates[i][1] = eyesArray[i].y;
@@ -427,11 +427,13 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 int y2 = AllEyeCoordinates[1][1];
                 int dist = ((x1 - x2) ^ 2 + (y1 - y2) ^ 2) ^ (1 / 2);
                 int disty = ((y1 - y2) ^ 2) ^ (1 / 2);
-                if (dist > Math.round(width * 0.1) && disty < Math.round(height * 0.05)) {
+                if (dist > Math.round(width * 0.1) && disty < Math.round(height * 0.005)) {
                     Coordinates[0] = (x1 + x2) / 2;
                     Coordinates[1] = (y1 + y2) / 2;
                     Coordinates[2] = dist;
                     Coordinates[3] = 2;
+                    Imgproc.rectangle(mRgba, eyesArray[0].tl(), eyesArray[0].br(), COLOR2, 5);
+                    Imgproc.rectangle(mRgba, eyesArray[1].tl(), eyesArray[1].br(), COLOR2, 5);
                 }
             }
             else {
@@ -444,11 +446,13 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                             int y2 = AllEyeCoordinates[j][1];
                             int dist = ((x1 - x2) ^ 2 + (y1 - y2) ^ 2) ^ (1 / 2);
                             int disty = ((y1 - y2) ^ 2) ^ (1 / 2);
-                            if (dist > Math.round(width * 0.1) && disty < Math.round(height * 0.05)) {
+                            if (dist > Math.round(width * 0.1) && disty < Math.round(height * 0.001)) {
                                 Coordinates[0] = (x1 + x2) / 2;
                                 Coordinates[1] = (y1 + y2) / 2;
                                 Coordinates[2] = dist;
                                 Coordinates[3] = 2;
+                                Imgproc.rectangle(mRgba, eyesArray[i].tl(), eyesArray[i].br(), COLOR2, 5);
+                                Imgproc.rectangle(mRgba, eyesArray[j].tl(), eyesArray[j].br(), COLOR2, 5);
                             }
                         }
                     }
@@ -463,7 +467,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         NumFaces = facesArray.length;
         AllFaceCoordinates = new int[NumFaces][3];
         for (int i = 0; i < NumFaces; i++) {
-            Imgproc.rectangle(mRgba, facesArray[i].tl(), facesArray[i].br(), FACE_RECT_COLOR, 3);
+            Imgproc.rectangle(mRgba, facesArray[i].tl(), facesArray[i].br(), COLOR1, 3);
             if (NumFaces > 0) {
                 AllFaceCoordinates[i][0] = facesArray[i].x;
                 AllFaceCoordinates[i][1] = facesArray[i].y;
@@ -479,6 +483,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                     face_width = AllFaceCoordinates[index1][2];
                 }
             }
+            Imgproc.rectangle(mRgba, facesArray[index1].tl(), facesArray[index1].br(), COLOR2, 5);
             Coordinates[0] = AllFaceCoordinates[index1][0];
             Coordinates[1] = AllFaceCoordinates[index1][1];
             Coordinates[2] = AllFaceCoordinates[index1][2];
@@ -505,8 +510,9 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             //width of the image, Julia's phone resolution for video recording with front camera
             // : 1920*1080
             double objImSensor = Coordinates[2]/conv ;// object size in pix/conv in px/m => m
+            double est = 2.3; // to correct the distance
 
-            DistFace = (float)ObjSize * (float)focalLength / (float)objImSensor;// in m and conv from
+            DistFace = (float) (ObjSize * focalLength / objImSensor * est);// in m and conv from
             //double to float
 
             double x_coor = Coordinates[0] - width/2;
