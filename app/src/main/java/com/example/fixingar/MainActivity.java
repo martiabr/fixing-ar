@@ -489,13 +489,13 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 ObjSize = EstimatedEyeDist; //real size in m of the eye dist
             }
             // case for no eyes detected
-            if (Coordinates[3] ==0){
+            if (Coordinates[3] ==1){
                 ObjSize = EstimatedFaceWidth; //real size in m of face
             }
             double focalLength = 3.75*0.001;//real size in m, usually val between 4 and 6 mm TBD
             double[] fx = Cmat.get(1,1);// in pix
             double[] fy = Cmat.get(2,2);// in pix
-            double f = Math.round((fx[1]+fy[1])/2); // round fct to get an integer
+            double f = Math.round((fx[0]+fy[0])/2); // round fct to get an integer
             double m= f/focalLength;// from fx = f*mx
             double conv = 1920/width*m;// conversion of resolution in px/m
             //width of the image, Julia's phone resolution for video recording with front camera
