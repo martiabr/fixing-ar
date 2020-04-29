@@ -66,6 +66,65 @@ public class PerspectiveFixer {
 
         // TODO: stretch image so it fills entire width of screen?
 
+        Mat cam2EyeTransform = getCam2EyeTransform(marker, markerSize);
+
+        Mat screen2DeviceTransform = getScreen2DeviceTransform(rgbaSize); // TODO: this is a constant transform which we only need to calculate once, not at every frame
+
+        /* Make this entire section about drawing squares into its own method.
+        List<Point> srcPointsProjList = new Vector<Point>();
+        srcPointsProjList = srcPointsProj.toList();
+
+        List<Point> dstPointsProjList = new Vector<Point>();
+        dstPointsProjList = dstPointsProj.toList();
+
+                // Draw squares:
+                Scalar color = new Scalar(255,255,0);
+                for (int i = 0; i < 4; i++){
+                    Imgproc.line(rgba, srcPointsProjList.get(i), srcPointsProjList.get((i+1)%4), color, 2);
+                    Imgproc.line(rgba, dstPointsProjList.get(i), dstPointsProjList.get((i+1)%4), color, 2);
+                    Imgproc.line(rgba, dstPointsProjList.get(i), srcPointsProjList.get(i), color, 2);
+                }
+*/
+
+
+        // Transform frame from camera to eye:
+        MatOfPoint2f frameCam2EyeTransformed = new MatOfPoint2f();
+        Imgproc.warpPerspective(rgba, frameCam2EyeTransformed, cam2EyeTransform, rgba.size());
+
+        // Stretch frame to entire device size:
+        MatOfPoint2f frameScreen2DeviceTransformed = new MatOfPoint2f();
+        Imgproc.warpPerspective(frameCam2EyeTransformed, frameScreen2DeviceTransformed, screen2DeviceTransform, frameCam2EyeTransformed.size());
+
+
+        /*
+        // Transform corner-of-device points into phone camera image.
+        MatOfPoint2f cornerOfDeviceTr = new MatOfPoint2f();
+        Imgproc.warpPerspective(cornerOfDevice, cornerOfDeviceTr, H, cornerOfDeviceTr.size());
+        Core.perspectiveTransform(cornersDevice, cornersDevice);
+        Log.d("cornerOfDeviceTr",cornerOfDeviceTr.dump());
+
+
+        // find the final transformation to stretch points to corners of image.
+        Mat finalTr = Imgproc.getPerspectiveTransform(cornerOfDeviceTr,imageCorners);
+        Log.d("Final:",finalTr.dump());
+
+        // Transform to corners for the final image to show on screen!
+        Mat dst = new Mat(rgba.size(), CvType.CV_64FC1);
+        Imgproc.warpPerspective(rgba, dst, finalTr, rgba.size());
+
+
+        // Following used for debugging, instead of
+        Point[] coloredP = cornerOfDeviceTr.toArray();
+        Log.d("ColoredP",coloredP[0].toString()+coloredP[1].toString()+coloredP[2].toString()+coloredP[3].toString());
+        for (int i = 0; i < 4; i++) {
+            drawLine(rgba, coloredP[i%4], coloredP[(i+1)%4]);
+        }
+        */
+
+        return frameScreen2DeviceTransformed;
+    }
+
+    private Mat getCam2EyeTransform(Marker marker, double markerSize) {
         // The estimated 4 corner points in 3D marker frame:
         MatOfPoint3f cornerPointsCam = getArucoPoints(markerSize);
         Log.d("Marker corners 3D:",cornerPointsCam.dump());
@@ -100,53 +159,26 @@ public class PerspectiveFixer {
         Calib3d.projectPoints(cornerPointsCam, marker.getRvec(), tEye2Marker, EyeCamMatrix, new MatOfDouble(0,0,0,0,0,0,0,0), cornerPointsEyeProj); // camParams.getCameraMatrix()
         Log.d("dstpoints",cornerPointsEyeProj.dump());
 
-        /* Make this entire section about drawing squares into its own method.
-        List<Point> srcPointsProjList = new Vector<Point>();
-        srcPointsProjList = srcPointsProj.toList();
-
-        List<Point> dstPointsProjList = new Vector<Point>();
-        dstPointsProjList = dstPointsProj.toList();
-
-                // Draw squares:
-                Scalar color = new Scalar(255,255,0);
-                for (int i = 0; i < 4; i++){
-                    Imgproc.line(rgba, srcPointsProjList.get(i), srcPointsProjList.get((i+1)%4), color, 2);
-                    Imgproc.line(rgba, dstPointsProjList.get(i), dstPointsProjList.get((i+1)%4), color, 2);
-                    Imgproc.line(rgba, dstPointsProjList.get(i), srcPointsProjList.get(i), color, 2);
-                }
-*/
-
         // Use getPerspectiveTransform to get a transform matrix between phone image and EyeCamera image.
-        Mat H = Imgproc.getPerspectiveTransform(cornerPointsCamProj, cornerPointsEyeProj);
-        Log.d("Cam2Dev",H.dump());
+        Mat cam2EyeTransform = Imgproc.getPerspectiveTransform(cornerPointsCamProj, cornerPointsEyeProj);
+        Log.d("Cam2EyeTransform",cam2EyeTransform.dump());
+
+        return cam2EyeTransform;
+    }
+
+    private Mat getScreen2DeviceTransform(Size rgbaSize) {
+        // Corner points on image in screen.
+        MatOfPoint2f cornersScreen = create4Points(rgbaSize.width, 0,0,  0,0, rgbaSize.height, rgbaSize.width, rgbaSize.height);
+        Log.d("cornersScreen",cornersScreen.dump());
 
         // Generate corner points in screen plane.
-        MatOfPoint2f cornerOfDevice = create4Points(0.0711*2, 0,0, 0,0,  0.03495*2,0.0711*2,  0.03495*2);
+        MatOfPoint2f cornersDevice = create4Points(0.0711*2, 0,0, 0,0,  0.03495*2,0.0711*2,  0.03495*2);
+        Log.d("cornersDevice",cornersDevice.dump());
 
-        // Transform corner-of-device points into phone camera image.
-        MatOfPoint2f cornerOfDeviceTr = new MatOfPoint2f();
-        Imgproc.warpPerspective(cornerOfDevice, cornerOfDeviceTr, H,cornerOfDeviceTr.size());
-        Log.d("cornerOfDeviceTr",cornerOfDeviceTr.dump());
+        Mat screen2DeviceTransform = Imgproc.getPerspectiveTransform(cornersScreen,cornersDevice);
+        Log.d("screen2DeviceTransform:",screen2DeviceTransform.dump());
 
-        // Corner points on image in screen.
-        MatOfPoint2f imageCorners = create4Points(rgbaSize.width, 0,0,  0,0, rgbaSize.height, rgbaSize.width, rgbaSize.height);
-        Log.d("screenCorners",imageCorners.dump());
-
-        // find the final transformation to stretch points to corners of image.
-        Mat finalTr = Imgproc.getPerspectiveTransform(cornerOfDeviceTr,imageCorners);
-        Log.d("Final:",finalTr.dump());
-
-        // Transform to corners for the final image to show on screen!
-        Mat dst = new Mat(rgba.size(), CvType.CV_64FC1);
-        Imgproc.warpPerspective(rgba, dst, finalTr, rgba.size());
-
-        // Following used for debugging, instead of
-        Point[] coloredP = cornerOfDeviceTr.toArray();
-        Log.d("ColoredP",coloredP[0].toString()+coloredP[1].toString()+coloredP[2].toString()+coloredP[3].toString());
-        for (int i = 0; i < 4; i++) {
-            drawLine(rgba, coloredP[i%4], coloredP[(i+1)%4]);
-        }
-        return dst;
+        return screen2DeviceTransform;
     }
 
     private void drawLine(Mat img, Point start, Point end) {
