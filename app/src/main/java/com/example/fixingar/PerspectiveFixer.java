@@ -64,21 +64,24 @@ public class PerspectiveFixer {
     public Mat fixPerspective(Mat rgba, Marker marker, double markerSize) {
         Size rgbaSize = rgba.size();
 
-        // The estimated 4 corner points in 3D marker frame:
-        MatOfPoint3f cornerPoints = getArucoPoints(markerSize);
-        Log.d("Arucopoints",cornerPoints.dump());
+        // TODO: stretch image so it fills entire width of screen?
 
-        // Project points into camera image.
-        MatOfPoint2f srcPointsProj = new MatOfPoint2f();
-        Calib3d.projectPoints(cornerPoints, marker.getRvec(), marker.getTvec(), camParams.getCameraMatrix(), camParams.getDistCoeff(), srcPointsProj);
-        Log.d("srcpoints",srcPointsProj.dump());
-        Log.d("CameraMatrix:", camParams.getCameraMatrix().dump());
+        // The estimated 4 corner points in 3D marker frame:
+        MatOfPoint3f cornerPointsCam = getArucoPoints(markerSize);
+        Log.d("Marker corners 3D:",cornerPointsCam.dump());
+
+        // Project points into camera image:
+        MatOfPoint2f cornerPointsCamProj = new MatOfPoint2f();
+        Calib3d.projectPoints(cornerPointsCam, marker.getRvec(), marker.getTvec(), camParams.getCameraMatrix(), camParams.getDistCoeff(), cornerPointsCamProj);
+        Log.d("Marker corners proj:",cornerPointsCamProj.dump());
+
+        Log.d("Camera matrix:", camParams.getCameraMatrix().dump());
 
         // Create translation vector from camera to the focus point of the pinhole camera constituted by the eyes and camera screen.
         Mat tEye2Device = Mat.zeros(3, 1, CvType.CV_64FC1);
         tEye2Device.put(2, 0, 0.4);  // Z (backwards)
         Mat tDevice2Cam = Mat.zeros(3, 1, CvType.CV_64FC1);
-        tDevice2Cam.put(0, 0, -0.05);  // X (shift to move camera to phone center)
+        tDevice2Cam.put(0, 0, 0.05);  // X (shift to move camera to phone center)
         Mat tEye2Cam = Mat.zeros(3, 1, CvType.CV_64FC1);
         Core.add(tEye2Device, tDevice2Cam, tEye2Cam);
         // TODO: add calibration procedure for x and y offset and set input as the estimates by the eye tracking software (x,y and z). Just some sliders for x and y could work fine i guess?
@@ -93,9 +96,9 @@ public class PerspectiveFixer {
         // TODO: Insert parameters from eye detection here as well.
 
         // Project Aruco points onto the screen through the Eye Camera matrix.
-        MatOfPoint2f dstPointsProj = new MatOfPoint2f();
-        Calib3d.projectPoints(cornerPoints, marker.getRvec(), tEye2Marker, EyeCamMatrix, new MatOfDouble(0,0,0,0,0,0,0,0), dstPointsProj); // camParams.getCameraMatrix()
-        Log.d("dstpoints",dstPointsProj.dump());
+        MatOfPoint2f cornerPointsEyeProj = new MatOfPoint2f();
+        Calib3d.projectPoints(cornerPointsCam, marker.getRvec(), tEye2Marker, EyeCamMatrix, new MatOfDouble(0,0,0,0,0,0,0,0), cornerPointsEyeProj); // camParams.getCameraMatrix()
+        Log.d("dstpoints",cornerPointsEyeProj.dump());
 
         /* Make this entire section about drawing squares into its own method.
         List<Point> srcPointsProjList = new Vector<Point>();
@@ -113,12 +116,12 @@ public class PerspectiveFixer {
                 }
 */
 
-        // Use findHomography to get a transform matrix between phone image and EyeCamera image.
-        Mat H = Imgproc.getPerspectiveTransform(dstPointsProj, srcPointsProj);
+        // Use getPerspectiveTransform to get a transform matrix between phone image and EyeCamera image.
+        Mat H = Imgproc.getPerspectiveTransform(cornerPointsCamProj, cornerPointsEyeProj);
         Log.d("Cam2Dev",H.dump());
 
         // Generate corner points in screen plane.
-        MatOfPoint2f cornerOfDevice =create4Points(0.0711*2, 0,0, 0,0,  0.03495*2,0.0711*2,  0.03495*2);
+        MatOfPoint2f cornerOfDevice = create4Points(0.0711*2, 0,0, 0,0,  0.03495*2,0.0711*2,  0.03495*2);
 
         // Transform corner-of-device points into phone camera image.
         MatOfPoint2f cornerOfDeviceTr = new MatOfPoint2f();
