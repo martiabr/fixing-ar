@@ -425,9 +425,9 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 int x2 = AllEyeCoordinates[1][0];
                 int y1 = AllEyeCoordinates[0][1];
                 int y2 = AllEyeCoordinates[1][1];
-                int dist = ((x1 - x2) ^ 2 + (y1 - y2) ^ 2) ^ (1 / 2);
-                int disty = Math.abs(y1-y2);
-                if (dist > Math.round(width * 0.1) && disty < Math.round(height * 0.2)) {
+                int dist = Math.abs(((x1 - x2) ^ 2 + (y1 - y2) ^ 2) ^ (1 / 2));
+                int disty = Math.abs(y2-y1);
+                if (dist > Math.round(width * 0.1) && disty < Math.round(height * 0.05)) {
                     Coordinates[0] = (x1 + x2) / 2;
                     Coordinates[1] = (y1 + y2) / 2;
                     Coordinates[2] = dist;
@@ -437,16 +437,16 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 }
             }
             else {
-                for (int i = 0; i < NumEyes-1; i++) {
-                    for (int j = i+1; j < NumEyes; j++) {
-                        if (Coordinates[3] != 2 && j>i) {
+                for (int i = 0; i < NumEyes; i++) {
+                    for (int j = 0; j < NumEyes; j++) {
+                        if (Coordinates[3] != 2 && j!=i) {
                             int x1 = AllEyeCoordinates[i][0];
                             int x2 = AllEyeCoordinates[j][0];
                             int y1 = AllEyeCoordinates[i][1];
                             int y2 = AllEyeCoordinates[j][1];
-                            int dist = ((x1 - x2) ^ 2 + (y1 - y2) ^ 2) ^ (1 / 2);
-                            int disty = Math.abs(y1-y2);
-                            if (dist > Math.round(width * 0.1) && disty < Math.round(height * 0.2)) {
+                            int dist = Math.abs(((x1 - x2) ^ 2 + (y1 - y2) ^ 2) ^ (1 / 2));
+                            int disty = Math.abs(y2-y1);
+                            if (dist > Math.round(width * 0.1) && disty < Math.round(height * 0.05)) {
                                 Coordinates[0] = (x1 + x2) / 2;
                                 Coordinates[1] = (y1 + y2) / 2;
                                 Coordinates[2] = dist;
@@ -506,20 +506,17 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             double[] fy = Cmat.get(2,2);// in pix
             double f = Math.round((fx[0]+fy[0])/2); // round fct to get an integer
             double m= f/focalLength;// from fx = f*mx
-            /*double conv = 1920/width*m;// conversion of resolution in px/m
+            double conv = m*1920/width;// conversion of resolution in px/m
             //width of the image, Julia's phone resolution for video recording with front camera
             // : 1920*1080
             double objImSensor = Coordinates[2]/conv ;// object size in pix/conv in px/m => m
-
-             */
-            double objImSensor = Coordinates[2]/m;
-            double est = 2.3; // to correct the distance
+            double est = 1.3; // to correct the distance
 
             DistFace = (float) (ObjSize * focalLength / objImSensor * est);// in m and conv from
             //double to float
 
             double x_coor = Coordinates[0] - width/2;
-            double y_coor = Coordinates[1] - height/2;
+            double y_coor = height/2 - Coordinates[1];
             mCoordinates = new float[2];
             double mul = DistFace/focalLength*width/m/1920;
             mCoordinates[0] = (float) (mul*x_coor);
