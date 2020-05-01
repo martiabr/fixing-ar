@@ -15,6 +15,7 @@ import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
+import java.util.List;
 import java.util.Vector;
 
 import es.ava.aruco.CameraParameters;
@@ -22,6 +23,7 @@ import es.ava.aruco.Marker;
 
 public class PerspectiveFixer {
     private CameraParameters camParams;
+    private double screenEyeDistance = 0.4;
 
     public PerspectiveFixer(CameraParameters cp) {
         camParams = cp;
@@ -66,34 +68,17 @@ public class PerspectiveFixer {
 
         // TODO: stretch image so it fills entire width of screen?
 
-        Mat cam2EyeTransform = getCam2EyeTransform(marker, markerSize);
+        Mat cam2EyeTransform = getCam2EyeTransform(rgba, marker, markerSize);
 
-        Mat screen2DeviceTransform = getScreen2DeviceTransform(rgbaSize); // TODO: this is a constant transform which we only need to calculate once, not at every frame
-
-        /* Make this entire section about drawing squares into its own method.
-        List<Point> srcPointsProjList = new Vector<Point>();
-        srcPointsProjList = srcPointsProj.toList();
-
-        List<Point> dstPointsProjList = new Vector<Point>();
-        dstPointsProjList = dstPointsProj.toList();
-
-                // Draw squares:
-                Scalar color = new Scalar(255,255,0);
-                for (int i = 0; i < 4; i++){
-                    Imgproc.line(rgba, srcPointsProjList.get(i), srcPointsProjList.get((i+1)%4), color, 2);
-                    Imgproc.line(rgba, dstPointsProjList.get(i), dstPointsProjList.get((i+1)%4), color, 2);
-                    Imgproc.line(rgba, dstPointsProjList.get(i), srcPointsProjList.get(i), color, 2);
-                }
-*/
-
+        //Mat screen2DeviceTransform = getScreen2DeviceTransform(rgbaSize); // TODO: this is a constant transform which we only need to calculate once, not at every frame
 
         // Transform frame from camera to eye:
         MatOfPoint2f frameCam2EyeTransformed = new MatOfPoint2f();
-        Imgproc.warpPerspective(rgba, frameCam2EyeTransformed, cam2EyeTransform, rgba.size());
+        Imgproc.warpPerspective(rgba, frameCam2EyeTransformed, cam2EyeTransform, rgbaSize);
 
         // Stretch frame to entire device size:
-        MatOfPoint2f frameScreen2DeviceTransformed = new MatOfPoint2f();
-        Imgproc.warpPerspective(frameCam2EyeTransformed, frameScreen2DeviceTransformed, screen2DeviceTransform, frameCam2EyeTransformed.size());
+        //MatOfPoint2f frameScreen2DeviceTransformed = new MatOfPoint2f();
+        //Imgproc.warpPerspective(frameCam2EyeTransformed, frameScreen2DeviceTransformed, screen2DeviceTransform, frameCam2EyeTransformed.size());
 
 
         /*
@@ -121,10 +106,10 @@ public class PerspectiveFixer {
         }
         */
 
-        return frameScreen2DeviceTransformed;
+        return frameCam2EyeTransformed;
     }
 
-    private Mat getCam2EyeTransform(Marker marker, double markerSize) {
+    private Mat getCam2EyeTransform(Mat rgba, Marker marker, double markerSize) {
         // The estimated 4 corner points in 3D marker frame:
         MatOfPoint3f cornerPointsCam = getArucoPoints(markerSize);
         Log.d("Marker corners 3D:",cornerPointsCam.dump());
@@ -138,19 +123,20 @@ public class PerspectiveFixer {
 
         // Create translation vector from camera to the focus point of the pinhole camera constituted by the eyes and camera screen.
         Mat tEye2Device = Mat.zeros(3, 1, CvType.CV_64FC1);
-        tEye2Device.put(2, 0, 0.4);  // Z (backwards)
+        tEye2Device.put(2, 0, screenEyeDistance);  // Z (backwards)
         Mat tDevice2Cam = Mat.zeros(3, 1, CvType.CV_64FC1);
-        tDevice2Cam.put(0, 0, 0.05);  // X (shift to move camera to phone center)
+        tDevice2Cam.put(0, 0, -0.05);  // X (shift to move camera to phone center)
         Mat tEye2Cam = Mat.zeros(3, 1, CvType.CV_64FC1);
         Core.add(tEye2Device, tDevice2Cam, tEye2Cam);
         // TODO: add calibration procedure for x and y offset and set input as the estimates by the eye tracking software (x,y and z). Just some sliders for x and y could work fine i guess?
 
         // Get translation vector from marker to EyeCamera. Therefore we have the definite extrinsic matrix since the rotation vector.
         Mat tEye2Marker = Mat.zeros(3, 1, CvType.CV_64FC1);
-        Core.add(tEye2Device, marker.getTvec(), tEye2Marker);
+        Core.add(tEye2Cam, marker.getTvec(), tEye2Marker);
 
         // Create estimation of intrinsic camera matrix for the EyeCamera.
-        Mat EyeCamMatrix = createCameraMatrix(0.4,0.4,0.0711,0.03495);
+        double magicNumber = 11000.0;
+        Mat EyeCamMatrix = createCameraMatrix(magicNumber*screenEyeDistance,magicNumber*screenEyeDistance,magicNumber*0.0711,magicNumber*0.03495);
         Log.d("EyeCameraMatrix:", EyeCamMatrix.dump());
         // TODO: Insert parameters from eye detection here as well.
 
@@ -162,6 +148,21 @@ public class PerspectiveFixer {
         // Use getPerspectiveTransform to get a transform matrix between phone image and EyeCamera image.
         Mat cam2EyeTransform = Imgproc.getPerspectiveTransform(cornerPointsCamProj, cornerPointsEyeProj);
         Log.d("Cam2EyeTransform",cam2EyeTransform.dump());
+
+        //Make this entire section about drawing squares into its own method.
+        List<Point> cornerPointsCamProjList = new Vector<Point>();
+        cornerPointsCamProjList = cornerPointsCamProj.toList();
+
+        List<Point> cornerPointsEyeProjList = new Vector<Point>();
+        cornerPointsEyeProjList = cornerPointsEyeProj.toList();
+
+        // Draw squares:
+        Scalar color = new Scalar(255,255,0);
+        for (int i = 0; i < 4; i++){
+            //Imgproc.line(rgba, cornerPointsCamProjList.get(i), cornerPointsCamProjList.get((i+1)%4), color, 2);
+            //Imgproc.line(rgba, cornerPointsEyeProjList.get(i), cornerPointsEyeProjList.get((i+1)%4), color, 2);
+            //Imgproc.line(rgba, cornerPointsEyeProjList.get(i), cornerPointsCamProjList.get(i), color, 2);
+        }
 
         return cam2EyeTransform;
     }

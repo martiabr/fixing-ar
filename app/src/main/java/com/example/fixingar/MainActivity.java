@@ -193,8 +193,8 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 debugMsg(marker.getRvec().dump() + "\n" + marker.getTvec().dump());
 
                 Mat dst = perspectiveFixer.fixPerspective(rgba, marker, MARKER_SIZE);
-                return rgba;
-                //return dst;
+                //return rgba;
+                return dst;
             }
 
             //Draw Axis for each marker detected
