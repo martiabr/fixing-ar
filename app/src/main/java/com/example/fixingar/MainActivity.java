@@ -116,7 +116,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     private int                    NumEyes;
     private int[][]                AllEyeCoordinates;
     private int[]                  Coordinates; //contains x & y coordinate, dist, 1 or 2 to define if one eye or two were found
-    private float[]                mCoordinates; //x and y position in m
+    private double[]               mCoordinates; //x and y position in m
 
     private float                  mRelativeFaceSize   = 0.2f; // change this parameter to adjust min Face size
     private int                    mAbsoluteFaceSize   = 0;
@@ -126,6 +126,9 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     private float                  EstimatedFaceWidth   = 0.14f; // in m
     private float                  EstimatedEyeDist     = 0.06f; // in m
     private float                  DistFace;//in m
+
+    CameraParameters               camParams_f;
+    CameraParameters               camParams;
 
     private CameraBridgeViewBase mOpenCvCameraView;
     private int mCameraIndex = CameraBridgeViewBase.CAMERA_ID_BACK;
@@ -318,6 +321,8 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
             camParams.read(this);
 
+            PerspectiveFixer perspectiveFixer = new PerspectiveFixer(camParams, mCoordinates, DistFace);
+
             //Populate detectedMarkers
             mDetector.detect(mRgba, detectedMarkers, camParams, MARKER_SIZE);
 
@@ -325,6 +330,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             if (detectedMarkers.size() != 0) {
                 for (int i = 0; i < detectedMarkers.size(); i++) {
                     Marker marker = detectedMarkers.get(i);
+
 
                     debugMsg(marker.getRvec().dump() + "\n" + marker.getTvec().dump());
                     // Rvec and Tvec are the rotation and translation from the marker frame to the camera frame!
@@ -337,10 +343,11 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
                     detectedMarkers.get(i).draw3dAxis(mRgba, camParams);
                     detectedMarkers.get(i).draw3dCube(mRgba, camParams, new Scalar(255,255,0));
+                    Mat dst = perspectiveFixer.fixPerspective(mRgba, marker, MARKER_SIZE);
+                    mRgba = dst;
                 }
             }
 
-          
         } else if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_FRONT) {
             FrontOrBack = "front";
             // Do facial recognition here

@@ -104,6 +104,8 @@ public class Marker extends MatOfPoint2f implements Comparable<Marker>{
 	public int getMarkerId(){
 		return id;
 	}
+
+	public Vector<Point> getPoints() {return points; }
 	
 	public static Mat createMarkerImage(int id,int size) throws CvException	{
 	    if (id>=1024)
