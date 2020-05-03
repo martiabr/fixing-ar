@@ -339,6 +339,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                     detectedMarkers.get(i).draw3dCube(mRgba, camParams, new Scalar(255,255,0));
                 }
             }
+
           
         } else if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_FRONT) {
             FrontOrBack = "front";
