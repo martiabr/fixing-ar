@@ -193,7 +193,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 debugMsg(marker.getPoints().get(0) + "\n" + marker.getPoints().get(1) + "\n" + marker.getPoints().get(2) + "\n" + marker.getPoints().get(3) + "\n");
                 debugMsg(marker.getRvec().dump() + "\n" + marker.getTvec().dump());
 
-               // Mat dst = perspectiveFixer.fixPerspective(rgba, marker, MARKER_SIZE);
+                // Mat dst = perspectiveFixer.fixPerspective(rgba, marker, MARKER_SIZE);
                 //return rgba;
                 return rgba;
             }
