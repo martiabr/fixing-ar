@@ -70,10 +70,11 @@ public class PerspectiveFixer {
 
 
     public Mat fixPerspective(Mat mRgba, Marker marker, double markerSize) {
+        Mat dst = new Mat();
         MatOfPoint2f corners_camera = PointsFromCameraInBits(marker);
         MatOfPoint2f corners_eye = PointsFromEyeInBits(marker, markerSize);
         Mat homography = Calib3d.findHomography(corners_camera, corners_eye);
-        
+        Imgproc.warpPerspective(mRgba, dst, homography, mRgba.size());
         return dst;
     }
 }
