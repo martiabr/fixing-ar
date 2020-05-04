@@ -35,8 +35,9 @@ public class PerspectiveFixer {
         Dist = DistFace;
     }
 
-    private Vector<Point> PointsFromCameraInBits(Marker marker) { // get Aruco corner points in bits
-    Vector<Point> corners_camera = marker.getPoints(); // ToDo: test
+    private MatOfPoint2f PointsFromCameraInBits(Marker marker) { // get Aruco corner points in bits
+        Vector<Point> corners = marker.getPoints(); // ToDo: test
+        MatOfPoint2f corners_camera = ... ;
         return corners_camera;
     }
 
@@ -56,8 +57,8 @@ public class PerspectiveFixer {
         return EyeMatrix;
     }
 
-    private Vector<Point> PointsFromEyeInBits(Marker marker, double markerSize) {
-        Vector<Point> corners_eye;
+    private MatOfPoint2f PointsFromEyeInBits(Marker marker, double markerSize) {
+        MatOfPoint2f corners_eye;
         Mat CamToWall = marker.getTvec();
         double X = CamToWall.get(0,0) + mCoor[0];
         double Y = CamToWall.get(1,0) - mCoor[1];
@@ -69,10 +70,10 @@ public class PerspectiveFixer {
 
 
     public Mat fixPerspective(Mat mRgba, Marker marker, double markerSize) {
-        Vector<Point> corners_camera = PointsFromCameraInBits(marker);
-        Vector<Point> corners_eye = PointsFromEyeInBits(marker, markerSize);
+        MatOfPoint2f corners_camera = PointsFromCameraInBits(marker);
+        MatOfPoint2f corners_eye = PointsFromEyeInBits(marker, markerSize);
+        Mat homography = Calib3d.findHomography(corners_camera, corners_eye);
         
-
         return dst;
     }
 }
