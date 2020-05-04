@@ -40,10 +40,10 @@ public class PerspectiveFixer {
     }
 
     private double[][] CreateEyeMatrix() {
-        double ratio = Pixel_Density_Eye/0.0254; // pixel per m
-        double f = Eye_Focal*ratio;
-        double x = mCoor[0]*ratio;
-        double y = mCoor[1]*ratio;
+        //double ratio = Pixel_Density_Eye/0.0254; // pixel per m
+        double f = Dist;
+        double x = mCoor[0]+0.07;
+        double y = mCoor[1];
         double[][] IntrEyeMatrix = new double[][]{{f, 0, x}, {0, f, y}, {0, 0, 1}};
         double[][] ExtrEyeMatrix = new double[][]{{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}};
         double[][] EyeMatrix = new double[3][4];
