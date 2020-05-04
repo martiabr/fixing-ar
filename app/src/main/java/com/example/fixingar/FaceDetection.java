@@ -1,68 +1,21 @@
 package com.example.fixingar;
 
-import org.opencv.android.BaseLoaderCallback;
-import org.opencv.android.CameraActivity;
-import org.opencv.android.CameraBridgeViewBase;
-import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
-import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
-import org.opencv.android.LoaderCallbackInterface;
-import org.opencv.android.OpenCVLoader;
+
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
-
-import android.Manifest;
-import android.content.Context;
-import android.content.pm.PackageManager;
-import android.os.Bundle;
-import android.os.Handler;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
-
-import android.view.MotionEvent;
-
-import android.view.Menu;
 import android.view.MenuItem;
-
-import android.view.SurfaceView;
-import android.view.View;
-import android.view.WindowManager;
-
-import android.widget.Button;
-
 import android.widget.TextView;
-import android.widget.Toast;
 
-
-import org.opencv.android.BaseLoaderCallback;
-import org.opencv.android.CameraActivity;
-import org.opencv.android.CameraBridgeViewBase;
-import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
-import org.opencv.android.LoaderCallbackInterface;
-import org.opencv.android.OpenCVLoader;
-import org.opencv.core.Mat;
 import org.opencv.core.MatOfRect;
 import org.opencv.core.Rect;
-import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.CascadeClassifier;
 import org.opencv.samples.facedetect.DetectionBasedTracker;
 
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Array;
-import java.util.Collections;
-import java.util.List;
-import java.util.Vector;
 import java.lang.Math;
 
-import es.ava.aruco.CameraParameters;
-import es.ava.aruco.Marker;
-import es.ava.aruco.MarkerDetector;
 
 public class FaceDetection {
     private Mat CameraMatrix;
