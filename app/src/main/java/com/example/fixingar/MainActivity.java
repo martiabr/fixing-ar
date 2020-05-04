@@ -321,7 +321,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
             camParams.read(this);
 
-            PerspectiveFixer perspectiveFixer = new PerspectiveFixer(camParams, mCoordinates, DistFace);
+            PerspectiveFixer perspectiveFixer = new PerspectiveFixer(mCoordinates, DistFace);
 
             //Populate detectedMarkers
             mDetector.detect(mRgba, detectedMarkers, camParams, MARKER_SIZE);
@@ -525,12 +525,12 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
             double x_coor = Coordinates[0] - width/2;
             double y_coor = height/2 - Coordinates[1];
-            mCoordinates = new float[2];
+            mCoordinates = new double[2];
             double mul = DistFace/focalLength*width/m/1920;
-            mCoordinates[0] = (float) (mul*x_coor);
-            mCoordinates[1] = (float) (mul*y_coor);
+            mCoordinates[0] = (mul*x_coor);
+            mCoordinates[1] = (mul*y_coor);
 
-            String mess = mess1 + "Dist: " + Float.toString(DistFace) + "m, x: " + Float.toString(mCoordinates[0]) + "m, y: " + Float.toString(mCoordinates[1]) + "m";
+            String mess = mess1 + "Dist: " + Float.toString(DistFace) + "m, x: " + Double.toString(mCoordinates[0]) + "m, y: " + Double.toString(mCoordinates[1]) + "m";
             debugMsg(mess);
         }
           
