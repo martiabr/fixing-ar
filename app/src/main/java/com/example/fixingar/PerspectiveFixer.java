@@ -158,6 +158,18 @@ public class PerspectiveFixer {
                 shift );
     }
 
+    private Point getMeanPoint (Vector<Marker> detectedMarkers, int id_marker) {
+        double x = 0;
+        double y = 0;
+        for (int i = 0; i < 4; i++) {
+            x = x + detectedMarkers.get(id_marker).getPoints().get(i).x;
+            y = y + detectedMarkers.get(id_marker).getPoints().get(i).y;
+        }
+        x = x/4;
+        y = y/4;
+        return new Point(x,y);
+    }
+
     public Mat fixPerspectiveMultipleMarker(Mat rgba, Vector<Marker> detectedMarkers, float markerSize) {
         // 1. Get Pose from rvec and tvec of first marker.
         Marker marker = detectedMarkers.get(0);
@@ -180,17 +192,17 @@ public class PerspectiveFixer {
         // TODO: add calibration procedure for x and y offset and set input as the estimates by the eye tracking software (x,y and z). Just some sliders for x and y could work fine i guess?
         Mat tVecEye = Mat.zeros(3, 1, CvType.CV_64FC1);
         Core.add(marker.getTvec(),tEye2Device, tVecEye);
-        Mat EyeCamMatrix = createCameraMatrix(0.4,0.4, 0.0711,0.03495); //
+        Mat EyeCamMatrix = createCameraMatrix(0.4,0.4, 0.0711,-0.03495); //
         // TODO: Insert parameters from eye detection here as well in some way.
         MatOfPoint2f markerPointsProjEye = new MatOfPoint2f();
         Calib3d.projectPoints(markerPoints, Mat.zeros(3,1,marker.getRvec().type()), tEye2Device, EyeCamMatrix, new MatOfDouble(0,0,0,0,0,0,0,0), markerPointsProjEye); // marker.getRvec()& tVecEye
         // 4. Get perspective transform like before. Call it H.
         MatOfPoint2f markerPointsIm = new MatOfPoint2f();
         Vector<Point> DevicePoints = new Vector<Point>();
-        DevicePoints.add(new Point(detectedMarkers.get(1).getPoints().get(0).x,detectedMarkers.get(1).getPoints().get(0).y));
-        DevicePoints.add(new Point(detectedMarkers.get(2).getPoints().get(0).x,detectedMarkers.get(2).getPoints().get(0).y));
-        DevicePoints.add(new Point(detectedMarkers.get(3).getPoints().get(0).x,detectedMarkers.get(3).getPoints().get(0).y));
-        DevicePoints.add(new Point(detectedMarkers.get(4).getPoints().get(0).x,detectedMarkers.get(4).getPoints().get(0).y));
+        DevicePoints.add(getMeanPoint(detectedMarkers,1));
+        DevicePoints.add(getMeanPoint(detectedMarkers,2));
+        DevicePoints.add(getMeanPoint(detectedMarkers,3));
+        DevicePoints.add(getMeanPoint(detectedMarkers,4));
         markerPointsIm.fromList(DevicePoints);
         Log.d("markerpointsIm",markerPointsIm.dump());
         Mat H = Imgproc.getPerspectiveTransform(markerPointsProjEye,markerPointsIm);
