@@ -36,7 +36,7 @@ public class PerspectiveFixer {
         Vector<Point> corners = marker.getPoints(); // ToDo: test
         MatOfPoint2f corners_camera = new MatOfPoint2f();
         corners_camera.fromList(corners);
-        return corners_camera; //original order: clockwise, starting top left
+        return corners_camera; //ToDo: check original order: anti-clockwise, starting top left?
     }
 
     private double[][] CreateEyeMatrix() {
@@ -46,7 +46,7 @@ public class PerspectiveFixer {
         double y = mCoor[1]*ratio;
         double[][] IntrEyeMatrix = new double[][]{{f, 0, x}, {0, f, y}, {0, 0, 1}};
         double[][] ExtrEyeMatrix = new double[][]{{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}};
-        double[][] EyeMatrix = new double[][]{};
+        double[][] EyeMatrix = new double[3][4];
         for (int i = 0; i<3; i++) {
             for (int j = 0; j < 4; j++) {
                 EyeMatrix[i][j] = IntrEyeMatrix[i][0] * ExtrEyeMatrix[0][j] + IntrEyeMatrix[i][1] * ExtrEyeMatrix[1][j] + IntrEyeMatrix[i][2] * ExtrEyeMatrix[2][j];
@@ -68,19 +68,19 @@ public class PerspectiveFixer {
         Mat CamToWall = marker.getTvec();
         double[] T1 = CamToWall.get(0, 0); // ToDo: check if values are correct
         double[] T2 = CamToWall.get(1, 0);
-        double[] T3 = CamToWall.get(2, 0);
+        double[] T3 = CamToWall.get(2, 0); // value is not correct, is it not the distance from phone to aruco marker?
         double X = T1[0] + mCoor[0];
         double Y = T2[0] - mCoor[1];
         double Z = T3[0] + Dist;
         // assuming Aruco markers are on wall in correct orientation
         double x_3DPoint_1 = X - markerSize/2;
         double y_3DPoint_1 = Y + markerSize/2;
-        double x_3DPoint_2 = X + markerSize/2;
-        double y_3DPoint_2 = Y + markerSize/2;
+        double x_3DPoint_2 = X - markerSize/2;
+        double y_3DPoint_2 = Y - markerSize/2;
         double x_3DPoint_3 = X + markerSize/2;
         double y_3DPoint_3 = Y - markerSize/2;
-        double x_3DPoint_4 = X - markerSize/2;
-        double y_3DPoint_4 = Y - markerSize/2;
+        double x_3DPoint_4 = X + markerSize/2;
+        double y_3DPoint_4 = Y + markerSize/2;
 
         double[][] EyeMatrix = CreateEyeMatrix();
 

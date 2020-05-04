@@ -320,9 +320,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             CameraParameters camParams = new CameraParameters(FrontOrBack);
 
             camParams.read(this);
-
             PerspectiveFixer perspectiveFixer = new PerspectiveFixer(mCoordinates, DistFace);
-
             //Populate detectedMarkers
             mDetector.detect(mRgba, detectedMarkers, camParams, MARKER_SIZE);
 
@@ -343,8 +341,12 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
                     detectedMarkers.get(i).draw3dAxis(mRgba, camParams);
                     detectedMarkers.get(i).draw3dCube(mRgba, camParams, new Scalar(255,255,0));
-                    Mat dst = perspectiveFixer.fixPerspective(mRgba, marker, MARKER_SIZE);
-                    mRgba = dst;
+                    if (Coordinates != null) {
+                        if (Coordinates[3] != 0) {
+                        Mat dst = perspectiveFixer.fixPerspective(mRgba, marker, MARKER_SIZE);
+                        mRgba = dst;
+                    }
+                    }
                 }
             }
 
@@ -415,8 +417,9 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         Rect[] eyesArray;
         eyesArray = eyes.toArray();
         NumEyes = eyesArray.length;
-        AllEyeCoordinates = new int[NumEyes][2];
         Coordinates = new int[4];
+        Coordinates[3] = 0;
+        AllEyeCoordinates = new int[NumEyes][2];
         for (int i = 0; i < NumEyes; i++) {
             Imgproc.rectangle(mRgba, eyesArray[i].tl(), eyesArray[i].br(), COLOR1, 3);
             if (NumEyes > 0) {
@@ -426,7 +429,6 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         }
         int width = mGray.cols();
         int height = mGray.rows();
-        Coordinates[3] = 0;
         if (NumEyes > 1) {
             if (NumEyes == 2) {
                 int x1 = AllEyeCoordinates[0][0];
