@@ -56,7 +56,7 @@ import es.ava.aruco.MarkerDetector;
 public class MainActivity extends CameraActivity implements CvCameraViewListener2, View.OnClickListener {
     //Constants
     private static final String TAG = "Main";
-    private static final float MARKER_SIZE = (float) 0.13;
+    private static final float MARKER_SIZE = (float) 0.03;
 
     //Preferences
     private static final boolean SHOW_MARKERID = true;
@@ -185,36 +185,25 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
             //Populate detectedMarkers
             mDetector.detect(rgba, detectedMarkers, camParams, MARKER_SIZE);
+            Log.d("NumberMarker",detectedMarkers.toString());
 
             if (detectedMarkers.size() == 1) {
                 Marker marker = detectedMarkers.get(0);
-                //Log.d(TAG, String.valueOf(marker.getPoints().get(0)));
+                Log.d("markerPoints", String.valueOf(marker.getPoints().get(0)));
                 debugMsg(marker.getPoints().get(0) + "\n" + marker.getPoints().get(1) + "\n" + marker.getPoints().get(2) + "\n" + marker.getPoints().get(3) + "\n");
                 debugMsg(marker.getRvec().dump() + "\n" + marker.getTvec().dump());
 
-                Mat dst = perspectiveFixer.fixPerspective(rgba, marker, MARKER_SIZE);
+               // Mat dst = perspectiveFixer.fixPerspective(rgba, marker, MARKER_SIZE);
+                //return rgba;
                 return rgba;
-                //return dst;
             }
 
             //Draw Axis for each marker detected
-            if (detectedMarkers.size() != 0) {
-                for (int i = 0; i < detectedMarkers.size(); i++) {
-                    /*
-                    Rvec and Tvec are the rotation and translation from the marker frame to the camera frame!
-                    Use Rodriguez() method from calib3d to turn rotation vector into rotation matrix if we need this.
-                    The x,y,z position of the camera is: cameraPosition = -rotM.T * tvec
-                    ProjectPoints projects 3D points to image plane
-                    EstimateAffine3D computes an optimal affine transformation between two 3D point sets
-                    SolvePnP finds an object pose from 3D-2D point correspondences
-                    warpPerspective applies a perspective transformation to an image
-                     */
-
-
-                    //Marker marker = detectedMarkers.get(i);
-                    //marker.draw3dAxis(rgba, camParams);
-                    //marker.draw3dCube(rgba, camParams, new Scalar(255,255,0));
-                }
+            if (detectedMarkers.size() == 5) {
+                Log.d("howmany","Detected 5 markers.");
+                Log.d("markerPoints", String.valueOf(detectedMarkers.toArray().toString()));
+                Mat dst = perspectiveFixer.fixPerspectiveMultipleMarker(rgba,detectedMarkers,MARKER_SIZE);
+                return dst;
             }
         } else if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_FRONT) {
             // Do facial recognition here
