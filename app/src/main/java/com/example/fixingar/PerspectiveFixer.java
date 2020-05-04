@@ -56,18 +56,23 @@ public class PerspectiveFixer {
         return EyeMatrix;
     }
 
-    private Vector<Point> PointsFromEyeInBits(Marker marker) {
+    private Vector<Point> PointsFromEyeInBits(Marker marker, double markerSize) {
         Vector<Point> corners_eye;
         Mat CamToWall = marker.getTvec();
         double X = CamToWall.get(0,0) + mCoor[0];
         double Y = CamToWall.get(1,0) - mCoor[1];
         double Z = CamToWall.get(2,0) + Dist;
-        corners_eye 
+        corners_eye
 
         return corners_eye;
     }
 
 
-    public Mat fixPerspective(Mat rgba, Marker marker, double markerSize) {
+    public Mat fixPerspective(Mat mRgba, Marker marker, double markerSize) {
+        Vector<Point> corners_camera = PointsFromCameraInBits(marker);
+        Vector<Point> corners_eye = PointsFromEyeInBits(marker, markerSize);
+        
+
+        return dst;
     }
 }
