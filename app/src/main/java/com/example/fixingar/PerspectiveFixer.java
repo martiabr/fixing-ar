@@ -193,7 +193,7 @@ public class PerspectiveFixer {
         DevicePoints.add(new Point(detectedMarkers.get(4).getPoints().get(0).x,detectedMarkers.get(4).getPoints().get(0).y));
         markerPointsIm.fromList(DevicePoints);
         Log.d("markerpointsIm",markerPointsIm.dump());
-        Mat H = Calib3d.findHomography(markerPointsProjEye,markerPointsIm);
+        Mat H = Imgproc.getPerspectiveTransform(markerPointsProjEye,markerPointsIm);
         Log.d("H",H.dump());
         // 5. Enter corners of device into the transform H.
         MatOfPoint2f cornersDevice = create4Points(0.0711*2, 0,0, 0,0,  0.03495*2,0.0711*2,  0.03495*2); // 0.0711,-0.03495,-0.0711,-0.03495, -0.0711, 0.03495, 0.0711,0.03495
@@ -205,14 +205,12 @@ public class PerspectiveFixer {
         Mat point2CornersTransform = Imgproc.getPerspectiveTransform(cornersDeviceTr,cornersScreen);
         Mat dst = new Mat(rgba.size(), CvType.CV_64FC1);
         Imgproc.warpPerspective(rgba, dst, point2CornersTransform, rgba.size());
-
         // Following used for debugging, instead of
         Point[] coloredP = cornersDeviceTr.toArray();
         Log.d("ColoredP",coloredP[0].toString()+coloredP[1].toString()+coloredP[2].toString()+coloredP[3].toString());
         for (int i = 0; i < 4; i++) {
             drawLine(rgba, coloredP[i%4], coloredP[(i+1)%4]);
         }
-
         return rgba;
     }
 }
