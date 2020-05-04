@@ -333,7 +333,10 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
         FaceDetection facedetection = new FaceDetection(Cmat, mJavaDetector1, mJavaDetector2, mNativeDetector1, mNativeDetector2);
         mCoordinates = facedetection.getmCoordinates(mRgba, mGray);
-          
+            // mCoordinates[0] = x
+            // mCoordinates[1] = y
+            // mCoordinates[2] = z
+            // mCoordinates[3] = 1 or 2 if face or eyes were found, it's 0 if nothing was found
         }
 
         return mRgba;
