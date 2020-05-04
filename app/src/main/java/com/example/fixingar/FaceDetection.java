@@ -202,7 +202,7 @@ public class FaceDetection {
         }
     }
 
-    private String ObjDetect(int[] Coordinates) {
+    public String ObjDetect(float[] Coordinates) {
         String mess1 = "";
         if (Coordinates[3] != 0) {
                 mess1 = "?, ";
@@ -264,10 +264,6 @@ public class FaceDetection {
             mCoordinates[1] = (float) (mul * y_coor);
             mCoordinates[3] = Coordinates[3];
 
-            String mess1 = ObjDetect(Coordinates);
-            String mess = mess1 + "Dist: " + Float.toString(mCoordinates[3]) + "m, x: " + Float.toString(mCoordinates[0]) + "m, y: " + Float.toString(mCoordinates[1]) + "m";
-            MainActivity main = new MainActivity();
-            main.debugMsg(mess);
         }
 
             return mCoordinates;

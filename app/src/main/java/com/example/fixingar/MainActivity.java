@@ -337,6 +337,10 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             // mCoordinates[1] = y
             // mCoordinates[2] = z
             // mCoordinates[3] = 1 or 2 if face or eyes were found, it's 0 if nothing was found
+
+            String mess1 = facedetection.ObjDetect(mCoordinates);
+            String mess = mess1 + "Dist: " + Float.toString(mCoordinates[3]) + "m, x: " + Float.toString(mCoordinates[0]) + "m, y: " + Float.toString(mCoordinates[1]) + "m";
+            debugMsg(mess);
         }
 
         return mRgba;
