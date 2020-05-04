@@ -65,18 +65,10 @@ import es.ava.aruco.Marker;
 import es.ava.aruco.MarkerDetector;
 
 public class FaceDetection {
-    private CameraParameters FaceDetecParam;
-
-    public FaceDetection(CameraParameters fd){FaceDetecParam = fd;}
+    private Mat CameraMatrix;
 
     //Constants
     private static final String TAG = "Main";
-    private static final float MARKER_SIZE = (float) 0.13;
-
-    public String                  FrontOrBack;
-
-    //Preferences
-    private static final boolean SHOW_MARKERID = true;
 
     //You must run a calibration prior to detection
     // The activity to run calibration is provided in the repository
@@ -94,52 +86,62 @@ public class FaceDetection {
 
     private Mat                    mRgba;
     private Mat                    mGray;
-    private File                   mCascadeFile1;
-    private File                   mCascadeFile2;
     private CascadeClassifier      mJavaDetector1;
     private DetectionBasedTracker mNativeDetector1;
     private CascadeClassifier      mJavaDetector2;
     private DetectionBasedTracker mNativeDetector2;
 
     private int                    mDetectorType       = JAVA_DETECTOR;
-    private String[]               mDetectorName;
 
     private float                  mRelativeEyeSize   = 0.1f; // change this parameter to adjust min Eye size
     private int                    mAbsoluteEyeSize   = 0;
-    private int                    NumEyes;
-    private int[][]                AllEyeCoordinates;
-    private int[]                  Coordinates; //contains x & y coordinate, dist, 1 or 2 to define if one eye or two were found
-    private float[]                mCoordinates; //x and y position in m
 
     private float                  mRelativeFaceSize   = 0.2f; // change this parameter to adjust min Face size
     private int                    mAbsoluteFaceSize   = 0;
-    private int                    NumFaces;
-    private int[][]                AllFaceCoordinates;
 
     private float                  EstimatedFaceWidth   = 0.14f; // in m
     private float                  EstimatedEyeDist     = 0.06f; // in m
-    private float                  DistFace;//in m
+
+    private int[]                  Coordinates = new int[4]; //contains x & y coordinate, dist/width, 1 or 2 to define if two eyes or one face
+    private float[]                mCoordinates; //x, y, z position in m and if two eyes or one face
 
     private TextView mDebugText;
 
-    // to know wether it's front or back camera, seems useless since only front code here
-    private String FrontOrBack(){
-        FrontOrBack = "front";
-        return FrontOrBack;
+    public FaceDetection(Mat Cmat, CascadeClassifier mJavaDetector_eye, CascadeClassifier mJavaDetector_face, DetectionBasedTracker mNativeDetector_eye, DetectionBasedTracker mNativeDetector_face){
+        CameraMatrix = Cmat;
+        mJavaDetector1 = mJavaDetector_eye;
+        mJavaDetector2 = mJavaDetector_face;
+        mNativeDetector1 = mNativeDetector_eye;
+        mNativeDetector2 = mNativeDetector_face;
     }
 
-    private Mat Cmat(Mat){
-        CameraParameters camParams = new CameraParameters(FrontOrBack);
-        camParams.read(this);
-        Mat Cmat = camParams.getCameraMatrix();
-        return Cmat;
+    private int CheckAbsoluteSize(int mAbsoluteSize, int image_height, float mRelativeSize, DetectionBasedTracker mNativeDetector) {
+        if (mAbsoluteSize == 0) {
+            if (Math.round(image_height * mRelativeSize) > 0) {
+                mAbsoluteSize = Math.round(image_height * mRelativeSize);
+            }
+            mNativeDetector.setMinFaceSize(mAbsoluteSize);
+        }
+        return mAbsoluteSize;
     }
 
-    private int[] Imsize(){
-        int[] size = {0,0};
-        size[0] = mGray.cols();//width
-        size[1] = mGray.rows();//height
-        return size;
+    private MatOfRect detect(CascadeClassifier mJavaDetector, DetectionBasedTracker mNativeDetector, MatOfRect eyes, int i){
+        if (mDetectorType == JAVA_DETECTOR) {
+            if (mJavaDetector != null && i==1)
+                mJavaDetector.detectMultiScale(mGray, eyes, 1.1, 2, 2,
+                        new Size(mAbsoluteEyeSize, mAbsoluteEyeSize), new Size());
+            else if (mJavaDetector != null && i!=1)
+                mJavaDetector.detectMultiScale(mGray, eyes, 1.1, 2, 2,
+                        new Size(mAbsoluteFaceSize, mAbsoluteFaceSize), new Size());
+        }
+        else if (mDetectorType == NATIVE_DETECTOR) {
+            if (mNativeDetector != null)
+                mNativeDetector.detect(mGray, eyes);
+        }
+        else {
+            Log.e(TAG, "Detection method is not selected!");
+        }
+        return eyes;
     }
     // Here the coordinates and distance are found in bits in the array "Coordinates".
     // If two eyes are found:
@@ -148,34 +150,14 @@ public class FaceDetection {
     // Coordinates[2] = distance between eyes
     // Coordinates[3] = 2 (to indicate two eyes were found)
 
-    private int[] EyeDetection(int[] size){
-        if (mAbsoluteEyeSize == 0) {
-            if (Math.round(size[1] * mRelativeEyeSize) > 0) {
-                mAbsoluteEyeSize = Math.round(size[1] * mRelativeEyeSize);
-            }
-            mNativeDetector1.setMinFaceSize(mAbsoluteEyeSize);
-        }
+    private void EyeDetection() {
+        mAbsoluteEyeSize = CheckAbsoluteSize(mAbsoluteEyeSize, mGray.rows(), mRelativeEyeSize, mNativeDetector1);
         MatOfRect eyes = new MatOfRect();
-// peut etre faire une méthode pour ça aussi
-        if (mDetectorType == JAVA_DETECTOR) {
-            if (mJavaDetector1 != null)
-                mJavaDetector1.detectMultiScale(mGray, eyes, 1.1, 2, 2, // TODO: objdetect.CV_HAAR_SCALE_IMAGE
-                        new Size(mAbsoluteEyeSize, mAbsoluteEyeSize), new Size());
-        }
-        else if (mDetectorType == NATIVE_DETECTOR) {
-            if (mNativeDetector1 != null)
-                mNativeDetector1.detect(mGray, eyes);
-        }
-        else {
-            Log.e(TAG, "Detection method is not selected!");
-        }
-// fin possible methode
-
+        eyes = detect(mJavaDetector1, mNativeDetector1, eyes, 1);
         Rect[] eyesArray;
         eyesArray = eyes.toArray();
-        NumEyes = eyesArray.length;
-        AllEyeCoordinates = new int[NumEyes][2];
-        Coordinates = new int[4];
+        int NumEyes = eyesArray.length;
+        int[][] AllEyeCoordinates = new int[NumEyes][2];
         for (int i = 0; i < NumEyes; i++) {
             Imgproc.rectangle(mRgba, eyesArray[i].tl(), eyesArray[i].br(), COLOR1, 3);
             if (NumEyes > 0) {
@@ -183,7 +165,6 @@ public class FaceDetection {
                 AllEyeCoordinates[i][1] = eyesArray[i].y;
             }
         }
-
         Coordinates[3] = 0;
         if (NumEyes > 1) {
             if (NumEyes == 2) {
@@ -193,7 +174,7 @@ public class FaceDetection {
                 int y2 = AllEyeCoordinates[1][1];
                 int dist = Math.abs(((x1 - x2) ^ 2 + (y1 - y2) ^ 2) ^ (1 / 2));
                 int disty = Math.abs(y2-y1);
-                if (dist > Math.round(size[0] * 0.1) && disty < Math.round(size[1] * 0.05)) {
+                if (dist > Math.round(mGray.cols() * 0.1) && disty < Math.round(mGray.rows() * 0.05)) {
                     Coordinates[0] = (x1 + x2) / 2;
                     Coordinates[1] = (y1 + y2) / 2;
                     Coordinates[2] = dist;
@@ -212,7 +193,7 @@ public class FaceDetection {
                             int y2 = AllEyeCoordinates[j][1];
                             int dist = Math.abs(((x1 - x2) ^ 2 + (y1 - y2) ^ 2) ^ (1 / 2));
                             int disty = Math.abs(y2-y1);
-                            if (dist > Math.round(size[0] * 0.1) && disty < Math.round(size[1] * 0.05)) {
+                            if (dist > Math.round(mGray.cols() * 0.1) && disty < Math.round(mGray.rows() * 0.05)) {
                                 Coordinates[0] = (x1 + x2) / 2;
                                 Coordinates[1] = (y1 + y2) / 2;
                                 Coordinates[2] = dist;
@@ -227,10 +208,6 @@ public class FaceDetection {
             }
 
         }
-
-
-        return Coordinates;
-
     }
 
     // If only one eye was found (or several eyes, but they weren't matching)
@@ -240,33 +217,14 @@ public class FaceDetection {
     // Coordinates[3] = 1 (to indicate one face was found)
     // if nothing is found:
     // Coordinates[3] = 0
-    private int[] FaceDetection(){
-        if (mAbsoluteFaceSize == 0) {
-            int height = mGray.rows();
-            if (Math.round(height * mRelativeFaceSize) > 0) {
-                mAbsoluteFaceSize = Math.round(height * mRelativeFaceSize);
-            }
-            mNativeDetector2.setMinFaceSize(mAbsoluteFaceSize);
-        }
+    private void FaceDetection(){
+        mAbsoluteFaceSize = CheckAbsoluteSize(mAbsoluteFaceSize, mGray.rows(), mRelativeFaceSize, mNativeDetector2);
         MatOfRect faces = new MatOfRect();
-
-        if (mDetectorType == JAVA_DETECTOR) {
-            if (mJavaDetector2 != null)
-                mJavaDetector2.detectMultiScale(mGray, faces, 1.1, 2, 2, // TODO: objdetect.CV_HAAR_SCALE_IMAGE
-                        new Size(mAbsoluteFaceSize, mAbsoluteFaceSize), new Size());
-        }
-        else if (mDetectorType == NATIVE_DETECTOR) {
-            if (mNativeDetector2 != null)
-                mNativeDetector2.detect(mGray, faces);
-        }
-        else {
-            Log.e(TAG, "Detection method is not selected!");
-        }
-
+        faces = detect(mJavaDetector2, mNativeDetector2, faces, 2);
         Rect[] facesArray;
         facesArray = faces.toArray();
-        NumFaces = facesArray.length;
-        AllFaceCoordinates = new int[NumFaces][3];
+        int NumFaces = facesArray.length;
+        int[][] AllFaceCoordinates = new int[NumFaces][3];
         for (int i = 0; i < NumFaces; i++) {
             Imgproc.rectangle(mRgba, facesArray[i].tl(), facesArray[i].br(), COLOR1, 3);
             if (NumFaces > 0) {
@@ -289,14 +247,10 @@ public class FaceDetection {
             Coordinates[1] = AllFaceCoordinates[index1][1];
             Coordinates[2] = AllFaceCoordinates[index1][2];
         }
-
-
-        return Coordinates;
-
     }
 
-    private String ObjDectec(int[] Coordinates) {
-        String mess1 = "blabla";
+    private String ObjDetect(int[] Coordinates) {
+        String mess1 = "";
         if (Coordinates[3] != 0) {
                 mess1 = "?, ";
             // case for 2 eyes detected
@@ -310,9 +264,8 @@ public class FaceDetection {
         }
         return mess1;
     }
-    private float[] FaceDist(Mat Cmat, int[] size, int[] Coordinates){
-        float[] FaceParam ={0};
-        if (Coordinates[3] !=0) {
+
+    private float RealObjSize(int[] Coordinates) {
             double ObjSize = 0;
             // case for 2 eyes detected
             if (Coordinates[3] == 2) {
@@ -322,50 +275,48 @@ public class FaceDetection {
             if (Coordinates[3] == 1) {
                 ObjSize = EstimatedFaceWidth; //real size in m of face
             }
+        return (float) ObjSize;
+    }
 
+    public float[] getmCoordinates(Mat Rgba, Mat Gray){
+        // use this one as the main, which will go through everything
+        mRgba = Rgba;
+        mGray = Gray;
+        mCoordinates = new float[4];
+        // start with eye and face detection
+        Coordinates[3] = 0;
+        EyeDetection();
+        FaceDetection();
+
+        if (Coordinates[3] !=0) {
+            float ObjSize = RealObjSize(Coordinates);
             double focalLength = 3.75 * 0.001;//real size in m, usually val between 4 and 6 mm TBD
-            double[] fx = Cmat.get(1, 1);// in pix
-            double[] fy = Cmat.get(2, 2);// in pix
+            double[] fx = CameraMatrix.get(1, 1);// in pix
+            double[] fy = CameraMatrix.get(2, 2);// in pix
             double f = Math.round((fx[0] + fy[0]) / 2); // round fct to get an integer
             double m = f / focalLength;// from fx = f*mx
-            double conv = m * 1920 / size[0];// conversion of resolution in px/m
+            double conv = m * 1920 / mGray.cols();// conversion of resolution in px/m
             //width of the image, Julia's phone resolution for video recording with front camera
             // : 1920*1080
             double objImSensor = Coordinates[2] / conv;// object size in pix/conv in px/m => m
             double est = 1.3; // to correct the distance
 
-            DistFace = (float) (ObjSize * focalLength / objImSensor * est);// in m and conv from
+            mCoordinates[2] = (float) (ObjSize * focalLength / objImSensor * est);// in m and conv from
             //double to float
-            FaceParam[0] = DistFace;
-            FaceParam[1] =(float)m ;
-            FaceParam[2] =(float)focalLength;
+
+            double x_coor = Coordinates[0] - mGray.cols() / 2;
+            double y_coor = mGray.rows() / 2 - Coordinates[1];
+            double mul = mCoordinates[2] / focalLength * mGray.cols() / m / 1920;
+            mCoordinates[0] = (float) (mul * x_coor);
+            mCoordinates[1] = (float) (mul * y_coor);
+            mCoordinates[3] = Coordinates[3];
+
+            String mess1 = ObjDetect(Coordinates);
+            String mess = mess1 + "Dist: " + Float.toString(mCoordinates[3]) + "m, x: " + Float.toString(mCoordinates[0]) + "m, y: " + Float.toString(mCoordinates[1]) + "m";
+            MainActivity main = new MainActivity();
+            main.debugMsg(mess);
         }
-        return FaceParam;
-
-    }
-
-
-    private float[] Coordinates(int[] size, float[]FaceParam, String mess1){
-            double x_coor = Coordinates[0] - size[0]/2;
-            double y_coor = size[1]/2 - Coordinates[1];
-            mCoordinates = new float[2];
-            double mul = DistFace/FaceParam[2]*size[0]/FaceParam[1]/1920;
-            mCoordinates[0] = (float) (mul*x_coor);
-            mCoordinates[1] = (float) (mul*y_coor);
-
-            String mess = mess1 + "Dist: " + Float.toString(DistFace) + "m, x: " + Float.toString(mCoordinates[0]) + "m, y: " + Float.toString(mCoordinates[1]) + "m";
-            debugMsg(mess);
 
             return mCoordinates;
-    }
-
-    public void debugMsg(String msg) {
-        final String str = msg;
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mDebugText.setText(str);
-            }
-        });
     }
 }
