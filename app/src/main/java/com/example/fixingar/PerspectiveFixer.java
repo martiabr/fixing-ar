@@ -96,11 +96,40 @@ public class PerspectiveFixer {
 
 
     public Mat fixPerspective(Mat mRgba, Marker marker, double markerSize) {
-        Mat dst = new Mat();
+        Mat dst = new Mat(mRgba.size(), CvType.CV_64FC1);
         MatOfPoint2f corners_camera = PointsFromCameraInBits(marker);
         MatOfPoint2f corners_eye = PointsFromEyeInBits(marker, markerSize);
         Mat homography = Calib3d.findHomography(corners_camera, corners_eye);
-        Imgproc.warpPerspective(mRgba, dst, homography, mRgba.size());
+
+        Vector<Point> Points = new Vector<Point>();
+        Point Point1 = new Point(-0.089/2,-0.049/2);
+        Points.add(Point1);
+        Point Point2 = new Point(-0.089/2,0.049/2);
+        Points.add(Point2);
+        Point Point3 = new Point(0.089/2,0.049/2);
+        Points.add(Point3);
+        Point Point4 = new Point(0.089/2,-0.049/2);
+        Points.add(Point4);
+        MatOfPoint2f cornersDevice = new MatOfPoint2f();
+        cornersDevice.fromList(Points);
+        MatOfPoint2f cornersDeviceTr = new MatOfPoint2f();
+        Core.perspectiveTransform(cornersDevice,cornersDeviceTr, homography);
+
+        // 6. Strech these points to the corners of the image.
+        Vector<Point> Points2 = new Vector<Point>();
+        Point Point21 = new Point(0,mRgba.size().height);
+        Points2.add(Point21);
+        Point Point22 = new Point(0,0);
+        Points2.add(Point22);
+        Point Point23 = new Point(mRgba.size().width,0);
+        Points2.add(Point23);
+        Point Point24 = new Point(mRgba.size().width,mRgba.size().height);
+        Points2.add(Point24);
+        MatOfPoint2f cornersScreen = new MatOfPoint2f();
+        cornersScreen.fromList(Points2);
+        Mat point2CornersTransform = Imgproc.getPerspectiveTransform(cornersDeviceTr,cornersScreen);
+        Imgproc.warpPerspective(mRgba, dst, point2CornersTransform, mRgba.size());
+
         return dst;
     }
 }
