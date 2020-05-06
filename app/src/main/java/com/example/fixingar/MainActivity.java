@@ -8,6 +8,10 @@ import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfDouble;
+import org.opencv.core.MatOfPoint2f;
+import org.opencv.core.MatOfPoint3f;
+import org.opencv.core.Point3;
 import org.opencv.core.Scalar;
 
 import android.Manifest;
@@ -78,7 +82,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
     //Constants
     private static final String TAG = "Main";
-    private static final float MARKER_SIZE = (float) 0.13;
+    private static final float MARKER_SIZE = (float) 0.04;
 
     //Preferences
     private static final boolean SHOW_MARKERID = true;
@@ -118,6 +122,8 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     private int mCameraIndex = CameraBridgeViewBase.CAMERA_ID_BACK;
     private TextView mDebugText;
     private Button mCameraButton;
+    private CameraParameters camParams;
+    private PerspectiveFixer perspectiveFixer;
 
     private Handler mHandler = new Handler();
     private boolean timerRunning = true;
@@ -246,8 +252,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     }
 
     @Override
-    public void onPause()
-    {
+    public void onPause() {
         super.onPause();
         if (mOpenCvCameraView != null) {
             mOpenCvCameraView.disableView();
@@ -256,8 +261,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     }
 
     @Override
-    public void onResume()
-    {
+    public void onResume() {
         super.onResume();
         if (!OpenCVLoader.initDebug()) {
             Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
@@ -292,8 +296,10 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
+
         mRgba = inputFrame.rgba();
         mGray = inputFrame.gray();
+     
 
         // Do marker detection if we use the back camera:
         if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_BACK) {
@@ -302,9 +308,12 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             Vector<Marker> detectedMarkers = new Vector<>();
             CameraParameters camParams = new CameraParameters("back");
 
+            // TODO: For some stupid reason i am not able to move these init lines to onCreate()... Now we make new objects each frame which is stupid since the camera params are constant
             camParams.read(this);
+            perspectiveFixer = new PerspectiveFixer(camParams);
 
             //Populate detectedMarkers
+
             mDetector.detect(mRgba, detectedMarkers, camParams, MARKER_SIZE);
 
             //Draw Axis for each marker detected
@@ -371,7 +380,6 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         @Override
         public void run() {
             switchCameras();
-
             mHandler.postDelayed(this, DELAY);
         }
     };
