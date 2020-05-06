@@ -56,7 +56,7 @@ import es.ava.aruco.MarkerDetector;
 public class MainActivity extends CameraActivity implements CvCameraViewListener2, View.OnClickListener {
     //Constants
     private static final String TAG = "Main";
-    private static final float MARKER_SIZE = (float) 0.03;
+    private static final float MARKER_SIZE = (float) 0.04;
 
     //Preferences
     private static final boolean SHOW_MARKERID = true;
@@ -199,7 +199,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             }
 
             //Draw Axis for each marker detected
-            if (detectedMarkers.size() == 5) {
+            if (detectedMarkers.size() > 1) {
                 Log.d("howmany","Detected 5 markers.");
                 Log.d("markerPoints", String.valueOf(detectedMarkers.toArray().toString()));
                 Mat dst = perspectiveFixer.fixPerspectiveMultipleMarker(rgba,detectedMarkers,MARKER_SIZE);
