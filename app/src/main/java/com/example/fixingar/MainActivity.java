@@ -316,23 +316,15 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
             mDetector.detect(mRgba, detectedMarkers, camParams, MARKER_SIZE);
 
-            //Draw Axis for each marker detected
-            if (detectedMarkers.size() != 0) {
-                for (int i = 0; i < detectedMarkers.size(); i++) {
-                    Marker marker = detectedMarkers.get(i);
+            if (detectedMarkers.size() == 1) {
+                return mRgba;
+            }
 
-                    debugMsg(marker.getRvec().dump() + "\n" + marker.getTvec().dump());
-                    // Rvec and Tvec are the rotation and translation from the marker frame to the camera frame!
-                    // Use Rodriguez() method from calib3d to turn rotation vector into rotation matrix if we need this.
-                    // The x,y,z position of the camera is: cameraPosition = -rotM.T * tvec
-                    // ProjectPoints projects 3D points to image plane
-                    // EstimateAffine3D computes an optimal affine transformation between two 3D point sets
-                    // SolvePnP finds an object pose from 3D-2D point correspondences
-                    // warpPerspective applies a perspective transformation to an image
-
-                    detectedMarkers.get(i).draw3dAxis(mRgba, camParams);
-                    detectedMarkers.get(i).draw3dCube(mRgba, camParams, new Scalar(255,255,0));
-                }
+            if (detectedMarkers.size() >= 5) {
+                Log.d("howmany","Detected 5 markers.");
+                Log.d("markerPoints", String.valueOf(detectedMarkers.toArray().toString()));
+                Mat dst = perspectiveFixer.fixPerspectiveMultipleMarker(mRgba,detectedMarkers,MARKER_SIZE);
+                return mRgba;
             }
           
         } else if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_FRONT) {
