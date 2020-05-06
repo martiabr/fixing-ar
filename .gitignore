@@ -34,3 +34,6 @@ output.json
 #NDK
 obj/
 .externalNativeBuild
+**/.cxx/
+#log files
+*.log
