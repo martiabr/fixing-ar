@@ -171,7 +171,7 @@ public class PerspectiveFixer {
         return new Point(x,y);
     }
 
-    public Mat fixPerspectiveMultipleMarker(Mat rgba, Vector<Marker> detectedMarkers, float markerSize) {
+    public Mat fixPerspectiveMultipleMarker(Mat rgba, Vector<Marker> detectedMarkers, float markerSize,float[] mCoordinates) {
         Log.d("sizeofimage",rgba.size().toString());
         // 1. Get Pose from rvec and tvec of first marker.
         Marker marker = detectedMarkers.get(0);
