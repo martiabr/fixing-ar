@@ -323,7 +323,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             if (detectedMarkers.size() >= 5) {
                 Log.d("howmany","Detected 5 markers.");
                 Log.d("markerPoints", String.valueOf(detectedMarkers.toArray().toString()));
-                Mat dst = perspectiveFixer.fixPerspectiveMultipleMarker(mRgba,detectedMarkers,MARKER_SIZE);
+                Mat dst = perspectiveFixer.fixPerspectiveMultipleMarker(mRgba,detectedMarkers,MARKER_SIZE,mCoordinates);
                 return mRgba;
             }
           
