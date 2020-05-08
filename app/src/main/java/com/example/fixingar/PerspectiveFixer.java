@@ -129,7 +129,7 @@ public class PerspectiveFixer {
         Core.add(tEye2Device, marker.getTvec(), tEye2Marker);
 
         // Create estimation of intrinsic camera matrix for the EyeCamera.
-        Mat EyeCamMatrix = createCameraMatrix(0.4,0.4, 0.0711,0.03495); //
+        Mat EyeCamMatrix = createCameraMatrix(0.4,0.4, 0,0); //0.0711,0.03495
         Log.d("EyeCameraMatrix:", EyeCamMatrix.dump());
         // TODO: Insert parameters from eye detection here as well in some way.
 
@@ -194,7 +194,7 @@ public class PerspectiveFixer {
         // TODO: add calibration procedure for x and y offset and set input as the estimates by the eye tracking software (x,y and z). Just some sliders for x and y could work fine i guess?
         Mat tVecEye = Mat.zeros(3, 1, CvType.CV_64FC1);
         Core.add(marker.getTvec(),tEye2Device, tVecEye);
-        Mat EyeCamMatrix = createCameraMatrix(mCoordinates[2],mCoordinates[2], -mCoordinates[0], mCoordinates[1]); //
+        Mat EyeCamMatrix = createCameraMatrix(mCoordinates[2],mCoordinates[2], mCoordinates[0], -mCoordinates[1]); //
         // TODO: Insert parameters from eye detection here as well in some way.
         MatOfPoint2f markerPointsProjEye = new MatOfPoint2f();
         Calib3d.projectPoints(markerPoints, Mat.zeros(3,1,marker.getRvec().type()), tEye2Device, EyeCamMatrix, new MatOfDouble(0,0,0,0,0,0,0,0), markerPointsProjEye); // marker.getRvec()& tVecEye
@@ -212,7 +212,7 @@ public class PerspectiveFixer {
         Mat H1 = Calib3d.findHomography(markerPointsProjEye,markerPointsIm,8,20);
         Log.d("H1",H1.dump());
         // 5. Enter corners of device into the transform H.
-        MatOfPoint2f cornersDevice = create4Points(0.0711*2, 0,0, 0,0,  0.03495*2,0.0711*2,  0.03495*2); // 0.0711,-0.03495,-0.0711,-0.03495, -0.0711, 0.03495, 0.0711,0.03495
+        MatOfPoint2f cornersDevice = create4Points(mCoordinates[0]+0.0711*2, mCoordinates[1]+0,mCoordinates[0]+0, mCoordinates[1]+0,mCoordinates[0]+0,  mCoordinates[1]+0.03495*2,mCoordinates[0]+0.0711*2,  mCoordinates[1]+0.03495*2); // 0.0711,-0.03495,-0.0711,-0.03495, -0.0711, 0.03495, 0.0711,0.03495
         MatOfPoint2f cornersDeviceTr = new MatOfPoint2f();
         Core.perspectiveTransform(cornersDevice,cornersDeviceTr, H1); //,cornersDevice.size()
         Log.d("cornersOfDeviceMulti",cornersDeviceTr.dump());
