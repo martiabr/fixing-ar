@@ -209,7 +209,7 @@ public class PerspectiveFixer {
         Log.d("markerpointsIm",markerPointsIm.dump());
       //  Mat H = Imgproc.getPerspectiveTransform(markerPointsProjEye,markerPointsIm);
       //  Log.d("Horiginal",H.dump());
-        Mat H1 = Calib3d.findHomography(markerPointsProjEye,markerPointsIm,8,20);
+        Mat H1 = Calib3d.findHomography(markerPointsProjEye,markerPointsIm,8,1);
         Log.d("H1",H1.dump());
         // 5. Enter corners of device into the transform H.
         MatOfPoint2f cornersDevice = create4Points(mCoordinates[0]+0.0711*2, mCoordinates[1]+0,mCoordinates[0]+0, mCoordinates[1]+0,mCoordinates[0]+0,  mCoordinates[1]+0.03495*2,mCoordinates[0]+0.0711*2,  mCoordinates[1]+0.03495*2); // 0.0711,-0.03495,-0.0711,-0.03495, -0.0711, 0.03495, 0.0711,0.03495
