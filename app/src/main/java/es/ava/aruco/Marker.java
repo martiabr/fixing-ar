@@ -58,7 +58,11 @@ public class Marker extends MatOfPoint2f implements Comparable<Marker>{
 			points.add(p.get(i));
 		this.fromList(points);
 	}
-	
+
+	public Vector<Point> getPoints() {
+		return points;
+	}
+
 	public void draw(Mat in, Scalar color, int lineWidth, boolean writeId){
 	    if (total()!=4)
 	    	return;
