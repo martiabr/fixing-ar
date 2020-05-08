@@ -189,12 +189,12 @@ public class PerspectiveFixer {
         // 3. Project points genom ögonkameran för att få matchande points i båda bilderna.
         Mat tEye2Device = Mat.zeros(3, 1, CvType.CV_64FC1);
         tEye2Device.put(2, 0, mCoordinates[2]);  // Z (backwards)
-        tEye2Device.put(0, 0, -mCoordinates[0]);  // X (shift to move camera to phone center)
-        tEye2Device.put(1, 0, -mCoordinates[1]); // Y (shift in up-to-down direction)
+        tEye2Device.put(0, 0, mCoordinates[0]);  // X (shift to move camera to phone center)
+        tEye2Device.put(1, 0, mCoordinates[1]); // Y (shift in up-to-down direction)
         // TODO: add calibration procedure for x and y offset and set input as the estimates by the eye tracking software (x,y and z). Just some sliders for x and y could work fine i guess?
         Mat tVecEye = Mat.zeros(3, 1, CvType.CV_64FC1);
         Core.add(marker.getTvec(),tEye2Device, tVecEye);
-        Mat EyeCamMatrix = createCameraMatrix(0.3,0.3, 0.0711,0.03495); //
+        Mat EyeCamMatrix = createCameraMatrix(mCoordinates[2],mCoordinates[2], -mCoordinates[0], mCoordinates[1]); //
         // TODO: Insert parameters from eye detection here as well in some way.
         MatOfPoint2f markerPointsProjEye = new MatOfPoint2f();
         Calib3d.projectPoints(markerPoints, Mat.zeros(3,1,marker.getRvec().type()), tEye2Device, EyeCamMatrix, new MatOfDouble(0,0,0,0,0,0,0,0), markerPointsProjEye); // marker.getRvec()& tVecEye
