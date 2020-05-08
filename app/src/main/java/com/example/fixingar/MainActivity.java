@@ -82,7 +82,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
     //Constants
     private static final String TAG = "Main";
-    private static final float MARKER_SIZE = (float) 0.024;
+    private static final float MARKER_SIZE = (float) 0.04;
 
     //Preferences
     private static final boolean SHOW_MARKERID = true;
@@ -342,7 +342,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             // mCoordinates[3] = 1 or 2 if face or eyes were found, it's 0 if nothing was found
             if (mCoordinates != null) {
             String mess1 = facedetection.ObjDetect(mCoordinates);
-            String mess = mess1 + "Dist: " + Float.toString(mCoordinates[3]) + "m, x: " + Float.toString(mCoordinates[0]) + "m, y: " + Float.toString(mCoordinates[1]) + "m";
+            String mess = mess1 + "Dist: " + Float.toString(mCoordinates[2]) + "m, x: " + Float.toString(mCoordinates[0]) + "m, y: " + Float.toString(mCoordinates[1]) + "m";
             debugMsg(mess);
             }
         }
