@@ -65,10 +65,10 @@ public class PerspectiveFixer {
         return cornerOfDevice;
     }
 
-    public Mat fixPerspective(Mat rgba, Marker marker, double markerSize) {
+    public Mat fixPerspective(Mat rgba, Marker marker, double markerSize, float[] mCoordinates) {
         Size rgbaSize = rgba.size();
 
-        Mat cam2EyeTransform = getCam2EyeTransform(marker, markerSize);
+        Mat cam2EyeTransform = getCam2EyeTransform(marker, markerSize, mCoordinates);
 
         // Corner points on image in screen.
         MatOfPoint2f cornersScreen = create4Points(rgbaSize.width, 0,0,  0,0, rgbaSize.height, rgbaSize.width, rgbaSize.height);
@@ -99,7 +99,7 @@ public class PerspectiveFixer {
         return dst;
     }
 
-    private Mat getCam2EyeTransform(Marker marker, double markerSize) {
+    private Mat getCam2EyeTransform(Marker marker, double markerSize,float[] mCoordinates) {
         Mat rMatrix = new Mat();
         Calib3d.Rodrigues(marker.getRvec(),rMatrix);
 
@@ -188,9 +188,9 @@ public class PerspectiveFixer {
         Log.d("Vectorpoints",markerPoints.dump());
         // 3. Project points genom ögonkameran för att få matchande points i båda bilderna.
         Mat tEye2Device = Mat.zeros(3, 1, CvType.CV_64FC1);
-        tEye2Device.put(2, 0, 0.3);  // Z (backwards)
-        tEye2Device.put(0, 0, -0.05);  // X (shift to move camera to phone center)
-        tEye2Device.put(1, 0, 0); // Y (shift in up-to-down direction)
+        tEye2Device.put(2, 0, mCoordinates[2]);  // Z (backwards)
+        tEye2Device.put(0, 0, -mCoordinates[0]);  // X (shift to move camera to phone center)
+        tEye2Device.put(1, 0, -mCoordinates[1]); // Y (shift in up-to-down direction)
         // TODO: add calibration procedure for x and y offset and set input as the estimates by the eye tracking software (x,y and z). Just some sliders for x and y could work fine i guess?
         Mat tVecEye = Mat.zeros(3, 1, CvType.CV_64FC1);
         Core.add(marker.getTvec(),tEye2Device, tVecEye);
