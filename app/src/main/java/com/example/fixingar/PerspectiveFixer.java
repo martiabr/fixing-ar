@@ -94,6 +94,19 @@ public class PerspectiveFixer {
         return corners_eye;
     }
 
+    private void drawLine(Mat img, Point start, Point end) {
+        int thickness = 2;
+        int lineType = 8;
+        int shift = 0;
+        Imgproc.line( img,
+                start,
+                end,
+                new Scalar( 255, 0, 0 ),
+                thickness,
+                lineType,
+                shift );
+    }
+
 
     public Mat fixPerspective(Mat mRgba, Marker marker, double markerSize) {
         Mat dst = new Mat(mRgba.size(), CvType.CV_64FC1);
@@ -134,9 +147,10 @@ public class PerspectiveFixer {
         Log.d("ColoredP", coloredP[0].toString() + coloredP[1].toString() + coloredP[2].toString() + coloredP[3].toString());
 
         for (int i = 0; i < 4; i++) {
-            drawLine(rgba, coloredP[i % 4], coloredP[(i + 1) % 4]);
+            drawLine(mRgba, coloredP[i % 4], coloredP[(i + 1) % 4]);
         }
+        return mRgba;
 
-        return dst;
+        //return dst;
     }
 }
