@@ -27,6 +27,10 @@ public class PerspectiveFixer {
     private double halfwidth = 0.0711;
     private double halfHeight = 0.03495;
     private CameraParameters camParams;
+    private Point[] corners_b;
+    private Point[] corners_bb;
+    private int test_b = 0;
+    private int test_bb = 0;
 
     public PerspectiveFixer(CameraParameters cp) {
         camParams = cp;
@@ -172,6 +176,67 @@ public class PerspectiveFixer {
         return new Point(x,y);
     }
 
+    private MatOfPoint2f CheckPerspectiveWrap (MatOfPoint2f cornersDeviceTr, Mat rgba) {
+        Point[] corners = cornersDeviceTr.toArray();
+        Point[] corners_checked = new Point[4];
+        double penalty = rgba.rows()*0.2;
+        if (corners_b != null) { // check that earlier corners exist
+            double distb1 = Math.abs(Math.pow(Math.pow(corners[0].x - corners_b[0].x,2)+Math.pow(corners[0].y - corners_b[0].y,2),0.5));
+            double distb2 = Math.abs(Math.pow(Math.pow(corners[1].x - corners_b[1].x,2)+Math.pow(corners[1].y - corners_b[1].y,2),0.5));
+            double distb3 = Math.abs(Math.pow(Math.pow(corners[2].x - corners_b[2].x,2)+Math.pow(corners[2].y - corners_b[2].y,2),0.5));
+            double distb4 = Math.abs(Math.pow(Math.pow(corners[3].x - corners_b[3].x,2)+Math.pow(corners[3].y - corners_b[3].y,2),0.5));
+            if (distb1 > penalty || distb2 > penalty || distb3 > penalty || distb4 > penalty) { // check if distance from current corners to corners from before is too far
+                if (corners_bb != null) { // check if even earlier corners exist
+                    if (test_b == 0) { // corners_b and corners_bb were similar, but current corners too far --> current corners are wrong
+                        corners_checked = corners_b;
+                        test_bb = test_b;
+                        test_b = 1;
+                    }
+                    else { // corners_b were far from corners_bb --> check if current corners close to corners_bb
+                        double distbb1 = Math.abs(Math.pow(Math.pow(corners[0].x - corners_bb[0].x,2)+Math.pow(corners[0].y - corners_bb[0].y,2),0.5));
+                        double distbb2 = Math.abs(Math.pow(Math.pow(corners[1].x - corners_bb[1].x,2)+Math.pow(corners[1].y - corners_bb[1].y,2),0.5));
+                        double distbb3 = Math.abs(Math.pow(Math.pow(corners[2].x - corners_bb[2].x,2)+Math.pow(corners[2].y - corners_bb[2].y,2),0.5));
+                        double distbb4 = Math.abs(Math.pow(Math.pow(corners[3].x - corners_bb[3].x,2)+Math.pow(corners[3].y - corners_bb[3].y,2),0.5));
+                        if (distbb1 > penalty || distbb2 > penalty || distbb3 > penalty || distbb4 > penalty) { // check if current corners far from corners_bb
+                            corners_checked = corners;
+                            test_bb = test_b;
+                            test_b = 1;
+                            Log.d("Corners_check", "Noisy measurements, corners are very different from both iterations before");
+                        } else { // corners are similar to corners_bb and corners_b were wrong
+                            corners_checked = corners;
+                            test_bb = test_b;
+                            test_b = 0;
+                        }
+                    }
+                }
+                else {
+                    corners_checked = corners_b;
+                    test_bb = test_b;
+                    test_b = 1;
+                }
+            }
+            else { // current corners are close to corners from before
+                corners_checked = corners;
+                test_bb = test_b;
+                test_b = 0;
+            }
+            corners_bb = corners_b;
+        } else {
+            corners_checked = corners;
+            test_b = 0;
+        }
+        corners_b = corners;
+
+        Vector<Point> allcorners = new Vector<Point>();
+        allcorners.add(corners_checked[0]);
+        allcorners.add(corners_checked[1]);
+        allcorners.add(corners_checked[2]);
+        allcorners.add(corners_checked[3]);
+        MatOfPoint2f cornersDeviceTr_checked = new MatOfPoint2f();
+        cornersDeviceTr_checked.fromList(allcorners);
+        return cornersDeviceTr_checked;
+    }
+
     public Mat fixPerspectiveMultipleMarker(Mat rgba, Vector<Marker> detectedMarkers, float markerSize,float[] mCoordinates) {
         Log.d("sizeofimage",rgba.size().toString());
         // 1. Get Pose from rvec and tvec of first marker.
@@ -223,7 +288,10 @@ public class PerspectiveFixer {
         Core.perspectiveTransform(cornersDevice,cornersDeviceTr, H1); //,cornersDevice.size()
         Log.d("cornersOfDeviceMulti",cornersDeviceTr.dump());
 
-        // 6. Strech these points to the corners of the image.
+        // 6. check that perspective transform is reasonable
+        cornersDeviceTr = CheckPerspectiveWrap(cornersDeviceTr, rgba);
+
+        // 7. Strech these points to the corners of the image.
         if (H1.size().height > 0 && H1.size().width > 2) {
             MatOfPoint2f cornersScreen = create4Points(rgba.size().width, 0, 0, 0, 0, rgba.size().height, rgba.size().width, rgba.size().height);
             Mat point2CornersTransform = Imgproc.getPerspectiveTransform(cornersDeviceTr, cornersScreen);
