@@ -59,6 +59,9 @@ public class FaceDetection {
     private float[]                mCoordinates; //x, y, z position in m and if two eyes or one face
 
     private TextView mDebugText;
+    public double                  focalLength = 3.75 * 0.001;//real size in m, usually value between 4 and 6 mm;
+    public double                  FrontCamResolution = 1920; //width of the image. Based on Julia's front camera resolution for video recording (1920*1080)
+
 
     public FaceDetection(Mat Cmat, CascadeClassifier mJavaDetector_eye, CascadeClassifier mJavaDetector_face, DetectionBasedTracker mNativeDetector_eye, DetectionBasedTracker mNativeDetector_face){
         CameraMatrix = Cmat;
@@ -243,14 +246,11 @@ public class FaceDetection {
 
         if (Coordinates[3] !=0) {
             float ObjSize = RealObjSize(Coordinates);
-            double focalLength = 3.75 * 0.001;//real size in m, usually val between 4 and 6 mm TBD
             double[] fx = CameraMatrix.get(1, 1);// in pix
             double[] fy = CameraMatrix.get(2, 2);// in pix
             double f = Math.round((fx[0] + fy[0]) / 2); // round fct to get an integer
             double m = f / focalLength;// from fx = f*mx
-            double conv = m * 1920 / mGray.cols();// conversion of resolution in px/m
-            //width of the image, Julia's phone resolution for video recording with front camera
-            // : 1920*1080
+            double conv = m * FrontCamResolution / mGray.cols();// conversion of resolution in px/m
             double objImSensor = Coordinates[2] / conv;// object size in pix/conv in px/m => m
             double est = 1.3; // to correct the distance
 
@@ -259,7 +259,7 @@ public class FaceDetection {
 
             double x_coor = Coordinates[0] - mGray.cols() / 2;
             double y_coor = mGray.rows() / 2 - Coordinates[1];
-            double mul = mCoordinates[2] / focalLength * mGray.cols() / m / 1920;
+            double mul = mCoordinates[2] / focalLength * mGray.cols() / m / FrontCamResolution;
             mCoordinates[0] = (float) (mul * x_coor);
             mCoordinates[1] = (float) (mul * y_coor);
             mCoordinates[3] = Coordinates[3];
