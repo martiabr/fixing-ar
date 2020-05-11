@@ -243,7 +243,7 @@ public class FaceDetection {
 
         if (Coordinates[3] !=0) {
             float ObjSize = RealObjSize(Coordinates);
-            double focalLength = 3.75 * 0.001;//real size in m, usually val between 4 and 6 mm TBD
+            double focalLength = 26 * 0.001;//real size in m, usually val between 4 and 6 mm TBD
             double[] fx = CameraMatrix.get(1, 1);// in pix
             double[] fy = CameraMatrix.get(2, 2);// in pix
             double f = Math.round((fx[0] + fy[0]) / 2); // round fct to get an integer
@@ -252,7 +252,7 @@ public class FaceDetection {
             //width of the image, Julia's phone resolution for video recording with front camera
             // : 1920*1080
             double objImSensor = Coordinates[2] / conv;// object size in pix/conv in px/m => m
-            double est = 1.3; // to correct the distance
+            double est = 3.5; // to correct the distance
 
             mCoordinates[2] = (float) (ObjSize * focalLength / objImSensor * est);// in m and conv from
             //double to float
