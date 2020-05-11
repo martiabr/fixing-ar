@@ -24,8 +24,12 @@ import es.ava.aruco.CameraParameters;
 import es.ava.aruco.Marker;
 
 public class PerspectiveFixer {
-    private double halfwidth = 0.0711;
-    private double halfHeight = 0.03495;
+    public double halfwidth = 0.0711;
+    public double halfHeight = 0.03495;
+
+    // Position of front camera.
+    public double camTo00CornerX = 0;
+    public double camTo00CornerY = 0; // y vector from camera to (0,0) image corner (top-left). Positive direction is downwards.
     private CameraParameters camParams;
 
     public PerspectiveFixer(CameraParameters cp) {
@@ -218,7 +222,7 @@ public class PerspectiveFixer {
         Log.d("H1",H1.dump());
 
         // 5. Enter corners of device into the transform H.
-        MatOfPoint2f cornersDevice = create4Points(mCoordinates[0]+halfwidth*2, mCoordinates[1]+0,mCoordinates[0]+0, mCoordinates[1]+0,mCoordinates[0]+0,  mCoordinates[1]+halfHeight*2,mCoordinates[0]+halfwidth*2,  mCoordinates[1]+halfHeight*2); // 0.0711,-0.03495,-0.0711,-0.03495, -0.0711, 0.03495, 0.0711,0.03495
+        MatOfPoint2f cornersDevice = create4Points(mCoordinates[0]+halfwidth*2+camTo00CornerX, mCoordinates[1]+0+camTo00CornerY,mCoordinates[0]+0+camTo00CornerX, mCoordinates[1]+0+camTo00CornerY,mCoordinates[0]+0+camTo00CornerX,  mCoordinates[1]+halfHeight*2+camTo00CornerY,mCoordinates[0]+halfwidth*2+camTo00CornerX,  mCoordinates[1]+halfHeight*2+camTo00CornerY); // 0.0711,-0.03495,-0.0711,-0.03495, -0.0711, 0.03495, 0.0711,0.03495
         MatOfPoint2f cornersDeviceTr = new MatOfPoint2f();
         Core.perspectiveTransform(cornersDevice,cornersDeviceTr, H1); //,cornersDevice.size()
         Log.d("cornersOfDeviceMulti",cornersDeviceTr.dump());
