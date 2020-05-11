@@ -129,7 +129,7 @@ public class PerspectiveFixer {
         Core.add(tEye2Device, marker.getTvec(), tEye2Marker);
 
         // Create estimation of intrinsic camera matrix for the EyeCamera.
-        Mat EyeCamMatrix = createCameraMatrix(0.4,0.4, 0.0711,0.03495); //
+        Mat EyeCamMatrix = createCameraMatrix(0.4,0.4,0.0711,0.03495 ); //
         Log.d("EyeCameraMatrix:", EyeCamMatrix.dump());
         // TODO: Insert parameters from eye detection here as well in some way.
 
@@ -178,27 +178,31 @@ public class PerspectiveFixer {
         Mat rMatrix = new Mat();
         Calib3d.Rodrigues(marker.getRvec(),rMatrix);
         Mat tVec = marker.getTvec();
+
         // 2. Save Tvec from 4 other markers into a MatOfPoint3f.
         MatOfPoint3f markerPoints = new MatOfPoint3f();
         Vector<Point3> points = new Vector<Point3>();
         for (int i = 1; i < detectedMarkers.size(); i++) {
-            points.add(new Point3(detectedMarkers.get(i).getTvec().get(0,0)[0],detectedMarkers.get(i).getTvec().get(1,0)[0],detectedMarkers.get(i).getTvec().get(2,0)[0]));
+            Mat tVec_i = detectedMarkers.get(i).getTvec();
+            points.add(new Point3(tVec_i.get(0,0)[0], tVec_i.get(1,0)[0], tVec_i.get(2,0)[0]));
         }
         markerPoints.fromList(points);
         Log.d("Vectorpoints",markerPoints.dump());
+
         // 3. Project points genom ögonkameran för att få matchande points i båda bilderna.
         Mat tEye2Device = Mat.zeros(3, 1, CvType.CV_64FC1);
         tEye2Device.put(2, 0, mCoordinates[2]);  // Z (backwards)
-        tEye2Device.put(0, 0, -mCoordinates[0]);  // X (shift to move camera to phone center)
-        tEye2Device.put(1, 0, -mCoordinates[1]); // Y (shift in up-to-down direction)
+        tEye2Device.put(0, 0, mCoordinates[0]);  // X (shift to move camera to phone center)
+        tEye2Device.put(1, 0, mCoordinates[1]); // Y (shift in up-to-down direction)
         // TODO: add calibration procedure for x and y offset and set input as the estimates by the eye tracking software (x,y and z). Just some sliders for x and y could work fine i guess?
         Mat tVecEye = Mat.zeros(3, 1, CvType.CV_64FC1);
-        Core.add(marker.getTvec(),tEye2Device, tVecEye);
-        Mat EyeCamMatrix = createCameraMatrix(0.3,0.3, 0.0711,0.03495); //
+        Core.add(tVec,tEye2Device, tVecEye);
+        Mat EyeCamMatrix = createCameraMatrix(mCoordinates[2],mCoordinates[2], 0,0);
         // TODO: Insert parameters from eye detection here as well in some way.
         MatOfPoint2f markerPointsProjEye = new MatOfPoint2f();
         Calib3d.projectPoints(markerPoints, Mat.zeros(3,1,marker.getRvec().type()), tEye2Device, EyeCamMatrix, new MatOfDouble(0,0,0,0,0,0,0,0), markerPointsProjEye); // marker.getRvec()& tVecEye
         Log.d("vectorPointsEye",markerPointsProjEye.dump());
+
         // 4. Get perspective transform like before. Call it H.
         MatOfPoint2f markerPointsIm = new MatOfPoint2f();
         Vector<Point> DevicePoints = new Vector<Point>();
@@ -209,13 +213,15 @@ public class PerspectiveFixer {
         Log.d("markerpointsIm",markerPointsIm.dump());
       //  Mat H = Imgproc.getPerspectiveTransform(markerPointsProjEye,markerPointsIm);
       //  Log.d("Horiginal",H.dump());
-        Mat H1 = Calib3d.findHomography(markerPointsProjEye,markerPointsIm,8,20);
+        Mat H1 = Calib3d.findHomography(markerPointsProjEye,markerPointsIm,8,1);
         Log.d("H1",H1.dump());
+
         // 5. Enter corners of device into the transform H.
-        MatOfPoint2f cornersDevice = create4Points(0.0711*2, 0,0, 0,0,  0.03495*2,0.0711*2,  0.03495*2); // 0.0711,-0.03495,-0.0711,-0.03495, -0.0711, 0.03495, 0.0711,0.03495
+        MatOfPoint2f cornersDevice = create4Points(mCoordinates[0]+0.0711*2, mCoordinates[1]+0,mCoordinates[0]+0, mCoordinates[1]+0,mCoordinates[0]+0,  mCoordinates[1]+0.03495*2,mCoordinates[0]+0.0711*2,  mCoordinates[1]+0.03495*2); // 0.0711,-0.03495,-0.0711,-0.03495, -0.0711, 0.03495, 0.0711,0.03495
         MatOfPoint2f cornersDeviceTr = new MatOfPoint2f();
         Core.perspectiveTransform(cornersDevice,cornersDeviceTr, H1); //,cornersDevice.size()
         Log.d("cornersOfDeviceMulti",cornersDeviceTr.dump());
+
         // 6. Strech these points to the corners of the image.
         if (H1.size().height > 0 && H1.size().width > 2) {
             MatOfPoint2f cornersScreen = create4Points(rgba.size().width, 0, 0, 0, 0, rgba.size().height, rgba.size().width, rgba.size().height);

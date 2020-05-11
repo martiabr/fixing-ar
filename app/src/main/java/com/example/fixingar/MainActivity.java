@@ -67,17 +67,6 @@ import es.ava.aruco.CameraParameters;
 import es.ava.aruco.Marker;
 import es.ava.aruco.MarkerDetector;
 
-// Average re-projection error: 0.226845
-//2020-03-28 14:30:00.740 30657-31407/com.example.fixingar I/CameraCalibrator: Camera matrix: [1107.420238521566, 0, 639.5;
-//     0, 1107.420238521566, 359.5;
-//     0, 0, 1]
-//2020-03-28 14:30:00.740 30657-31407/com.example.fixingar I/CameraCalibrator: Distortion coefficients: [0.1777787296818345;
-//     -0.4618245249197365;
-//     0;
-//     0;
-//     -0.1959808318795349]
-
-
 public class MainActivity extends CameraActivity implements CvCameraViewListener2, View.OnClickListener {
 
     //Constants
@@ -126,7 +115,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     private PerspectiveFixer perspectiveFixer;
 
     private Handler mHandler = new Handler();
-    private boolean timerRunning = true;
+    private boolean timerRunning = false;
     private static final int DELAY = 5000;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
@@ -324,7 +313,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             if (detectedMarkers.size() >= 5) {
                 Log.d("howmany","Detected 5 markers.");
                 Log.d("markerPoints", String.valueOf(detectedMarkers.toArray().toString()));
-                Log.d("mcoooords",mCoordinates[2]);
+                Log.d("mcoooords", Float.toString(mCoordinates[2]));
                 Mat dst = perspectiveFixer.fixPerspectiveMultipleMarker(mRgba,detectedMarkers,MARKER_SIZE,mCoordinates);
                 return dst;
             }
@@ -334,16 +323,18 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         camParams_f.read(this);
         Mat Cmat = camParams_f.getCameraMatrix();
 
+        // TODO: Shouldnt create a new face detector each frame
         FaceDetection facedetection = new FaceDetection(Cmat, mJavaDetector1, mJavaDetector2, mNativeDetector1, mNativeDetector2);
         mCoordinates = facedetection.getmCoordinates(mRgba, mGray);
             // mCoordinates[0] = x
             // mCoordinates[1] = y
             // mCoordinates[2] = z
             // mCoordinates[3] = 1 or 2 if face or eyes were found, it's 0 if nothing was found
-
+            if (mCoordinates != null) {
             String mess1 = facedetection.ObjDetect(mCoordinates);
-            String mess = mess1 + "Dist: " + Float.toString(mCoordinates[3]) + "m, x: " + Float.toString(mCoordinates[0]) + "m, y: " + Float.toString(mCoordinates[1]) + "m";
+            String mess = mess1 + "Dist: " + Float.toString(mCoordinates[2]) + "m, x: " + Float.toString(mCoordinates[0]) + "m, y: " + Float.toString(mCoordinates[1]) + "m";
             debugMsg(mess);
+            }
         }
 
         return mRgba;
