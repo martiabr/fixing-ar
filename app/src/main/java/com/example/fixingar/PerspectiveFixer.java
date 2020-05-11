@@ -24,6 +24,8 @@ import es.ava.aruco.CameraParameters;
 import es.ava.aruco.Marker;
 
 public class PerspectiveFixer {
+    private double halfwidth = 0.0711;
+    private double halfHeight = 0.03495;
     private CameraParameters camParams;
 
     public PerspectiveFixer(CameraParameters cp) {
@@ -39,7 +41,6 @@ public class PerspectiveFixer {
         points.add(new Point3(-halfSize,  halfSize, 0));
         points.add(new Point3( halfSize,  halfSize, 0));
         cornerPoints.fromList(points);
-
         return cornerPoints;
     }
 
@@ -75,7 +76,7 @@ public class PerspectiveFixer {
         Log.d("cornersScreen",cornersScreen.dump());
 
         // Generate corner points in screen plane.
-        MatOfPoint2f cornersDevice = create4Points(0.0711*2, 0,0, 0,0,  0.03495*2,0.0711*2,  0.03495*2); // 0.0711,-0.03495,-0.0711,-0.03495, -0.0711, 0.03495, 0.0711,0.03495
+        MatOfPoint2f cornersDevice = create4Points(halfwidth*2, 0,0, 0,0,  halfHeight*2,halfwidth*2,  halfHeight*2); // 0.0711,-0.03495,-0.0711,-0.03495, -0.0711, 0.03495, 0.0711,0.03495
                         //
         Log.d("cornersDevice",cornersDevice.dump());
 
@@ -212,7 +213,7 @@ public class PerspectiveFixer {
         Mat H1 = Calib3d.findHomography(markerPointsProjEye,markerPointsIm,8,1);
         Log.d("H1",H1.dump());
         // 5. Enter corners of device into the transform H.
-        MatOfPoint2f cornersDevice = create4Points(mCoordinates[0]+0.0711*2, mCoordinates[1]+0,mCoordinates[0]+0, mCoordinates[1]+0,mCoordinates[0]+0,  mCoordinates[1]+0.03495*2,mCoordinates[0]+0.0711*2,  mCoordinates[1]+0.03495*2); // 0.0711,-0.03495,-0.0711,-0.03495, -0.0711, 0.03495, 0.0711,0.03495
+        MatOfPoint2f cornersDevice = create4Points(mCoordinates[0]+halfwidth*2, mCoordinates[1]+0,mCoordinates[0]+0, mCoordinates[1]+0,mCoordinates[0]+0,  mCoordinates[1]+halfHeight*2,mCoordinates[0]+halfwidth*2,  mCoordinates[1]+halfHeight*2); // 0.0711,-0.03495,-0.0711,-0.03495, -0.0711, 0.03495, 0.0711,0.03495
         MatOfPoint2f cornersDeviceTr = new MatOfPoint2f();
         Core.perspectiveTransform(cornersDevice,cornersDeviceTr, H1); //,cornersDevice.size()
         Log.d("cornersOfDeviceMulti",cornersDeviceTr.dump());
