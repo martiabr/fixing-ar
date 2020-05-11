@@ -67,17 +67,6 @@ import es.ava.aruco.CameraParameters;
 import es.ava.aruco.Marker;
 import es.ava.aruco.MarkerDetector;
 
-// Average re-projection error: 0.226845
-//2020-03-28 14:30:00.740 30657-31407/com.example.fixingar I/CameraCalibrator: Camera matrix: [1107.420238521566, 0, 639.5;
-//     0, 1107.420238521566, 359.5;
-//     0, 0, 1]
-//2020-03-28 14:30:00.740 30657-31407/com.example.fixingar I/CameraCalibrator: Distortion coefficients: [0.1777787296818345;
-//     -0.4618245249197365;
-//     0;
-//     0;
-//     -0.1959808318795349]
-
-
 public class MainActivity extends CameraActivity implements CvCameraViewListener2, View.OnClickListener {
 
     //Constants
@@ -126,7 +115,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     private PerspectiveFixer perspectiveFixer;
 
     private Handler mHandler = new Handler();
-    private boolean timerRunning = true;
+    private boolean timerRunning = false;
     private static final int DELAY = 5000;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
@@ -334,6 +323,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         camParams_f.read(this);
         Mat Cmat = camParams_f.getCameraMatrix();
 
+        // TODO: Shouldnt create a new face detector each frame
         FaceDetection facedetection = new FaceDetection(Cmat, mJavaDetector1, mJavaDetector2, mNativeDetector1, mNativeDetector2);
         mCoordinates = facedetection.getmCoordinates(mRgba, mGray);
             // mCoordinates[0] = x
