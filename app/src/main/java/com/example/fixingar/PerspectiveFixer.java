@@ -183,7 +183,7 @@ public class PerspectiveFixer {
     private MatOfPoint2f CheckPerspectiveWrap (MatOfPoint2f cornersDeviceTr, Mat rgba) {
         Point[] corners = cornersDeviceTr.toArray();
         Point[] corners_checked = new Point[4];
-        double penalty = rgba.rows()*0.3;
+        double penalty = rgba.rows()*0.2;
         if (corners_b != null) { // check that earlier corners exist
             double distb1 = Math.abs(Math.pow(Math.pow(corners[0].x - corners_b[0].x,2)+Math.pow(corners[0].y - corners_b[0].y,2),0.5));
             double distb2 = Math.abs(Math.pow(Math.pow(corners[1].x - corners_b[1].x,2)+Math.pow(corners[1].y - corners_b[1].y,2),0.5));
