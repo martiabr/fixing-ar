@@ -24,12 +24,12 @@ import es.ava.aruco.CameraParameters;
 import es.ava.aruco.Marker;
 
 public class PerspectiveFixer {
-    public double halfwidth = 0.0711;
-    public double halfHeight = 0.03495;
+    public double halfwidth = 0.122/2;
+    public double halfHeight = 0.059/2;
 
     // Position of front camera.
-    public double camTo00CornerX = 0;
-    public double camTo00CornerY = 0; // y vector from camera to (0,0) image corner (top-left). Positive direction is downwards.
+    public double camTo00CornerX = 0.003;
+    public double camTo00CornerY = -0.002; // y vector from camera to (0,0) image corner (top-left). Positive direction is downwards.
     private CameraParameters camParams;
     private Point[] corners_b;
     private Point[] corners_bb;
@@ -183,7 +183,7 @@ public class PerspectiveFixer {
     private MatOfPoint2f CheckPerspectiveWrap (MatOfPoint2f cornersDeviceTr, Mat rgba) {
         Point[] corners = cornersDeviceTr.toArray();
         Point[] corners_checked = new Point[4];
-        double penalty = rgba.rows()*0.2;
+        double penalty = rgba.rows()*0.3;
         if (corners_b != null) { // check that earlier corners exist
             double distb1 = Math.abs(Math.pow(Math.pow(corners[0].x - corners_b[0].x,2)+Math.pow(corners[0].y - corners_b[0].y,2),0.5));
             double distb2 = Math.abs(Math.pow(Math.pow(corners[1].x - corners_b[1].x,2)+Math.pow(corners[1].y - corners_b[1].y,2),0.5));
@@ -242,14 +242,16 @@ public class PerspectiveFixer {
     }
 
     public Mat fixPerspectiveMultipleMarker(Mat rgba, Vector<Marker> detectedMarkers, float markerSize,float[] mCoordinates) {
+
         Log.d("sizeofimage",rgba.size().toString());
+
         // 1. Get Pose from rvec and tvec of first marker.
         Marker marker = detectedMarkers.get(0);
         Mat rMatrix = new Mat();
         Calib3d.Rodrigues(marker.getRvec(),rMatrix);
         Mat tVec = marker.getTvec();
 
-        // 2. Save Tvec from 4 other markers into a MatOfPoint3f.
+        // 2. Save Tvec from other markers into a MatOfPoint3f.
         MatOfPoint3f markerPoints = new MatOfPoint3f();
         Vector<Point3> points = new Vector<Point3>();
         for (int i = 1; i < detectedMarkers.size(); i++) {
@@ -259,18 +261,15 @@ public class PerspectiveFixer {
         markerPoints.fromList(points);
         Log.d("Vectorpoints",markerPoints.dump());
 
-        // 3. Project points genom ögonkameran för att få matchande points i båda bilderna.
+        // 3. Project points through eye camera to find marker points in eye projection.
         Mat tEye2Device = Mat.zeros(3, 1, CvType.CV_64FC1);
-        tEye2Device.put(2, 0, mCoordinates[2]);  // Z (backwards)
-        tEye2Device.put(0, 0, mCoordinates[0]);  // X (shift to move camera to phone center)
-        tEye2Device.put(1, 0, mCoordinates[1]); // Y (shift in up-to-down direction)
-        // TODO: add calibration procedure for x and y offset and set input as the estimates by the eye tracking software (x,y and z). Just some sliders for x and y could work fine i guess?
-        Mat tVecEye = Mat.zeros(3, 1, CvType.CV_64FC1);
-        Core.add(tVec,tEye2Device, tVecEye);
+        tEye2Device.put(0, 0, mCoordinates[0]+0.018);  // X
+        tEye2Device.put(1, 0, mCoordinates[1]+0.017); // Y
+        tEye2Device.put(2, 0, mCoordinates[2]+0.005);  // Z
         Mat EyeCamMatrix = createCameraMatrix(mCoordinates[2],mCoordinates[2], 0,0);
         // TODO: Insert parameters from eye detection here as well in some way.
         MatOfPoint2f markerPointsProjEye = new MatOfPoint2f();
-        Calib3d.projectPoints(markerPoints, Mat.zeros(3,1,marker.getRvec().type()), tEye2Device, EyeCamMatrix, new MatOfDouble(0,0,0,0,0,0,0,0), markerPointsProjEye); // marker.getRvec()& tVecEye
+        Calib3d.projectPoints(markerPoints, Mat.zeros(3,1,marker.getRvec().type()), tEye2Device, EyeCamMatrix, new MatOfDouble(0,0,0,0,0,0,0,0), markerPointsProjEye); //
         Log.d("vectorPointsEye",markerPointsProjEye.dump());
 
         // 4. Get perspective transform like before. Call it H.
@@ -281,16 +280,15 @@ public class PerspectiveFixer {
         }
         markerPointsIm.fromList(DevicePoints);
         Log.d("markerpointsIm",markerPointsIm.dump());
-      //  Mat H = Imgproc.getPerspectiveTransform(markerPointsProjEye,markerPointsIm);
-      //  Log.d("Horiginal",H.dump());
         Mat H1 = Calib3d.findHomography(markerPointsProjEye,markerPointsIm,8,1);
         Log.d("H1",H1.dump());
 
         // 5. Enter corners of device into the transform H.
         MatOfPoint2f cornersDevice = create4Points(mCoordinates[0]+halfwidth*2+camTo00CornerX, mCoordinates[1]+0+camTo00CornerY,mCoordinates[0]+0+camTo00CornerX, mCoordinates[1]+0+camTo00CornerY,mCoordinates[0]+0+camTo00CornerX,  mCoordinates[1]+halfHeight*2+camTo00CornerY,mCoordinates[0]+halfwidth*2+camTo00CornerX,  mCoordinates[1]+halfHeight*2+camTo00CornerY); // 0.0711,-0.03495,-0.0711,-0.03495, -0.0711, 0.03495, 0.0711,0.03495
         MatOfPoint2f cornersDeviceTr = new MatOfPoint2f();
-        Core.perspectiveTransform(cornersDevice,cornersDeviceTr, H1); //,cornersDevice.size()
-        Log.d("cornersOfDeviceMulti",cornersDeviceTr.dump());
+        Core.perspectiveTransform(cornersDevice,cornersDeviceTr, H1);
+        Log.d("cornersOfDeviceMulti",cornersDevice.dump());
+        Log.d("cornersOfDeviceMultiTr",cornersDeviceTr.dump());
 
         // 6. check that perspective transform is reasonable
         cornersDeviceTr = CheckPerspectiveWrap(cornersDeviceTr, rgba);
@@ -304,7 +302,6 @@ public class PerspectiveFixer {
             // Following used for debugging, instead of
             Point[] coloredP = cornersDeviceTr.toArray();
             Log.d("ColoredP", coloredP[0].toString() + coloredP[1].toString() + coloredP[2].toString() + coloredP[3].toString());
-
             for (int i = 0; i < 4; i++) {
                 drawLine(rgba, coloredP[i % 4], coloredP[(i + 1) % 4]);
             }
