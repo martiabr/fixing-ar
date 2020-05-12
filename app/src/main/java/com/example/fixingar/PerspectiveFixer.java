@@ -16,6 +16,7 @@ import org.opencv.core.Point3;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.video.KalmanFilter;
 
 import java.util.List;
 import java.util.Vector;
@@ -241,6 +242,36 @@ public class PerspectiveFixer {
         return cornersDeviceTr_checked;
     }
 
+    private KalmanFilter initKalman () {
+        KalmanFilter kalman = new KalmanFilter(8, 8, 0, CvType.CV_64FC1);
+        // transition matrix
+        Mat transitionMatrix=Mat.eye(8,8,CvType.CV_64FC1);
+        transitionMatrix=transitionMatrix.mul(transitionMatrix,0);
+        kalman.set_transitionMatrix(transitionMatrix);
+
+        // measurement matrix
+        Mat measurementMatrix=Mat.eye(8,8,CvType.CV_64FC1);
+        measurementMatrix=measurementMatrix.mul(measurementMatrix,1);
+        kalman.set_measurementMatrix(measurementMatrix);
+
+        //Process noise Covariance matrix
+        Mat processNoiseCov=Mat.eye(8,8,CvType.CV_64FC1);
+        processNoiseCov=processNoiseCov.mul(processNoiseCov,0);
+        kalman.set_processNoiseCov(processNoiseCov);
+
+        //Measurement noise Covariance matrix: reliability on our first measurement
+        Mat measurementNoiseCov=Mat.eye(8,8,CvType.CV_64FC1);
+        measurementNoiseCov=measurementNoiseCov.mul(measurementNoiseCov,1e-2); // I hope this is in m and not in bits
+        kalman.set_measurementNoiseCov(measurementNoiseCov);
+
+        // initial variance
+        //Mat id2=Mat.eye(8,8,CvType.CV_64FC1);
+        //id2=id2.mul(id2,0.1); // again I hope this is in m
+        //kalman.set_errorCovPost(id2);
+
+        return kalman;
+    }
+
     public Mat fixPerspectiveMultipleMarker(Mat rgba, Vector<Marker> detectedMarkers, float markerSize,float[] mCoordinates) {
 
         Log.d("sizeofimage",rgba.size().toString());
@@ -291,7 +322,11 @@ public class PerspectiveFixer {
         Log.d("cornersOfDeviceMultiTr",cornersDeviceTr.dump());
 
         // 6. check that perspective transform is reasonable
-        cornersDeviceTr = CheckPerspectiveWrap(cornersDeviceTr, rgba);
+        //cornersDeviceTr = CheckPerspectiveWrap(cornersDeviceTr, rgba);
+        KalmanFilter kalman = initKalman(); // ToDo: I don't want to initialise it inside the loop, to discuss where initialisation would be best
+        kalman.correct(cornersDeviceTr);
+        Mat kalman_corners = kalman.predict();
+
 
         // 7. Strech these points to the corners of the image.
         if (H1.size().height > 0 && H1.size().width > 2) {
