@@ -36,6 +36,7 @@ public class PerspectiveFixer {
     private Point[] corners_bb;
     private int test_b = 0;
     private int test_bb = 0;
+    private double deltaT = 1/24;
 
     public PerspectiveFixer(CameraParameters cp) {
         camParams = cp;
@@ -104,7 +105,7 @@ public class PerspectiveFixer {
         Point[] coloredP = cornersDeviceTr.toArray();
         Log.d("ColoredP",coloredP[0].toString()+coloredP[1].toString()+coloredP[2].toString()+coloredP[3].toString());
         for (int i = 0; i < 4; i++) {
-            drawLine(rgba, coloredP[i%4], coloredP[(i+1)%4]);
+            drawLine(rgba, coloredP[i%4], coloredP[(i+1)%4],255,0,0);
         }
         return dst;
     }
@@ -155,14 +156,14 @@ public class PerspectiveFixer {
         return cam2EyeTransform;
     }
 
-    private void drawLine(Mat img, Point start, Point end) {
+    private void drawLine(Mat img, Point start, Point end, int i, int j, int k) {
         int thickness = 2;
         int lineType = 8;
         int shift = 0;
         Imgproc.line( img,
                 start,
                 end,
-                new Scalar( 255, 0, 0 ),
+                new Scalar( i,j,k),
                 thickness,
                 lineType,
                 shift );
@@ -243,30 +244,39 @@ public class PerspectiveFixer {
     }
 
     public static KalmanFilter initKalman () {
-        KalmanFilter kalman = new KalmanFilter(8, 8, 0, CvType.CV_64FC1);
+        KalmanFilter kalman = new KalmanFilter(16, 16, 0, CvType.CV_64FC1);
+        double deltaT = 1/24;
         // transition matrix
-        Mat transitionMatrix=Mat.eye(8,8,CvType.CV_64FC1);
+        Mat transitionMatrix=Mat.eye(16,16,CvType.CV_64FC1);
+        transitionMatrix.put(0,8,deltaT);
+        transitionMatrix.put(1,9,deltaT);
+        transitionMatrix.put(2,10,deltaT);
+        transitionMatrix.put(3,11,deltaT);
+        transitionMatrix.put(4,12,deltaT);
+        transitionMatrix.put(5,13,deltaT);
+        transitionMatrix.put(6,14,deltaT);
+        transitionMatrix.put(7,15,deltaT);
         kalman.set_transitionMatrix(transitionMatrix);
 
         // measurement matrix
-        Mat measurementMatrix=Mat.eye(8,8,CvType.CV_64FC1);
+        Mat measurementMatrix=Mat.eye(8,16,CvType.CV_64FC1);
         measurementMatrix=measurementMatrix.mul(measurementMatrix,1);
         kalman.set_measurementMatrix(measurementMatrix);
 
         //Process noise Covariance matrix
-        Mat processNoiseCov=Mat.eye(8,8,CvType.CV_64FC1);
+        Mat processNoiseCov=Mat.eye(16,16,CvType.CV_64FC1);
         processNoiseCov=processNoiseCov.mul(processNoiseCov,1);
         kalman.set_processNoiseCov(processNoiseCov);
 
         //Measurement noise Covariance matrix: reliability on our first measurement
         Mat measurementNoiseCov=Mat.eye(8,8,CvType.CV_64FC1);
-        measurementNoiseCov=measurementNoiseCov.mul(measurementNoiseCov,1e-2); // I hope this is in m and not in bits
+        measurementNoiseCov=measurementNoiseCov.mul(measurementNoiseCov,10); // I hope this is in m and not in bits
         kalman.set_measurementNoiseCov(measurementNoiseCov);
 
         // initial variance
-        //Mat id2=Mat.eye(8,8,CvType.CV_64FC1);
-        //id2=id2.mul(id2,0.1); // again I hope this is in m
-        //kalman.set_errorCovPost(id2);
+        Mat id2=Mat.eye(16,16,CvType.CV_64FC1);
+        id2=id2.mul(id2,0.1); // again I hope this is in m
+        kalman.set_errorCovPost(id2);
 
         return kalman;
     }
@@ -321,7 +331,6 @@ public class PerspectiveFixer {
         Log.d("cornersOfDeviceMultiTr",cornersDeviceTr.dump());
 
         // 6. check that perspective transform is reasonable
-        //cornersDeviceTr = CheckPerspectiveWrap(cornersDeviceTr, rgba);
         Mat kalman_corners = new Mat(4,2,CvType.CV_64FC1);
         kalman_corners.put(0,0, cornersDeviceTr.get(0,0)[0]);
         kalman_corners.put(0,1, cornersDeviceTr.get(0,0)[1]);
@@ -341,6 +350,7 @@ public class PerspectiveFixer {
         Points.add(new Point(kalman_corners.get(4,0)[0], kalman_corners.get(5,0)[0]));
         Points.add(new Point(kalman_corners.get(6,0)[0], kalman_corners.get(7,0)[0]));
         corr_corners.fromList(Points);
+        cornersDeviceTr = CheckPerspectiveWrap(cornersDeviceTr, rgba);
 
         // 7. Strech these points to the corners of the image.
         if (H1.size().height > 0 && H1.size().width > 2) {
@@ -348,13 +358,15 @@ public class PerspectiveFixer {
             Mat point2CornersTransform = Imgproc.getPerspectiveTransform(corr_corners, cornersScreen);
             Mat dst = new Mat(rgba.size(), CvType.CV_64FC1);
             Imgproc.warpPerspective(rgba, dst, point2CornersTransform, rgba.size());
-            // Following used for debugging, instead of
-            //Point[] coloredP = kalman_corners
-            //Log.d("ColoredP", coloredP[0].toString() + coloredP[1].toString() + coloredP[2].toString() + coloredP[3].toString());
-            //for (int i = 0; i < 4; i++) {
-            //    drawLine(rgba, coloredP[i % 4], coloredP[(i + 1) % 4]);
-            //}
-            return dst;
+            //Following used for debugging, instead of
+            Point[] coloredP = corr_corners.toArray();
+            Point[] coloredP1 = cornersDeviceTr.toArray();
+            Log.d("ColoredP", coloredP[0].toString() + coloredP[1].toString() + coloredP[2].toString() + coloredP[3].toString());
+            for (int i = 0; i < 4; i++) {
+                drawLine(rgba, coloredP[i % 4], coloredP[(i + 1) % 4],255,0,0);
+                drawLine(rgba, coloredP1[i % 4], coloredP1[(i + 1) % 4],0,255,0);
+            }
+            return rgba;
         }
         else return rgba;
     }
