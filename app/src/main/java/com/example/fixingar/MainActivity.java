@@ -13,6 +13,7 @@ import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.MatOfPoint3f;
 import org.opencv.core.Point3;
 import org.opencv.core.Scalar;
+import org.opencv.video.KalmanFilter;
 
 import android.Manifest;
 import android.content.Context;
@@ -106,9 +107,10 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
     private float                  mRelativeFaceSize   = 0.2f; // change this parameter to adjust min Face size
     private int                    mAbsoluteFaceSize   = 0;
+    private FaceDetection          facedetection;
 
     private CameraBridgeViewBase mOpenCvCameraView;
-    private int mCameraIndex = CameraBridgeViewBase.CAMERA_ID_BACK;
+    private int mCameraIndex = CameraBridgeViewBase.CAMERA_ID_FRONT;
     private TextView mDebugText;
     private Button mCameraButton;
     private CameraParameters camParams;
@@ -238,6 +240,8 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.camera_view);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
+
+
     }
 
     @Override
@@ -277,6 +281,10 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     public void onCameraViewStarted(int width, int height) {
         mGray = new Mat();
         mRgba = new Mat();
+        CameraParameters camParams_f = new CameraParameters("front");
+        camParams_f.read(this);
+        Mat Cmat = camParams_f.getCameraMatrix();
+        FaceDetection facedetection = new FaceDetection(Cmat, mJavaDetector1, mJavaDetector2, mNativeDetector1, mNativeDetector2);
     }
 
     public void onCameraViewStopped() {
@@ -295,14 +303,8 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             //Setup required parameters for detect method
             MarkerDetector mDetector = new MarkerDetector();
             Vector<Marker> detectedMarkers = new Vector<>();
-            CameraParameters camParams = new CameraParameters("back");
-
-            // TODO: For some stupid reason i am not able to move these init lines to onCreate()... Now we make new objects each frame which is stupid since the camera params are constant
-            camParams.read(this);
-            perspectiveFixer = new PerspectiveFixer(camParams);
 
             //Populate detectedMarkers
-
             mDetector.detect(mRgba, detectedMarkers, camParams, MARKER_SIZE);
 
             if (detectedMarkers.size() == 1) {
@@ -314,17 +316,16 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 Log.d("howmany","Detected 5 markers.");
                 Log.d("markerPoints", String.valueOf(detectedMarkers.toArray().toString()));
                 Log.d("mcoooords", Float.toString(mCoordinates[2]));
-                Mat dst = perspectiveFixer.fixPerspectiveMultipleMarker(mRgba,detectedMarkers,MARKER_SIZE,mCoordinates);
-                return dst;
+                if (mCoordinates != null) {
+                    if (mCoordinates[3] != 0) {
+                Mat dst = perspectiveFixer.fixPerspectiveMultipleMarker(mRgba,detectedMarkers,MARKER_SIZE,mCoordinates,kalman);
+                return dst; }
+                    else return mRgba;
+                }
+                else return mRgba;
             }
           
         } else if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_FRONT) {
-        CameraParameters camParams_f = new CameraParameters("front");
-        camParams_f.read(this);
-        Mat Cmat = camParams_f.getCameraMatrix();
-
-        // TODO: Shouldnt create a new face detector each frame
-        FaceDetection facedetection = new FaceDetection(Cmat, mJavaDetector1, mJavaDetector2, mNativeDetector1, mNativeDetector2);
         mCoordinates = facedetection.getmCoordinates(mRgba, mGray);
             // mCoordinates[0] = x
             // mCoordinates[1] = y
@@ -372,8 +373,16 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     private boolean switchCameras() {
         if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_BACK) {
             mCameraIndex = CameraBridgeViewBase.CAMERA_ID_FRONT;
+            CameraParameters camParams_f = new CameraParameters("front");
+            camParams_f.read(this);
+            Mat Cmat = camParams_f.getCameraMatrix();
+            FaceDetection facedetection = new FaceDetection(Cmat, mJavaDetector1, mJavaDetector2, mNativeDetector1, mNativeDetector2);
         } else if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_FRONT){
             mCameraIndex = CameraBridgeViewBase.CAMERA_ID_BACK;
+            CameraParameters camParams = new CameraParameters("back");
+            camParams.read(this);
+            perspectiveFixer = new PerspectiveFixer(camParams);
+            KalmanFilter kalman = PerspectiveFixer.initKalman();
         }
 
         Toast.makeText(MainActivity.this, "Switching camera to " + mCameraIndex, Toast.LENGTH_SHORT).show();

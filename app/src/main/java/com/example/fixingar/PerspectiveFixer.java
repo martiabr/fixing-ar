@@ -242,7 +242,7 @@ public class PerspectiveFixer {
         return cornersDeviceTr_checked;
     }
 
-    private KalmanFilter initKalman () {
+    public static KalmanFilter initKalman () {
         KalmanFilter kalman = new KalmanFilter(8, 8, 0, CvType.CV_64FC1);
         // transition matrix
         Mat transitionMatrix=Mat.eye(8,8,CvType.CV_64FC1);
@@ -272,7 +272,7 @@ public class PerspectiveFixer {
         return kalman;
     }
 
-    public Mat fixPerspectiveMultipleMarker(Mat rgba, Vector<Marker> detectedMarkers, float markerSize,float[] mCoordinates) {
+    public Mat fixPerspectiveMultipleMarker(Mat rgba, Vector<Marker> detectedMarkers, float markerSize,float[] mCoordinates, KalmanFilter kalman) {
 
         Log.d("sizeofimage",rgba.size().toString());
 
@@ -323,7 +323,6 @@ public class PerspectiveFixer {
 
         // 6. check that perspective transform is reasonable
         //cornersDeviceTr = CheckPerspectiveWrap(cornersDeviceTr, rgba);
-        KalmanFilter kalman = initKalman(); // ToDo: I don't want to initialise it inside the loop, to discuss where initialisation would be best
         kalman.correct(cornersDeviceTr);
         Mat kalman_corners = kalman.predict();
 
@@ -331,16 +330,16 @@ public class PerspectiveFixer {
         // 7. Strech these points to the corners of the image.
         if (H1.size().height > 0 && H1.size().width > 2) {
             MatOfPoint2f cornersScreen = create4Points(rgba.size().width, 0, 0, 0, 0, rgba.size().height, rgba.size().width, rgba.size().height);
-            Mat point2CornersTransform = Imgproc.getPerspectiveTransform(cornersDeviceTr, cornersScreen);
+            Mat point2CornersTransform = Imgproc.getPerspectiveTransform(kalman_corners, cornersScreen);
             Mat dst = new Mat(rgba.size(), CvType.CV_64FC1);
             Imgproc.warpPerspective(rgba, dst, point2CornersTransform, rgba.size());
             // Following used for debugging, instead of
-            Point[] coloredP = cornersDeviceTr.toArray();
-            Log.d("ColoredP", coloredP[0].toString() + coloredP[1].toString() + coloredP[2].toString() + coloredP[3].toString());
-            for (int i = 0; i < 4; i++) {
-                drawLine(rgba, coloredP[i % 4], coloredP[(i + 1) % 4]);
-            }
-            return rgba;
+            //Point[] coloredP = kalman_corners
+            //Log.d("ColoredP", coloredP[0].toString() + coloredP[1].toString() + coloredP[2].toString() + coloredP[3].toString());
+            //for (int i = 0; i < 4; i++) {
+            //    drawLine(rgba, coloredP[i % 4], coloredP[(i + 1) % 4]);
+            //}
+            return dst;
         }
         else return rgba;
     }
