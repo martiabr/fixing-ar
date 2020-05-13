@@ -334,12 +334,18 @@ public class PerspectiveFixer {
         Log.d("kalman",String.valueOf(kalman_corners.type()));
         kalman.correct(kalman_corners.reshape(0,8));
         kalman_corners = kalman.predict();
-        kalman_corners.reshape(0,4);
+        MatOfPoint2f corr_corners = new MatOfPoint2f();
+        Vector<Point> Points = new Vector<Point>();
+        Points.add(new Point(kalman_corners.get(0,0)[0], kalman_corners.get(1,0)[0]));
+        Points.add(new Point(kalman_corners.get(2,0)[0], kalman_corners.get(3,0)[0]));
+        Points.add(new Point(kalman_corners.get(4,0)[0], kalman_corners.get(5,0)[0]));
+        Points.add(new Point(kalman_corners.get(6,0)[0], kalman_corners.get(7,0)[0]));
+        corr_corners.fromList(Points);
 
         // 7. Strech these points to the corners of the image.
         if (H1.size().height > 0 && H1.size().width > 2) {
             MatOfPoint2f cornersScreen = create4Points(rgba.size().width, 0, 0, 0, 0, rgba.size().height, rgba.size().width, rgba.size().height);
-            Mat point2CornersTransform = Imgproc.getPerspectiveTransform(kalman_corners, cornersScreen);
+            Mat point2CornersTransform = Imgproc.getPerspectiveTransform(corr_corners, cornersScreen);
             Mat dst = new Mat(rgba.size(), CvType.CV_64FC1);
             Imgproc.warpPerspective(rgba, dst, point2CornersTransform, rgba.size());
             // Following used for debugging, instead of
