@@ -246,7 +246,6 @@ public class PerspectiveFixer {
         KalmanFilter kalman = new KalmanFilter(8, 8, 0, CvType.CV_64FC1);
         // transition matrix
         Mat transitionMatrix=Mat.eye(8,8,CvType.CV_64FC1);
-        transitionMatrix=transitionMatrix.mul(transitionMatrix,0);
         kalman.set_transitionMatrix(transitionMatrix);
 
         // measurement matrix
@@ -256,7 +255,7 @@ public class PerspectiveFixer {
 
         //Process noise Covariance matrix
         Mat processNoiseCov=Mat.eye(8,8,CvType.CV_64FC1);
-        processNoiseCov=processNoiseCov.mul(processNoiseCov,0);
+        processNoiseCov=processNoiseCov.mul(processNoiseCov,1);
         kalman.set_processNoiseCov(processNoiseCov);
 
         //Measurement noise Covariance matrix: reliability on our first measurement
@@ -323,9 +322,19 @@ public class PerspectiveFixer {
 
         // 6. check that perspective transform is reasonable
         //cornersDeviceTr = CheckPerspectiveWrap(cornersDeviceTr, rgba);
-        kalman.correct(cornersDeviceTr);
-        Mat kalman_corners = kalman.predict();
-
+        Mat kalman_corners = new Mat(4,2,CvType.CV_64FC1);
+        kalman_corners.put(0,0, cornersDeviceTr.get(0,0)[0]);
+        kalman_corners.put(0,1, cornersDeviceTr.get(0,0)[1]);
+        kalman_corners.put(1,0, cornersDeviceTr.get(1,0)[0]);
+        kalman_corners.put(1,1, cornersDeviceTr.get(1,0)[1]);
+        kalman_corners.put(2,0, cornersDeviceTr.get(2,0)[0]);
+        kalman_corners.put(2,1, cornersDeviceTr.get(2,0)[1]);
+        kalman_corners.put(3,0, cornersDeviceTr.get(3,0)[0]);
+        kalman_corners.put(3,1, cornersDeviceTr.get(3,0)[1]);
+        Log.d("kalman",String.valueOf(kalman_corners.type()));
+        kalman.correct(kalman_corners.reshape(0,8));
+        kalman_corners = kalman.predict();
+        kalman_corners.reshape(0,4);
 
         // 7. Strech these points to the corners of the image.
         if (H1.size().height > 0 && H1.size().width > 2) {
