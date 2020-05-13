@@ -72,7 +72,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
     //Constants
     private static final String TAG = "Main";
-    private static final float MARKER_SIZE = (float) 0.04;
+    private static final float MARKER_SIZE = (float) 0.046;
 
     //Preferences
     private static final boolean SHOW_MARKERID = true;
@@ -119,6 +119,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     private Handler mHandler = new Handler();
     private boolean timerRunning = false;
     private static final int DELAY = 5000;
+    private KalmanFilter kalman;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -240,8 +241,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.camera_view);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
-
-
+        mOpenCvCameraView.setCameraIndex(mCameraIndex);
     }
 
     @Override
@@ -281,10 +281,6 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     public void onCameraViewStarted(int width, int height) {
         mGray = new Mat();
         mRgba = new Mat();
-        CameraParameters camParams_f = new CameraParameters("front");
-        camParams_f.read(this);
-        Mat Cmat = camParams_f.getCameraMatrix();
-        FaceDetection facedetection = new FaceDetection(Cmat, mJavaDetector1, mJavaDetector2, mNativeDetector1, mNativeDetector2);
     }
 
     public void onCameraViewStopped() {
@@ -300,6 +296,10 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
         // Do marker detection if we use the back camera:
         if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_BACK) {
+            CameraParameters camParams = new CameraParameters("back");
+            camParams.read(this);
+            perspectiveFixer = new PerspectiveFixer(camParams);
+
             //Setup required parameters for detect method
             MarkerDetector mDetector = new MarkerDetector();
             Vector<Marker> detectedMarkers = new Vector<>();
@@ -326,6 +326,11 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             }
           
         } else if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_FRONT) {
+            CameraParameters camParams_f = new CameraParameters("front");
+            camParams_f.read(this);
+            Mat Cmat = camParams_f.getCameraMatrix();
+            FaceDetection facedetection = new FaceDetection(Cmat, mJavaDetector1, mJavaDetector2, mNativeDetector1, mNativeDetector2);
+
         mCoordinates = facedetection.getmCoordinates(mRgba, mGray);
             // mCoordinates[0] = x
             // mCoordinates[1] = y
@@ -373,16 +378,13 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     private boolean switchCameras() {
         if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_BACK) {
             mCameraIndex = CameraBridgeViewBase.CAMERA_ID_FRONT;
-            CameraParameters camParams_f = new CameraParameters("front");
-            camParams_f.read(this);
-            Mat Cmat = camParams_f.getCameraMatrix();
-            FaceDetection facedetection = new FaceDetection(Cmat, mJavaDetector1, mJavaDetector2, mNativeDetector1, mNativeDetector2);
+
         } else if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_FRONT){
             mCameraIndex = CameraBridgeViewBase.CAMERA_ID_BACK;
-            CameraParameters camParams = new CameraParameters("back");
+            camParams = new CameraParameters("back");
             camParams.read(this);
             perspectiveFixer = new PerspectiveFixer(camParams);
-            KalmanFilter kalman = PerspectiveFixer.initKalman();
+            kalman = PerspectiveFixer.initKalman();
         }
 
         Toast.makeText(MainActivity.this, "Switching camera to " + mCameraIndex, Toast.LENGTH_SHORT).show();
