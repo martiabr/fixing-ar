@@ -249,6 +249,7 @@ public class PerspectiveFixer {
     public static KalmanFilter initKalman () {
         KalmanFilter kalman = new KalmanFilter(16, 16, 0, CvType.CV_64FC1);
         double deltaT = ((double) 1)/24;
+        
         // transition matrix
         Mat transitionMatrix=Mat.eye(16,16,CvType.CV_64FC1);
         transitionMatrix.put(0,8,deltaT);
@@ -343,9 +344,10 @@ public class PerspectiveFixer {
         kalman_corners.put(2,1, cornersDeviceTr.get(2,0)[1]);
         kalman_corners.put(3,0, cornersDeviceTr.get(3,0)[0]);
         kalman_corners.put(3,1, cornersDeviceTr.get(3,0)[1]);
+        Log.d("kalman correct",kalman_corners.reshape(0,8).dump());
         kalman.correct(kalman_corners.reshape(0,8));
         kalman_corners = kalman.predict();
-        Log.d("kalman",kalman_corners.dump());
+        Log.d("kalman predict",kalman_corners.dump());
         MatOfPoint2f corr_corners = new MatOfPoint2f();
         Vector<Point> Points = new Vector<Point>();
         Points.add(new Point(kalman_corners.get(0,0)[0], kalman_corners.get(1,0)[0]));

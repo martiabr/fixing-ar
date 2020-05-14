@@ -260,6 +260,10 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         } else {
             Log.d(TAG, "OpenCV library found inside package. Using it!");
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
+
+            CameraParameters camParams = new CameraParameters("back");
+            camParams.read(this);
+            perspectiveFixer = new PerspectiveFixer(camParams);
         }
     }
 
@@ -296,7 +300,6 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_BACK) {
             CameraParameters camParams = new CameraParameters("back");
             camParams.read(this);
-            perspectiveFixer = new PerspectiveFixer(camParams);
 
             //Setup required parameters for detect method
             MarkerDetector mDetector = new MarkerDetector();
