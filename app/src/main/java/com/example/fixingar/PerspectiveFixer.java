@@ -245,7 +245,7 @@ public class PerspectiveFixer {
 
     public static KalmanFilter initKalman () {
         KalmanFilter kalman = new KalmanFilter(16, 16, 0, CvType.CV_64FC1);
-        double deltaT = 1/24;
+        double deltaT = ((double) 1)/24;
         // transition matrix
         Mat transitionMatrix=Mat.eye(16,16,CvType.CV_64FC1);
         transitionMatrix.put(0,8,deltaT);
