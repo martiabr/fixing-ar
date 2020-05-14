@@ -71,7 +71,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
     //Constants
     private static final String TAG = "Main";
-    private static final float MARKER_SIZE = (float) 0.046;
+    private static final float MARKER_SIZE = (float) 0.026;
 
     //Preferences
     private static final boolean SHOW_MARKERID = true;
@@ -263,11 +263,11 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             Log.d(TAG, "OpenCV library found inside package. Using it!");
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
 
-            camParamsBack = new CameraParameters();
+            camParamsBack = new CameraParameters("back");
             camParamsBack.read(this);
             perspectiveFixer = new PerspectiveFixer(camParamsBack);
 
-            camParamsFront = new CameraParameters();
+            camParamsFront = new CameraParameters("front");
             camParamsBack.read(this);
             faceDetection = new FaceDetection(camParamsFront.getCameraMatrix(), mJavaDetector1, mJavaDetector2, mNativeDetector1, mNativeDetector2);
         }
@@ -380,6 +380,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
         } else if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_FRONT){
             mCameraIndex = CameraBridgeViewBase.CAMERA_ID_BACK;
+            perspectiveFixer = new PerspectiveFixer(camParamsBack);
         }
 
         Toast.makeText(MainActivity.this, "Switching camera to " + mCameraIndex, Toast.LENGTH_SHORT).show();

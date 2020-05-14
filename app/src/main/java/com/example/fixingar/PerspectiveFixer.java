@@ -25,12 +25,12 @@ import es.ava.aruco.CameraParameters;
 import es.ava.aruco.Marker;
 
 public class PerspectiveFixer {
-    public double halfwidth = 0.122/2;
-    public double halfHeight = 0.059/2;
+    public double halfwidth = 0.14/2;
+    public double halfHeight = 0.066/2;
 
     // Position of front camera.
-    public double camTo00CornerX = 0.003;
-    public double camTo00CornerY = -0.002; // y vector from camera to (0,0) image corner (top-left). Positive direction is downwards.
+    public double camTo00CornerX = 0;
+    public double camTo00CornerY = 0.066/2; // y vector from camera to (0,0) image corner (top-left). Positive direction is downwards.
     private CameraParameters camParams;
     private Point[] corners_b;
     private Point[] corners_bb;
