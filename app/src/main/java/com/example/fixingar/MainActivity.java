@@ -13,7 +13,6 @@ import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.MatOfPoint3f;
 import org.opencv.core.Point3;
 import org.opencv.core.Scalar;
-import org.opencv.video.KalmanFilter;
 
 import android.Manifest;
 import android.content.Context;
@@ -119,7 +118,6 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     private Handler mHandler = new Handler();
     private boolean timerRunning = false;
     private static final int DELAY = 5000;
-    private KalmanFilter kalman;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -318,7 +316,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 Log.d("mcoooords", Float.toString(mCoordinates[2]));
                 if (mCoordinates != null) {
                     if (mCoordinates[3] != 0) {
-                Mat dst = perspectiveFixer.fixPerspectiveMultipleMarker(mRgba,detectedMarkers,MARKER_SIZE,mCoordinates,kalman);
+                Mat dst = perspectiveFixer.fixPerspectiveMultipleMarker(mRgba,detectedMarkers,MARKER_SIZE,mCoordinates);
                 return dst; }
                     else return mRgba;
                 }
@@ -384,7 +382,6 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             camParams = new CameraParameters("back");
             camParams.read(this);
             perspectiveFixer = new PerspectiveFixer(camParams);
-            kalman = PerspectiveFixer.initKalman();
         }
 
         Toast.makeText(MainActivity.this, "Switching camera to " + mCameraIndex, Toast.LENGTH_SHORT).show();
@@ -455,17 +452,5 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             }
         }
 
-    }
-
-    private boolean getPermission(){
-        if (ContextCompat.checkSelfPermission(MainActivity.this,
-                Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]
-                            {Manifest.permission.CAMERA},
-                    50);
-        } else {
-            return true;
-        }
-        return false;
     }
 }

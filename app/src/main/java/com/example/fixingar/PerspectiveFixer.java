@@ -38,7 +38,10 @@ public class PerspectiveFixer {
     private int test_bb = 0;
     private double deltaT = 1/24;
 
+    private KalmanFilter kalman;
+
     public PerspectiveFixer(CameraParameters cp) {
+        kalman = initKalman();
         camParams = cp;
     }
 
@@ -281,7 +284,7 @@ public class PerspectiveFixer {
         return kalman;
     }
 
-    public Mat fixPerspectiveMultipleMarker(Mat rgba, Vector<Marker> detectedMarkers, float markerSize,float[] mCoordinates, KalmanFilter kalman) {
+    public Mat fixPerspectiveMultipleMarker(Mat rgba, Vector<Marker> detectedMarkers, float markerSize,float[] mCoordinates) {
 
         Log.d("sizeofimage",rgba.size().toString());
 
@@ -340,9 +343,9 @@ public class PerspectiveFixer {
         kalman_corners.put(2,1, cornersDeviceTr.get(2,0)[1]);
         kalman_corners.put(3,0, cornersDeviceTr.get(3,0)[0]);
         kalman_corners.put(3,1, cornersDeviceTr.get(3,0)[1]);
-        Log.d("kalman",String.valueOf(kalman_corners.type()));
         kalman.correct(kalman_corners.reshape(0,8));
         kalman_corners = kalman.predict();
+        Log.d("kalman",kalman_corners.dump());
         MatOfPoint2f corr_corners = new MatOfPoint2f();
         Vector<Point> Points = new Vector<Point>();
         Points.add(new Point(kalman_corners.get(0,0)[0], kalman_corners.get(1,0)[0]));
