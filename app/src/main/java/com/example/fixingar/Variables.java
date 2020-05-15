@@ -13,6 +13,7 @@ public class Variables {
     private float MarkerSize_J = 0.08f;
     private double halfwidth_J = 0.14/2;
     private double halfHeight_J = 0.066/2;
+    private double EyeResolution_J = 10000; // magic number
     // Position of front camera.
     private double camTo00CornerX_J = 0;
     private double camTo00CornerY_J = 0.066/2; // y vector from camera to (0,0) image corner (top-left). Positive direction is downwards.
@@ -28,6 +29,7 @@ public class Variables {
     private float MarkerSize_M = 0.08f;
     private double halfwidth_M = 0.14/2;
     private double halfHeight_M = 0.066/2;
+    private double EyeResolution_M = 11000; // magic number
     // Position of front camera.
     private double camTo00CornerX_M = 0;
     private double camTo00CornerY_M = 0.066/2; // y vector from camera to (0,0) image corner (top-left). Positive direction is downwards.
@@ -43,6 +45,7 @@ public class Variables {
     private float MarkerSize_O = 0.08f;
     private double halfwidth_O = 0.14/2;
     private double halfHeight_O = 0.066/2;
+    private double EyeResolution_O = 11000; // magic number
     // Position of front camera.
     private double camTo00CornerX_O = 0;
     private double camTo00CornerY_O = 0.066/2; // y vector from camera to (0,0) image corner (top-left). Positive direction is downwards.
@@ -58,6 +61,7 @@ public class Variables {
     private float MarkerSize_C = 0.08f;
     private double halfwidth_C = 0.14/2;
     private double halfHeight_C = 0.066/2;
+    private double EyeResolution_C = 11000; // magic number
     // Position of front camera.
     private double camTo00CornerX_C = 0;
     private double camTo00CornerY_C = 0.066/2; // y vector from camera to (0,0) image corner (top-left). Positive direction is downwards.
@@ -67,6 +71,20 @@ public class Variables {
 
     public Variables(String WHO){
         who = WHO;
+    }
+
+    public double getEyeResolution(){
+        double EyeResolution = EyeResolution_J;
+        if (who == "Martin") {
+            EyeResolution = EyeResolution_M;
+        }
+        if (who == "Caroline") {
+            EyeResolution = EyeResolution_C;
+        }
+        if (who == "Oskar") {
+            EyeResolution = EyeResolution_O;
+        }
+        return EyeResolution;
     }
 
     public double[] getShiftFrontBackCamera(){

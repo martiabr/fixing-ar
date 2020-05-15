@@ -28,6 +28,7 @@ public class PerspectiveFixer {
     public double halfwidth;
     public double halfHeight;
     public double[] ShiftBackFront;
+    public double EyeResolution;
 
     // Position of front camera.
     public double camTo00CornerX;
@@ -45,8 +46,6 @@ public class PerspectiveFixer {
     private List<Scalar> colorsBase;
     private List<Scalar> colorsCube;
 
-    private double screenEyeDistance = 0.4;
-
     public PerspectiveFixer(CameraParameters cp, String WHO) {
         kalman = initKalman();
         camParams = cp;
@@ -56,6 +55,7 @@ public class PerspectiveFixer {
         camTo00CornerX = variables.getCamTo00CornerX();
         camTo00CornerY = variables.getCamTo00CornerY();
         ShiftBackFront = variables.getShiftFrontBackCamera();
+        EyeResolution = variables.getEyeResolution();
 
         colorsBase = new ArrayList<>();
         colorsCube = new ArrayList<>();
@@ -121,7 +121,7 @@ public class PerspectiveFixer {
             marker.draw3dCube(rgba, camParams, colorsCube.get(0));
         }
 
-        Mat cam2EyeTransform = getCam2EyeTransform(rgba, marker, markerSize);
+        Mat cam2EyeTransform = getCam2EyeTransform(rgba, marker, markerSize,mCoordinates);
 
         //Mat screen2DeviceTransform = getScreen2DeviceTransform(rgbaSize); // TODO: this is a constant transform which we only need to calculate once, not at every frame
 
@@ -156,7 +156,7 @@ public class PerspectiveFixer {
         return frameCam2EyeTransformed;
     }
 
-    private Mat getCam2EyeTransform(Mat rgba, Marker marker, double markerSize) {
+    private Mat getCam2EyeTransform(Mat rgba, Marker marker, double markerSize, float[] mCoordinates) {
         // The estimated 4 corner points in 3D marker frame:
         MatOfPoint3f cornerPointsCam = getArucoPoints(markerSize, marker);
         Log.d("Marker corners 3D:",cornerPointsCam.dump());
@@ -170,22 +170,23 @@ public class PerspectiveFixer {
 
         // Create translation vector from camera to the focus point of the pinhole camera constituted by the eyes and camera screen.
         Mat tEye2Device = Mat.zeros(3, 1, CvType.CV_64FC1);
-        tEye2Device.put(2, 0, screenEyeDistance);  // Z (backwards)
+        tEye2Device.put(0, 0, mCoordinates[0]);  // X
+        //tEye2Device.put(1, 0, -mCoordinates[1]);  // Y (mCoordinates is from camera view, y needs to be inversed)
+        //tEye2Device.put(2, 0, mCoordinates[2]);  // Z (backwards)
         Mat tDevice2Cam = Mat.zeros(3, 1, CvType.CV_64FC1);
-        tDevice2Cam.put(0, 0, -0.05);  // X (shift to move camera to phone center)
+        tDevice2Cam.put(0, 0, ShiftBackFront[0]);  // X (shift from front to back camera)
+        tDevice2Cam.put(1, 0, ShiftBackFront[1]);  // Y
+        tDevice2Cam.put(2, 0, ShiftBackFront[2]);  // Z
         Mat tEye2Cam = Mat.zeros(3, 1, CvType.CV_64FC1);
         Core.add(tEye2Device, tDevice2Cam, tEye2Cam);
-        // TODO: add calibration procedure for x and y offset and set input as the estimates by the eye tracking software (x,y and z). Just some sliders for x and y could work fine i guess?
 
         // Get translation vector from marker to EyeCamera. Therefore we have the definite extrinsic matrix since the rotation vector.
         Mat tEye2Marker = Mat.zeros(3, 1, CvType.CV_64FC1);
         Core.add(tEye2Cam, marker.getTvec(), tEye2Marker);
 
         // Create estimation of intrinsic camera matrix for the EyeCamera.
-        double magicNumber = 11000.0;
-        Mat EyeCamMatrix = createCameraMatrix(magicNumber*screenEyeDistance,magicNumber*screenEyeDistance,magicNumber*0.0711,magicNumber*0.03495);
+        Mat EyeCamMatrix = createCameraMatrix(EyeResolution*mCoordinates[2],EyeResolution*mCoordinates[2],EyeResolution*(mCoordinates[0]+halfwidth),EyeResolution*(halfHeight-mCoordinates[1]));
         Log.d("EyeCameraMatrix:", EyeCamMatrix.dump());
-        // TODO: Insert parameters from eye detection here as well.
 
         // Project Aruco points onto the screen through the Eye Camera matrix.
         MatOfPoint2f cornerPointsEyeProj = new MatOfPoint2f();
