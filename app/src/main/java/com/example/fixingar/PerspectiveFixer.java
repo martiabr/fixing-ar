@@ -25,12 +25,13 @@ import es.ava.aruco.CameraParameters;
 import es.ava.aruco.Marker;
 
 public class PerspectiveFixer {
-    public double halfwidth = 0.122/2;
-    public double halfHeight = 0.0635/2;
+    public double halfwidth;
+    public double halfHeight;
+    public double[] ShiftBackFront;
 
     // Position of front camera.
-    public double camTo00CornerX = 0.002;
-    public double camTo00CornerY = -0.003; // y vector from camera to (0,0) image corner (top-left). Positive direction is downwards.
+    public double camTo00CornerX;
+    public double camTo00CornerY; // y vector from camera to (0,0) image corner (top-left). Positive direction is downwards.
     private CameraParameters camParams;
     private Point[] corners_b;
     private Point[] corners_bb;
@@ -46,9 +47,15 @@ public class PerspectiveFixer {
 
     private double screenEyeDistance = 0.4;
 
-    public PerspectiveFixer(CameraParameters cp) {
+    public PerspectiveFixer(CameraParameters cp, String WHO) {
         kalman = initKalman();
         camParams = cp;
+        Variables variables = new Variables(WHO);
+        halfHeight = variables.getHalfHeight();
+        halfwidth = variables.getHalfWidth();
+        camTo00CornerX = variables.getCamTo00CornerX();
+        camTo00CornerY = variables.getCamTo00CornerY();
+        ShiftBackFront = variables.getShiftFrontBackCamera();
 
         colorsBase = new ArrayList<>();
         colorsCube = new ArrayList<>();
@@ -378,9 +385,9 @@ public class PerspectiveFixer {
 
         // 3. Project points through eye camera to find marker points in eye projection.
         Mat tEye2Device = Mat.zeros(3, 1, CvType.CV_64FC1);
-        tEye2Device.put(0, 0, mCoordinates[0]+0.018);  // X
-        tEye2Device.put(1, 0, mCoordinates[1]+0.017); // Y
-        tEye2Device.put(2, 0, mCoordinates[2]+0.005);  // Z
+        tEye2Device.put(0, 0, mCoordinates[0]+ShiftBackFront[0]);  // X
+        tEye2Device.put(1, 0, mCoordinates[1]+ShiftBackFront[1]); // Y
+        tEye2Device.put(2, 0, mCoordinates[2]+ShiftBackFront[2]);  // Z
         Mat EyeCamMatrix = createCameraMatrix(mCoordinates[2],mCoordinates[2], 0,0);
 
         // TODO: Insert parameters from eye detection here as well in some way.

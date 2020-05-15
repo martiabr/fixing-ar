@@ -71,7 +71,8 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
     //Constants
     private static final String TAG = "Main";
-    private static final float MARKER_SIZE = (float) 0.054;
+    private String WHO = "Julia";
+    private float MARKER_SIZE;
 
     //Preferences
     private static final boolean SHOW_MARKERID = true;
@@ -115,6 +116,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     private CameraParameters camParamsBack;
     private CameraParameters camParamsFront;
     private PerspectiveFixer perspectiveFixer;
+    private Variables variables;
 
     private Handler mHandler = new Handler();
     private boolean timerRunning = false;
@@ -263,13 +265,16 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             Log.d(TAG, "OpenCV library found inside package. Using it!");
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
 
+            variables = new Variables(WHO);
+            MARKER_SIZE = variables.getMarkerSize();
+
             camParamsBack = new CameraParameters("back");
             camParamsBack.read(this);
-            perspectiveFixer = new PerspectiveFixer(camParamsBack);
+            perspectiveFixer = new PerspectiveFixer(camParamsBack, WHO);
 
             camParamsFront = new CameraParameters("front");
             camParamsFront.read(this);
-            faceDetection = new FaceDetection(camParamsFront.getCameraMatrix(), mJavaDetector1, mJavaDetector2, mNativeDetector1, mNativeDetector2);
+            faceDetection = new FaceDetection(camParamsFront.getCameraMatrix(), mJavaDetector1, mJavaDetector2, mNativeDetector1, mNativeDetector2,WHO);
         }
     }
 
@@ -380,7 +385,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
         } else if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_FRONT){
             mCameraIndex = CameraBridgeViewBase.CAMERA_ID_BACK;
-            perspectiveFixer = new PerspectiveFixer(camParamsBack);
+            perspectiveFixer = new PerspectiveFixer(camParamsBack, WHO);
         }
 
         Toast.makeText(MainActivity.this, "Switching camera to " + mCameraIndex, Toast.LENGTH_SHORT).show();

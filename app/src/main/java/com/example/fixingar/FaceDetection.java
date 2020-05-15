@@ -31,12 +31,6 @@ public class FaceDetection {
     public static final int        JAVA_DETECTOR       = 0;
     public static final int        NATIVE_DETECTOR     = 1;
 
-    private MenuItem               mItemFace50;
-    private MenuItem               mItemFace40;
-    private MenuItem               mItemFace30;
-    private MenuItem               mItemFace20;
-    private MenuItem               mItemType;
-
     private Mat                    mRgba;
     private Mat                    mGray;
     private CascadeClassifier      mJavaDetector1;
@@ -52,20 +46,29 @@ public class FaceDetection {
     private float                  mRelativeFaceSize   = 0.2f; // change this parameter to adjust min Face size
     private int                    mAbsoluteFaceSize   = 0;
 
-    private float                  EstimatedFaceWidth   = 0.14f; // in m
-    private float                  EstimatedEyeDist     = 0.067f; // in m
+    private float                  EstimatedFaceWidth;
+    private float                  EstimatedEyeDist;
+    private double                 est;
+    private double                 resolution;
+    private double                 focallength;
 
     private int[]                  Coordinates = new int[4]; //contains x & y coordinate, dist/width, 1 or 2 to define if two eyes or one face
     private float[]                mCoordinates; //x, y, z position in m and if two eyes or one face
 
     private TextView mDebugText;
 
-    public FaceDetection(Mat Cmat, CascadeClassifier mJavaDetector_eye, CascadeClassifier mJavaDetector_face, DetectionBasedTracker mNativeDetector_eye, DetectionBasedTracker mNativeDetector_face){
+    public FaceDetection(Mat Cmat, CascadeClassifier mJavaDetector_eye, CascadeClassifier mJavaDetector_face, DetectionBasedTracker mNativeDetector_eye, DetectionBasedTracker mNativeDetector_face, String who){
         CameraMatrix = Cmat;
         mJavaDetector1 = mJavaDetector_eye;
         mJavaDetector2 = mJavaDetector_face;
         mNativeDetector1 = mNativeDetector_eye;
         mNativeDetector2 = mNativeDetector_face;
+        Variables variables = new Variables(who);
+        focallength = variables.getFocallength();
+        resolution = variables.getResolution();
+        est = variables.getEst();
+        EstimatedEyeDist = variables.getEyeDist();
+        EstimatedFaceWidth = variables.getFaceWidth();
     }
 
     private int CheckAbsoluteSize(int mAbsoluteSize, int image_height, float mRelativeSize, DetectionBasedTracker mNativeDetector) {
@@ -243,23 +246,21 @@ public class FaceDetection {
 
         if (Coordinates[3] !=0) {
             float ObjSize = RealObjSize(Coordinates);
-            double focalLength = 3.26 * 0.001;//real size in m, usually val between 4 and 6 mm TBD
             double[] fx = CameraMatrix.get(1, 1);// in pix
             double[] fy = CameraMatrix.get(2, 2);// in pix
             double f = Math.round((fx[0] + fy[0]) / 2); // round fct to get an integer
-            double m = f / focalLength;// from fx = f*mx
-            double conv = m * 3840 / mGray.cols();// conversion of resolution in px/m
+            double m = f / focallength;// from fx = f*mx
+            double conv = m * resolution / mGray.cols();// conversion of resolution in px/m
             //width of the image, Julia's phone resolution for video recording with front camera
             // : 1920*1080
             double objImSensor = Coordinates[2] / conv;// object size in pix/conv in px/m => m
-            double est = 1.5; // to correct the distance
 
-            mCoordinates[2] = (float) (ObjSize * focalLength / objImSensor * est);// in m and conv from
+            mCoordinates[2] = (float) (ObjSize * focallength / objImSensor * est);// in m and conv from
             //double to float
 
             double x_coor = Coordinates[0] - mGray.cols() / 2;
             double y_coor = mGray.rows() / 2 - Coordinates[1];
-            double mul = mCoordinates[2] / focalLength * mGray.cols() / m / 3840;
+            double mul = mCoordinates[2] / focallength * mGray.cols() / m / resolution / est;
             mCoordinates[0] = (float) (mul * x_coor);
             mCoordinates[1] = (float) (mul * y_coor);
             mCoordinates[3] = Coordinates[3];
