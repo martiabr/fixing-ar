@@ -25,12 +25,12 @@ import es.ava.aruco.CameraParameters;
 import es.ava.aruco.Marker;
 
 public class PerspectiveFixer {
-    public double halfwidth = 0.14/2;
-    public double halfHeight = 0.066/2;
+    public double halfwidth = 0.122/2;
+    public double halfHeight = 0.0635/2;
 
     // Position of front camera.
-    public double camTo00CornerX = 0;
-    public double camTo00CornerY = 0.066/2; // y vector from camera to (0,0) image corner (top-left). Positive direction is downwards.
+    public double camTo00CornerX = 0.002;
+    public double camTo00CornerY = -0.003; // y vector from camera to (0,0) image corner (top-left). Positive direction is downwards.
     private CameraParameters camParams;
     private Point[] corners_b;
     private Point[] corners_bb;
@@ -64,6 +64,16 @@ public class PerspectiveFixer {
         EyeCamMatrix.put(2,2,1.0);
         EyeCamMatrix.put(0,2,x0);
         EyeCamMatrix.put(1,2,y0);
+        return EyeCamMatrix;
+    }
+    private Mat createCameraMatrix2 (double fx, double fy, double x0, double y0) {
+        Mat EyeCamMatrix = Mat.eye(4,4, CvType.CV_64FC1);
+        EyeCamMatrix.put(0,0,fx);
+        EyeCamMatrix.put(1,1,fy);
+        EyeCamMatrix.put(2,2,1.0);
+        EyeCamMatrix.put(0,2,x0);
+        EyeCamMatrix.put(1,2,y0);
+        EyeCamMatrix.put(3,3,0);
         return EyeCamMatrix;
     }
 
@@ -311,6 +321,7 @@ public class PerspectiveFixer {
         tEye2Device.put(1, 0, mCoordinates[1]+0.017); // Y
         tEye2Device.put(2, 0, mCoordinates[2]+0.005);  // Z
         Mat EyeCamMatrix = createCameraMatrix(mCoordinates[2],mCoordinates[2], 0,0);
+
         // TODO: Insert parameters from eye detection here as well in some way.
         MatOfPoint2f markerPointsProjEye = new MatOfPoint2f();
         Calib3d.projectPoints(markerPoints, Mat.zeros(3,1,marker.getRvec().type()), tEye2Device, EyeCamMatrix, new MatOfDouble(0,0,0,0,0,0,0,0), markerPointsProjEye); //
@@ -333,6 +344,25 @@ public class PerspectiveFixer {
         Core.perspectiveTransform(cornersDevice,cornersDeviceTr, H1);
         Log.d("cornersOfDeviceMulti",cornersDevice.dump());
         Log.d("cornersOfDeviceMultiTr",cornersDeviceTr.dump());
+
+        Mat inverseEyeMatrix = createCameraMatrix(1/mCoordinates[2],1/mCoordinates[2], 0,0);
+        MatOfPoint3f cornerToInv = new MatOfPoint3f();
+        Vector<Point3> dev = new Vector<Point3>();
+        dev.add(new Point3(cornersDeviceTr.get(0,0)[0],cornersDeviceTr.get(0,0)[1],1.0));
+        dev.add(new Point3(cornersDeviceTr.get(1,0)[0],cornersDeviceTr.get(1,0)[1],1.0));
+        dev.add(new Point3(cornersDeviceTr.get(2,0)[0],cornersDeviceTr.get(2,0)[1],1.0));
+        dev.add(new Point3(cornersDeviceTr.get(3,0)[0],cornersDeviceTr.get(3,0)[1],1.0));
+        cornerToInv.fromList(dev);
+        Log.d("cornersInv",cornerToInv.dump());
+
+        MatOfPoint3f cornersInv = new MatOfPoint3f();
+        Core.transform(cornersDevice, cornersInv,inverseEyeMatrix);
+        MatOfPoint2f inverseFinished = new MatOfPoint2f();
+        Mat tDevice2Eye = Mat.zeros(3, 1, CvType.CV_64FC1);
+        tDevice2Eye.put(0, 0, -(mCoordinates[0]+0.018));  // X
+        tDevice2Eye.put(1, 0, -(mCoordinates[1]+0.017)); // Y
+        tDevice2Eye.put(2, 0, -(mCoordinates[2]+0.005));  // Z
+        Calib3d.projectPoints(cornersInv,Mat.zeros(3,1,marker.getRvec().type()),tDevice2Eye,camParams.getCameraMatrix(), camParams.getDistCoeff(),inverseFinished);
 
         // 6. check that perspective transform is reasonable
         Mat kalman_corners = new Mat(4,2,CvType.CV_64FC1);
@@ -366,8 +396,10 @@ public class PerspectiveFixer {
             //Following used for debugging, instead of
             Point[] coloredP = corr_corners.toArray();
             Point[] coloredP1 = cornersDeviceTr.toArray();
+            Point[] coloredP2 = inverseFinished.toArray();
             Log.d("ColoredP", coloredP[0].toString() + coloredP[1].toString() + coloredP[2].toString() + coloredP[3].toString());
             for (int i = 0; i < 4; i++) {
+                drawLine(rgba, coloredP2[i % 4], coloredP2[(i + 1) % 4],0,0,255);
                 drawLine(rgba, coloredP[i % 4], coloredP[(i + 1) % 4],255,0,0);
                 drawLine(rgba, coloredP1[i % 4], coloredP1[(i + 1) % 4],0,255,0);
             }
