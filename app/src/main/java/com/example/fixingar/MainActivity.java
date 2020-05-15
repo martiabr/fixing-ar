@@ -313,7 +313,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
             if (detectedMarkers.size() == 1) {
                 Mat dst = perspectiveFixer.fixPerspective(mRgba, detectedMarkers.get(0), MARKER_SIZE, mCoordinates);
-                return dst  ;
+                return dst;
             }
 
             if (detectedMarkers.size() >= 5) {

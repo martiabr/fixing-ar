@@ -40,6 +40,8 @@ public class PerspectiveFixer {
 
     private KalmanFilter kalman;
 
+    private double screenEyeDistance = 0.4;
+
     public PerspectiveFixer(CameraParameters cp) {
         kalman = initKalman();
         camParams = cp;
@@ -92,70 +94,71 @@ public class PerspectiveFixer {
     public Mat fixPerspective(Mat rgba, Marker marker, double markerSize, float[] mCoordinates) {
         Size rgbaSize = rgba.size();
 
-        Mat cam2EyeTransform = getCam2EyeTransform(marker, markerSize, mCoordinates);
+        Mat cam2EyeTransform = getCam2EyeTransform(rgba, marker, markerSize);
 
-        // Corner points on image in screen.
-        MatOfPoint2f cornersScreen = create4Points(rgbaSize.width, 0,0,  0,0, rgbaSize.height, rgbaSize.width, rgbaSize.height);
-        Log.d("cornersScreen",cornersScreen.dump());
+        //Mat screen2DeviceTransform = getScreen2DeviceTransform(rgbaSize); // TODO: this is a constant transform which we only need to calculate once, not at every frame
 
-        // Generate corner points in screen plane.
-        MatOfPoint2f cornersDevice = create4Points(halfwidth*2, 0,0, 0,0,  halfHeight*2,halfwidth*2,  halfHeight*2); // 0.0711,-0.03495,-0.0711,-0.03495, -0.0711, 0.03495, 0.0711,0.03495
-                        //
-        Log.d("cornersDevice",cornersDevice.dump());
+        // Transform frame from camera to eye:
+        MatOfPoint2f frameCam2EyeTransformed = new MatOfPoint2f();
+        Imgproc.warpPerspective(rgba, frameCam2EyeTransformed, cam2EyeTransform, rgbaSize);
 
-        MatOfPoint2f cornersDeviceTr = new MatOfPoint2f();
-        Core.perspectiveTransform(cornersDevice,cornersDeviceTr, cam2EyeTransform); //,cornersDevice.size()
-        Log.d("cornersDeviceTr",cornersDeviceTr.dump());
+        // Stretch frame to entire device size:
+        //MatOfPoint2f frameScreen2DeviceTransformed = new MatOfPoint2f();
+        //Imgproc.warpPerspective(frameCam2EyeTransformed, frameScreen2DeviceTransformed, screen2DeviceTransform, frameCam2EyeTransformed.size());
 
-        Mat point2CornersTransform = Imgproc.getPerspectiveTransform(cornersDeviceTr,cornersScreen);
-        Log.d("screen2DeviceTransform:",point2CornersTransform.dump());
-
+        /*
+        // Transform corner-of-device points into phone camera image.
+        MatOfPoint2f cornerOfDeviceTr = new MatOfPoint2f();
+        Imgproc.warpPerspective(cornerOfDevice, cornerOfDeviceTr, H, cornerOfDeviceTr.size());
+        Core.perspectiveTransform(cornersDevice, cornersDevice);
+        Log.d("cornerOfDeviceTr",cornerOfDeviceTr.dump());
+        // find the final transformation to stretch points to corners of image.
+        Mat finalTr = Imgproc.getPerspectiveTransform(cornerOfDeviceTr,imageCorners);
+        Log.d("Final:",finalTr.dump());
         // Transform to corners for the final image to show on screen!
         Mat dst = new Mat(rgba.size(), CvType.CV_64FC1);
-        Imgproc.warpPerspective(rgba, dst, point2CornersTransform, rgba.size()); //
-
+        Imgproc.warpPerspective(rgba, dst, finalTr, rgba.size());
         // Following used for debugging, instead of
-        Point[] coloredP = cornersDeviceTr.toArray();
+        Point[] coloredP = cornerOfDeviceTr.toArray();
         Log.d("ColoredP",coloredP[0].toString()+coloredP[1].toString()+coloredP[2].toString()+coloredP[3].toString());
         for (int i = 0; i < 4; i++) {
-            drawLine(rgba, coloredP[i%4], coloredP[(i+1)%4],255,0,0);
+            drawLine(rgba, coloredP[i%4], coloredP[(i+1)%4]);
         }
-        return dst;
+        */
+
+        return frameCam2EyeTransformed;
     }
 
-    private Mat getCam2EyeTransform(Marker marker, double markerSize,float[] mCoordinates) {
-        Mat rMatrix = new Mat();
-        Calib3d.Rodrigues(marker.getRvec(),rMatrix);
-
+    private Mat getCam2EyeTransform(Mat rgba, Marker marker, double markerSize) {
         // The estimated 4 corner points in 3D marker frame:
-        MatOfPoint3f cornerPointsCam = getArucoPoints(markerSize,marker);
+        MatOfPoint3f cornerPointsCam = getArucoPoints(markerSize, marker);
         Log.d("Marker corners 3D:",cornerPointsCam.dump());
 
         // Project points into camera image:
         MatOfPoint2f cornerPointsCamProj = new MatOfPoint2f();
         Calib3d.projectPoints(cornerPointsCam, marker.getRvec(), marker.getTvec(), camParams.getCameraMatrix(), camParams.getDistCoeff(), cornerPointsCamProj);
         Log.d("Marker corners proj:",cornerPointsCamProj.dump());
+
         Log.d("Camera matrix:", camParams.getCameraMatrix().dump());
 
         // Create translation vector from camera to the focus point of the pinhole camera constituted by the eyes and camera screen.
         Mat tEye2Device = Mat.zeros(3, 1, CvType.CV_64FC1);
-        tEye2Device.put(2, 0, 0.4);  // Z (backwards)
+        tEye2Device.put(2, 0, screenEyeDistance);  // Z (backwards)
         Mat tDevice2Cam = Mat.zeros(3, 1, CvType.CV_64FC1);
-        tDevice2Cam.put(0, 0, 0.05);  // X (shift to move camera to phone center)
-        Mat tDevice2Cam2 = new Mat(tDevice2Cam.size(),tDevice2Cam.type());
-        Core.gemm(rMatrix,tDevice2Cam,1,tDevice2Cam,0,tDevice2Cam2,0);
+        tDevice2Cam.put(0, 0, -0.05);  // X (shift to move camera to phone center)
         Mat tEye2Cam = Mat.zeros(3, 1, CvType.CV_64FC1);
-        Core.add(tEye2Device, tDevice2Cam2, tEye2Cam);
+        Core.add(tEye2Device, tDevice2Cam, tEye2Cam);
         // TODO: add calibration procedure for x and y offset and set input as the estimates by the eye tracking software (x,y and z). Just some sliders for x and y could work fine i guess?
 
         // Get translation vector from marker to EyeCamera. Therefore we have the definite extrinsic matrix since the rotation vector.
         Mat tEye2Marker = Mat.zeros(3, 1, CvType.CV_64FC1);
-        Core.add(tEye2Device, marker.getTvec(), tEye2Marker);
+        Core.add(tEye2Cam, marker.getTvec(), tEye2Marker);
 
         // Create estimation of intrinsic camera matrix for the EyeCamera.
-        Mat EyeCamMatrix = createCameraMatrix(0.4,0.4,0.0711,0.03495 ); //
+        double magicNumber = 11000.0;
+        Mat EyeCamMatrix = createCameraMatrix(magicNumber*screenEyeDistance,magicNumber*screenEyeDistance,magicNumber*0.0711,magicNumber*0.03495);
         Log.d("EyeCameraMatrix:", EyeCamMatrix.dump());
-        // TODO: Insert parameters from eye detection here as well in some way.
+        // TODO: Insert parameters from eye detection here as well.
 
         // Project Aruco points onto the screen through the Eye Camera matrix.
         MatOfPoint2f cornerPointsEyeProj = new MatOfPoint2f();
@@ -163,10 +166,40 @@ public class PerspectiveFixer {
         Log.d("dstpoints",cornerPointsEyeProj.dump());
 
         // Use getPerspectiveTransform to get a transform matrix between phone image and EyeCamera image.
-        Mat cam2EyeTransform = Imgproc.getPerspectiveTransform(cornerPointsEyeProj,cornerPointsCamProj);
+        Mat cam2EyeTransform = Imgproc.getPerspectiveTransform(cornerPointsCamProj, cornerPointsEyeProj);
         Log.d("Cam2EyeTransform",cam2EyeTransform.dump());
 
+        //Make this entire section about drawing squares into its own method.
+        List<Point> cornerPointsCamProjList = new Vector<Point>();
+        cornerPointsCamProjList = cornerPointsCamProj.toList();
+
+        List<Point> cornerPointsEyeProjList = new Vector<Point>();
+        cornerPointsEyeProjList = cornerPointsEyeProj.toList();
+
+        // Draw squares:
+        Scalar color = new Scalar(255,255,0);
+        for (int i = 0; i < 4; i++){
+            //Imgproc.line(rgba, cornerPointsCamProjList.get(i), cornerPointsCamProjList.get((i+1)%4), color, 2);
+            //Imgproc.line(rgba, cornerPointsEyeProjList.get(i), cornerPointsEyeProjList.get((i+1)%4), color, 2);
+            //Imgproc.line(rgba, cornerPointsEyeProjList.get(i), cornerPointsCamProjList.get(i), color, 2);
+        }
+
         return cam2EyeTransform;
+    }
+
+    private Mat getScreen2DeviceTransform(Size rgbaSize) {
+        // Corner points on image in screen.
+        MatOfPoint2f cornersScreen = create4Points(rgbaSize.width, 0,0,  0,0, rgbaSize.height, rgbaSize.width, rgbaSize.height);
+        Log.d("cornersScreen",cornersScreen.dump());
+
+        // Generate corner points in screen plane.
+        MatOfPoint2f cornersDevice = create4Points(0.0711*2, 0,0, 0,0,  0.03495*2,0.0711*2,  0.03495*2);
+        Log.d("cornersDevice",cornersDevice.dump());
+
+        Mat screen2DeviceTransform = Imgproc.getPerspectiveTransform(cornersScreen,cornersDevice);
+        Log.d("screen2DeviceTransform:",screen2DeviceTransform.dump());
+
+        return screen2DeviceTransform;
     }
 
     private void drawLine(Mat img, Point start, Point end, int i, int j, int k) {
