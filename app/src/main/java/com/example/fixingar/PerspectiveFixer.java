@@ -1,6 +1,5 @@
 package com.example.fixingar;
 
-import android.bluetooth.BluetoothClass;
 import android.util.Log;
 
 import org.opencv.calib3d.Calib3d;
@@ -8,7 +7,6 @@ import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfDouble;
-import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.MatOfPoint3f;
 import org.opencv.core.Point;
@@ -18,7 +16,9 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.video.KalmanFilter;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.Vector;
 
 import es.ava.aruco.CameraParameters;
@@ -40,11 +40,26 @@ public class PerspectiveFixer {
 
     private KalmanFilter kalman;
 
+    private boolean draw_cubes = true;
+    private List<Scalar> colorsBase;
+    private List<Scalar> colorsCube;
+
     private double screenEyeDistance = 0.4;
 
     public PerspectiveFixer(CameraParameters cp) {
         kalman = initKalman();
         camParams = cp;
+
+        colorsBase = new ArrayList<>();
+        colorsCube = new ArrayList<>();
+        Random rand = new Random();
+        for (int i = 0; i < 20; ++i) {
+            float r = rand.nextFloat()*120 + (255-120);
+            float g = rand.nextFloat()*120 + (255-120);
+            float b = rand.nextFloat()*120 + (255-120);
+            colorsBase.add(new Scalar(r, g, b));
+            colorsCube.add(new Scalar(0.7*r, 0.7*g, 0.7*b));
+        }
     }
 
     private MatOfPoint3f getArucoPoints(double markerSize, Marker marker) {
@@ -93,6 +108,11 @@ public class PerspectiveFixer {
 
     public Mat fixPerspective(Mat rgba, Marker marker, double markerSize, float[] mCoordinates) {
         Size rgbaSize = rgba.size();
+
+        if (draw_cubes) {
+            marker.drawCubeBottom(rgba, camParams, colorsBase.get(0));
+            marker.draw3dCube(rgba, camParams, colorsCube.get(0));
+        }
 
         Mat cam2EyeTransform = getCam2EyeTransform(rgba, marker, markerSize);
 
@@ -337,6 +357,14 @@ public class PerspectiveFixer {
         Mat rMatrix = new Mat();
         Calib3d.Rodrigues(marker.getRvec(),rMatrix);
         Mat tVec = marker.getTvec();
+
+        if (draw_cubes) {
+            for (int i = 0; i < detectedMarkers.size(); i++) {
+                Marker marker_i = detectedMarkers.get(i);
+                marker_i.drawCubeBottom(rgba, camParams, colorsBase.get(i));
+                marker_i.draw3dCube(rgba, camParams, colorsCube.get(i));
+            }
+        }
 
         // 2. Save Tvec from other markers into a MatOfPoint3f.
         MatOfPoint3f markerPoints = new MatOfPoint3f();

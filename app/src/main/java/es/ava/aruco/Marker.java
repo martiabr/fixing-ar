@@ -4,6 +4,7 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.Vector;
 
 import org.opencv.calib3d.Calib3d;
@@ -12,6 +13,7 @@ import org.opencv.core.CvException;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfDouble;
+import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.MatOfPoint3f;
 import org.opencv.core.Point;
@@ -43,7 +45,7 @@ public class Marker extends MatOfPoint2f implements Comparable<Marker>{
 	private Mat Tvec;
 	
 	private Vector<Point> points;
-	
+
 	public Marker(float size, Vector<Point> p){
 		id = -1;
 		ssize = size;
@@ -150,10 +152,29 @@ public class Marker extends MatOfPoint2f implements Comparable<Marker>{
 		pts = imagePoints.toList();
 		// draw
 	    for (int i=0;i<4;i++){
-            Imgproc.line(frame ,pts.get(i),pts.get((i+1)%4), color, 2);
+            Imgproc.line(frame ,pts.get(i),pts.get((i+1)%4), color, 3);
 			Imgproc.line(frame,pts.get(i+4),pts.get(4+(i+1)%4), color, 2);
 			Imgproc.line(frame,pts.get(i),pts.get(i+4), color, 2);
 	    }	        
+	}
+
+	public void drawCubeBottom(Mat frame, CameraParameters cp, Scalar color){
+		MatOfPoint3f objectPoints = new MatOfPoint3f();
+		double halfSize = ssize/2.0;
+		Vector<Point3> points = new Vector<Point3>();
+		points.add(new Point3(-halfSize, -halfSize, 0));
+		points.add(new Point3(-halfSize,  halfSize, 0));
+		points.add(new Point3( halfSize,  halfSize, 0));
+		points.add(new Point3( halfSize, -halfSize, 0));
+		objectPoints.fromList(points);
+		MatOfPoint2f imagePoints = new MatOfPoint2f();
+		Calib3d.projectPoints(objectPoints, Rvec, Tvec, cp.getCameraMatrix(), cp.getDistCoeff(), imagePoints);
+
+		List<MatOfPoint> contourPoints = new ArrayList<>();
+		MatOfPoint newPoints = new MatOfPoint(imagePoints.toArray());
+		contourPoints.add(newPoints);
+
+		Imgproc.drawContours(frame, contourPoints, -1, color, -3);
 	}
 	
 	protected void setMat(Mat in){
