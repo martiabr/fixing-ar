@@ -71,7 +71,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
     //Constants
     private static final String TAG = "Main";
-    private static final float MARKER_SIZE = (float) 0.026;
+    private static final float MARKER_SIZE = (float) 0.054;
 
     //Preferences
     private static final boolean SHOW_MARKERID = true;
