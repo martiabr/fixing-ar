@@ -53,7 +53,7 @@ public class FaceDetection {
     private int                    mAbsoluteFaceSize   = 0;
 
     private float                  EstimatedFaceWidth   = 0.14f; // in m
-    private float                  EstimatedEyeDist     = 0.06f; // in m
+    private float                  EstimatedEyeDist     = 0.067f; // in m
 
     private int[]                  Coordinates = new int[4]; //contains x & y coordinate, dist/width, 1 or 2 to define if two eyes or one face
     private float[]                mCoordinates; //x, y, z position in m and if two eyes or one face
@@ -243,23 +243,23 @@ public class FaceDetection {
 
         if (Coordinates[3] !=0) {
             float ObjSize = RealObjSize(Coordinates);
-            double focalLength = 3.75 * 0.001;//real size in m, usually val between 4 and 6 mm TBD
+            double focalLength = 3.26 * 0.001;//real size in m, usually val between 4 and 6 mm TBD
             double[] fx = CameraMatrix.get(1, 1);// in pix
             double[] fy = CameraMatrix.get(2, 2);// in pix
             double f = Math.round((fx[0] + fy[0]) / 2); // round fct to get an integer
             double m = f / focalLength;// from fx = f*mx
-            double conv = m * 1920 / mGray.cols();// conversion of resolution in px/m
+            double conv = m * 3840 / mGray.cols();// conversion of resolution in px/m
             //width of the image, Julia's phone resolution for video recording with front camera
             // : 1920*1080
             double objImSensor = Coordinates[2] / conv;// object size in pix/conv in px/m => m
-            double est = 3.5; // to correct the distance
+            double est = 1.5; // to correct the distance
 
             mCoordinates[2] = (float) (ObjSize * focalLength / objImSensor * est);// in m and conv from
             //double to float
 
             double x_coor = Coordinates[0] - mGray.cols() / 2;
             double y_coor = mGray.rows() / 2 - Coordinates[1];
-            double mul = mCoordinates[2] / focalLength * mGray.cols() / m / 1920;
+            double mul = mCoordinates[2] / focalLength * mGray.cols() / m / 3840;
             mCoordinates[0] = (float) (mul * x_coor);
             mCoordinates[1] = (float) (mul * y_coor);
             mCoordinates[3] = Coordinates[3];
