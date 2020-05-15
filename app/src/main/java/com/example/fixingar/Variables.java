@@ -20,9 +20,9 @@ public class Variables {
     private double[] ShiftFrontBackCamera_J = {0.012, 0.025, 0.008};
     // Martin
     // face detection variables
-    private double focallength_M = 3.75*0.001;
-    private double resolution_M = 1920;
-    private double est_M = 1.3;
+    private double focallength_M = 2.95*0.001;
+    private double resolution_M = 2560;
+    private double est_M = 0.75;
     private float FaceWidth_M = 0.14f;
     private float EyeDist_M = 0.06f;
     // perspective fixer variables

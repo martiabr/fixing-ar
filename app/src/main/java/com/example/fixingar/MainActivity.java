@@ -74,9 +74,6 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     private String WHO = "Julia";
     private float MARKER_SIZE;
 
-    //Preferences
-    private static final boolean SHOW_MARKERID = true;
-
     //You must run a calibration prior to detection
     // The activity to run calibration is provided in the repository
 
