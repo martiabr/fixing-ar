@@ -265,6 +265,8 @@ public class FaceDetection {
             mCoordinates[1] = (float) (mul * y_coor);
             mCoordinates[3] = Coordinates[3];
 
+
+
         }
 
             return mCoordinates;

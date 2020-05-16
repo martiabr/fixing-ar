@@ -29,11 +29,13 @@ public class PerspectiveFixer {
     public double halfHeight;
     public double[] ShiftBackFront;
     public double EyeResolution;
+    public int ShiftResolution;
 
     // Position of front camera.
     public double camTo00CornerX;
     public double camTo00CornerY; // y vector from camera to (0,0) image corner (top-left). Positive direction is downwards.
     private CameraParameters camParams;
+
     private Point[] corners_b;
     private Point[] corners_bb;
     private int test_b = 0;
@@ -56,6 +58,7 @@ public class PerspectiveFixer {
         camTo00CornerY = variables.getCamTo00CornerY();
         ShiftBackFront = variables.getShiftFrontBackCamera();
         EyeResolution = variables.getEyeResolution();
+        ShiftResolution = variables.getShiftResolution();
 
         colorsBase = new ArrayList<>();
         colorsCube = new ArrayList<>();
@@ -145,8 +148,8 @@ public class PerspectiveFixer {
         // Create translation vector from camera to the focus point of the pinhole camera constituted by the eyes and camera screen.
         Mat tEye2Device = Mat.zeros(3, 1, CvType.CV_64FC1);
         tEye2Device.put(0, 0, mCoordinates[0]);  // X
-        //tEye2Device.put(1, 0, -mCoordinates[1]);  // Y (mCoordinates is from camera view, y needs to be inversed)
-        //tEye2Device.put(2, 0, mCoordinates[2]);  // Z (backwards)
+        tEye2Device.put(1, 0, -mCoordinates[1]);  // Y (mCoordinates is from camera view, y needs to be inversed)
+        tEye2Device.put(2, 0, mCoordinates[2]);  // Z (backwards)
         Mat tDevice2Cam = Mat.zeros(3, 1, CvType.CV_64FC1);
         tDevice2Cam.put(0, 0, ShiftBackFront[0]);  // X (shift from front to back camera)
         tDevice2Cam.put(1, 0, ShiftBackFront[1]);  // Y
@@ -154,12 +157,13 @@ public class PerspectiveFixer {
         Mat tEye2Cam = Mat.zeros(3, 1, CvType.CV_64FC1);
         Core.add(tEye2Device, tDevice2Cam, tEye2Cam);
 
-        // Get translation vector from marker to EyeCamera. Therefore we have the definite extrinsic matrix since the rotation vector.
+        // Get translation vectors from marker to EyeCamera. Therefore we have the definite extrinsic matrix since the rotation vector.
         Mat tEye2Marker = Mat.zeros(3, 1, CvType.CV_64FC1);
         Core.add(tEye2Cam, marker.getTvec(), tEye2Marker);
 
         // Create estimation of intrinsic camera matrix for the EyeCamera.
-        Mat EyeCamMatrix = createCameraMatrix(EyeResolution*mCoordinates[2],EyeResolution*mCoordinates[2],EyeResolution*(mCoordinates[0]+halfwidth),EyeResolution*(halfHeight-mCoordinates[1]));
+        //Mat EyeCamMatrix = createCameraMatrix(EyeResolution*mCoordinates[2],EyeResolution*mCoordinates[2],EyeResolution*(mCoordinates[0]+halfwidth),EyeResolution*(halfHeight-mCoordinates[1]));
+        Mat EyeCamMatrix = createCameraMatrix(EyeResolution*mCoordinates[2],EyeResolution*mCoordinates[2],ShiftResolution*(-mCoordinates[0]-halfwidth),ShiftResolution*(mCoordinates[1]-halfHeight));
         Log.d("EyeCameraMatrix:", EyeCamMatrix.dump());
 
         // Project Aruco points onto the screen through the Eye Camera matrix.
