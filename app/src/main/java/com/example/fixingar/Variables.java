@@ -93,7 +93,7 @@ public class Variables {
     }
 
     public int getShiftResolution(){
-        double ShiftResolution = ShiftResolution_J;
+        int ShiftResolution = ShiftResolution_J;
         if (who == "Martin") {
             ShiftResolution = ShiftResolution_M;
         }
