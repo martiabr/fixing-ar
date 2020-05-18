@@ -40,10 +40,10 @@ public class CameraParameters {
 	private Size camSize;
 	public String FrontBack;
 	
-	public CameraParameters(String frontOrBack){
+	public CameraParameters(String FrontOrBack){
 		cameraMatrix = new Mat(3,3,CvType.CV_32FC1);
 		distorsionMatrix = new MatOfDouble();
-		FrontBack = frontOrBack;
+		FrontBack = FrontOrBack;
 	}
 	
     /**Indicates whether this object is valid

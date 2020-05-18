@@ -71,10 +71,8 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
     //Constants
     private static final String TAG = "Main";
-    private static final float MARKER_SIZE = (float) 0.04;
-
-    //Preferences
-    private static final boolean SHOW_MARKERID = true;
+    private String WHO = "Julia";
+    private float MARKER_SIZE;
 
     //You must run a calibration prior to detection
     // The activity to run calibration is provided in the repository
@@ -106,13 +104,16 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
     private float                  mRelativeFaceSize   = 0.2f; // change this parameter to adjust min Face size
     private int                    mAbsoluteFaceSize   = 0;
+    private FaceDetection          faceDetection;
 
     private CameraBridgeViewBase mOpenCvCameraView;
-    private int mCameraIndex = CameraBridgeViewBase.CAMERA_ID_BACK;
+    private int mCameraIndex = CameraBridgeViewBase.CAMERA_ID_FRONT;
     private TextView mDebugText;
     private Button mCameraButton;
-    private CameraParameters camParams;
+    private CameraParameters camParamsBack;
+    private CameraParameters camParamsFront;
     private PerspectiveFixer perspectiveFixer;
+    private Variables variables;
 
     private Handler mHandler = new Handler();
     private boolean timerRunning = false;
@@ -188,6 +189,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                         e.printStackTrace();
                         Log.e(TAG, "Failed to load cascade. Exception thrown: " + e);
                     }
+
                     mOpenCvCameraView.enableView();
                     mCameraButton.setOnClickListener(MainActivity.this);
 
@@ -238,6 +240,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.camera_view);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
+        mOpenCvCameraView.setCameraIndex(mCameraIndex);
     }
 
     @Override
@@ -258,6 +261,17 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         } else {
             Log.d(TAG, "OpenCV library found inside package. Using it!");
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
+
+            variables = new Variables(WHO);
+            MARKER_SIZE = variables.getMarkerSize();
+
+            camParamsBack = new CameraParameters("back");
+            camParamsBack.read(this);
+            perspectiveFixer = new PerspectiveFixer(camParamsBack, WHO);
+
+            camParamsFront = new CameraParameters("front");
+            camParamsFront.read(this);
+            faceDetection = new FaceDetection(camParamsFront.getCameraMatrix(), mJavaDetector1, mJavaDetector2, mNativeDetector1, mNativeDetector2,WHO);
         }
     }
 
@@ -295,43 +309,36 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             //Setup required parameters for detect method
             MarkerDetector mDetector = new MarkerDetector();
             Vector<Marker> detectedMarkers = new Vector<>();
-            CameraParameters camParams = new CameraParameters("back");
-
-            // TODO: For some stupid reason i am not able to move these init lines to onCreate()... Now we make new objects each frame which is stupid since the camera params are constant
-            camParams.read(this);
-            perspectiveFixer = new PerspectiveFixer(camParams);
 
             //Populate detectedMarkers
-
-            mDetector.detect(mRgba, detectedMarkers, camParams, MARKER_SIZE);
+            mDetector.detect(mRgba, detectedMarkers, camParamsBack, MARKER_SIZE);
 
             if (detectedMarkers.size() == 1) {
-                Mat dst = perspectiveFixer.fixPerspective(mRgba,detectedMarkers.get(0),MARKER_SIZE,mCoordinates);
-                return dst  ;
+                Mat dst = perspectiveFixer.fixPerspective(mRgba, detectedMarkers.get(0), MARKER_SIZE, mCoordinates);
+                return dst;
             }
 
             if (detectedMarkers.size() >= 5) {
                 Log.d("howmany","Detected 5 markers.");
                 Log.d("markerPoints", String.valueOf(detectedMarkers.toArray().toString()));
                 Log.d("mcoooords", Float.toString(mCoordinates[2]));
-                Mat dst = perspectiveFixer.fixPerspectiveMultipleMarker(mRgba,detectedMarkers,MARKER_SIZE,mCoordinates);
-                return dst;
+                if (mCoordinates != null) {
+                    if (mCoordinates[3] != 0) {
+                Mat dst = perspectiveFixer.fixPerspectiveMultipleMarker(mRgba, detectedMarkers, MARKER_SIZE, mCoordinates);
+                return dst; }
+                    else return mRgba;
+                }
+                else return mRgba;
             }
           
         } else if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_FRONT) {
-        CameraParameters camParams_f = new CameraParameters("front");
-        camParams_f.read(this);
-        Mat Cmat = camParams_f.getCameraMatrix();
-
-        // TODO: Shouldnt create a new face detector each frame
-        FaceDetection facedetection = new FaceDetection(Cmat, mJavaDetector1, mJavaDetector2, mNativeDetector1, mNativeDetector2);
-        mCoordinates = facedetection.getmCoordinates(mRgba, mGray);
+            mCoordinates = faceDetection.getmCoordinates(mRgba, mGray);
             // mCoordinates[0] = x
             // mCoordinates[1] = y
             // mCoordinates[2] = z
             // mCoordinates[3] = 1 or 2 if face or eyes were found, it's 0 if nothing was found
             if (mCoordinates != null) {
-            String mess1 = facedetection.ObjDetect(mCoordinates);
+            String mess1 = faceDetection.ObjDetect(mCoordinates);
             String mess = mess1 + "Dist: " + Float.toString(mCoordinates[2]) + "m, x: " + Float.toString(mCoordinates[0]) + "m, y: " + Float.toString(mCoordinates[1]) + "m";
             debugMsg(mess);
             }
@@ -372,8 +379,10 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     private boolean switchCameras() {
         if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_BACK) {
             mCameraIndex = CameraBridgeViewBase.CAMERA_ID_FRONT;
+
         } else if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_FRONT){
             mCameraIndex = CameraBridgeViewBase.CAMERA_ID_BACK;
+            perspectiveFixer = new PerspectiveFixer(camParamsBack, WHO);
         }
 
         Toast.makeText(MainActivity.this, "Switching camera to " + mCameraIndex, Toast.LENGTH_SHORT).show();
@@ -444,17 +453,5 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             }
         }
 
-    }
-
-    private boolean getPermission(){
-        if (ContextCompat.checkSelfPermission(MainActivity.this,
-                Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]
-                            {Manifest.permission.CAMERA},
-                    50);
-        } else {
-            return true;
-        }
-        return false;
     }
 }
