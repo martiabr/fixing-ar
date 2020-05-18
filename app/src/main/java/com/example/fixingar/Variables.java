@@ -13,7 +13,7 @@ public class Variables {
     private float MarkerSize_J = 0.08f;
     private double halfwidth_J = 0.14/2;
     private double halfHeight_J = 0.066/2;
-    private double EyeResolution_J = 13000; // magic number
+    private double EyeResolution_J = 12000; // magic number
     private int ShiftResolution_J = 1000;
     private double[] BackCameraShift_J = {0.052, -0.025};
     // Position of front camera.

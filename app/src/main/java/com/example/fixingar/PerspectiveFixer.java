@@ -61,6 +61,7 @@ public class PerspectiveFixer {
         EyeResolution = variables.getEyeResolution();
         ShiftResolution = variables.getShiftResolution();
         BackCameraShift = variables.getBackCameraShift();
+        kalmanInitialized = false;
 
         colorsBase = new ArrayList<>();
         colorsCube = new ArrayList<>();
@@ -195,8 +196,39 @@ public class PerspectiveFixer {
         Calib3d.projectPoints(cornerPointsCam, rot_fin, tEye2Marker, EyeCamMatrix, new MatOfDouble(0,0,0,0,0,0,0,0), cornerPointsEyeProj); // camParams.getCameraMatrix()
         Log.d("dstpoints",cornerPointsEyeProj.dump());
 
+        // Check corners with Kalman
+        Mat kalman_corners = new Mat(4,2,CvType.CV_64FC1);
+        kalman_corners.put(0,0, cornerPointsEyeProj.get(0,0)[0]);
+        kalman_corners.put(0,1, cornerPointsEyeProj.get(0,0)[1]);
+        kalman_corners.put(1,0, cornerPointsEyeProj.get(1,0)[0]);
+        kalman_corners.put(1,1, cornerPointsEyeProj.get(1,0)[1]);
+        kalman_corners.put(2,0, cornerPointsEyeProj.get(2,0)[0]);
+        kalman_corners.put(2,1, cornerPointsEyeProj.get(2,0)[1]);
+        kalman_corners.put(3,0, cornerPointsEyeProj.get(3,0)[0]);
+        kalman_corners.put(3,1, cornerPointsEyeProj.get(3,0)[1]);
+
+        Mat kalman_corners_vector = kalman_corners.reshape(0,8);
+        Log.d("kalman measurement", kalman_corners_vector.dump());
+        if (kalmanInitialized) {
+            kalman_corners_vector = kalman.correct(kalman_corners_vector);
+        } else {
+            kalman = initKalman(kalman_corners_vector);
+            kalmanInitialized = true;
+        }
+        Log.d("kalman correct", kalman_corners_vector.dump());
+
+        kalman.predict();
+
+        MatOfPoint2f corr_corners = new MatOfPoint2f();
+        Vector<Point> Points = new Vector<Point>();
+        Points.add(new Point(kalman_corners_vector.get(0,0)[0], kalman_corners_vector.get(1,0)[0]));
+        Points.add(new Point(kalman_corners_vector.get(2,0)[0], kalman_corners_vector.get(3,0)[0]));
+        Points.add(new Point(kalman_corners_vector.get(4,0)[0], kalman_corners_vector.get(5,0)[0]));
+        Points.add(new Point(kalman_corners_vector.get(6,0)[0], kalman_corners_vector.get(7,0)[0]));
+        corr_corners.fromList(Points);
+
         // Use getPerspectiveTransform to get a transform matrix between phone image and EyeCamera image.
-        Mat cam2EyeTransform = Imgproc.getPerspectiveTransform(cornerPointsCamProj, cornerPointsEyeProj);
+        Mat cam2EyeTransform = Imgproc.getPerspectiveTransform(cornerPointsCamProj, corr_corners);
         Log.d("Cam2EyeTransform",cam2EyeTransform.dump());
 
         //Make this entire section about drawing squares into its own method.
