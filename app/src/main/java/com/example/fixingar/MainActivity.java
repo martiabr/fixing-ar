@@ -71,7 +71,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
     //Constants
     private static final String TAG = "Main";
-    private String WHO = "Julia";
+    private String WHO = "Caroline";
     private float MARKER_SIZE;
 
     //You must run a calibration prior to detection
