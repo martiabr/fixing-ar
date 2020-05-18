@@ -15,11 +15,11 @@ public class Variables {
     private double halfHeight_J = 0.066/2;
     private double EyeResolution_J = 13000; // magic number
     private int ShiftResolution_J = 1000;
-    private double[] BackCameraShift_J = {0.052, 0.025};
+    private double[] BackCameraShift_J = {0.052, -0.025};
     // Position of front camera.
     private double camTo00CornerX_J = 0;
     private double camTo00CornerY_J = 0.066/2; // y vector from camera to (0,0) image corner (top-left). Positive direction is downwards.
-    private double[] ShiftFrontBackCamera_J = {0.012, 0.025, 0.008};
+    private double[] ShiftFrontBackCamera_J = {0.012, -0.025, 0.008};
     // Martin
     // face detection variables
     private double focallength_M = 2.95*0.001;
@@ -33,6 +33,7 @@ public class Variables {
     private double halfHeight_M = 0.066/2;
     private double EyeResolution_M = 11000; // magic number
     private int ShiftResolution_M = 1000;
+    private double[] BackCameraShift_M;
     // Position of front camera.
     private double camTo00CornerX_M = 0;
     private double camTo00CornerY_M = 0.066/2; // y vector from camera to (0,0) image corner (top-left). Positive direction is downwards.
@@ -50,6 +51,7 @@ public class Variables {
     private double halfHeight_O = 0.066/2;
     private double EyeResolution_O = 11000; // magic number
     private int ShiftResolution_O = 1000;
+    private double[] BackCameraShift_O;
     // Position of front camera.
     private double camTo00CornerX_O = 0;
     private double camTo00CornerY_O = 0.066/2; // y vector from camera to (0,0) image corner (top-left). Positive direction is downwards.
@@ -67,6 +69,7 @@ public class Variables {
     private double halfHeight_C = 0.066/2;
     private double EyeResolution_C = 11000; // magic number
     private int ShiftResolution_C = 1000;
+    private double[] BackCameraShift_C;
     // Position of front camera.
     private double camTo00CornerX_C = 0;
     private double camTo00CornerY_C = 0.066/2; // y vector from camera to (0,0) image corner (top-left). Positive direction is downwards.
@@ -118,6 +121,20 @@ public class Variables {
             Shift = ShiftFrontBackCamera_O;
         }
         return Shift;
+    }
+
+    public double[] getBackCameraShift(){
+        double[] BackCameraShift = BackCameraShift_J;
+        if (who == "Martin") {
+            BackCameraShift = BackCameraShift_M;
+        }
+        if (who == "Caroline") {
+            BackCameraShift = BackCameraShift_C;
+        }
+        if (who == "Oskar") {
+            BackCameraShift = BackCameraShift_O;
+        }
+        return BackCameraShift;
     }
 
     public double getCamTo00CornerY(){

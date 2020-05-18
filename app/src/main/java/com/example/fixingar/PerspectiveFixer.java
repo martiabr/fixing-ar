@@ -30,6 +30,7 @@ public class PerspectiveFixer {
     public double[] ShiftBackFront;
     public double EyeResolution;
     public int ShiftResolution;
+    public double[] BackCameraShift;
 
     // Position of front camera.
     public double camTo00CornerX;
@@ -59,6 +60,7 @@ public class PerspectiveFixer {
         ShiftBackFront = variables.getShiftFrontBackCamera();
         EyeResolution = variables.getEyeResolution();
         ShiftResolution = variables.getShiftResolution();
+        BackCameraShift = variables.getBackCameraShift();
 
         colorsBase = new ArrayList<>();
         colorsCube = new ArrayList<>();
@@ -147,8 +149,8 @@ public class PerspectiveFixer {
 
         // Create translation vector from camera to the focus point of the pinhole camera constituted by the eyes and camera screen.
         Mat tEye2Device = Mat.zeros(3, 1, CvType.CV_64FC1);
-        tEye2Device.put(0, 0, mCoordinates[0]);  // X
-        tEye2Device.put(1, 0, -mCoordinates[1]);  // Y (mCoordinates is from camera view, y needs to be inversed)
+        //tEye2Device.put(0, 0, -halfwidth);  // X
+        //tEye2Device.put(1, 0, halfHeight);  // Y (mCoordinates is from camera view, y needs to be inversed)
         tEye2Device.put(2, 0, mCoordinates[2]);  // Z (backwards)
         Mat tDevice2Cam = Mat.zeros(3, 1, CvType.CV_64FC1);
         tDevice2Cam.put(0, 0, ShiftBackFront[0]);  // X (shift from front to back camera)
@@ -161,14 +163,36 @@ public class PerspectiveFixer {
         Mat tEye2Marker = Mat.zeros(3, 1, CvType.CV_64FC1);
         Core.add(tEye2Cam, marker.getTvec(), tEye2Marker);
 
+        // Get rotation of phone
+        double theta_x = Math.atan2(mCoordinates[1]-halfHeight,mCoordinates[2]);
+        double theta_y = Math.atan2(mCoordinates[0]+halfwidth,mCoordinates[2]);
+        Mat rot_x = Mat.zeros(3,1,CvType.CV_64FC1);
+        rot_x.put(0,0,theta_x);
+        Mat rot_y = Mat.zeros(3,1,CvType.CV_64FC1);
+        rot_y.put(1,0,theta_y);
+
+        // Get rotation from eye to marker
+        Mat RVEC = new Mat(3,3,CvType.CV_64FC1);
+        Calib3d.Rodrigues(marker.getRvec(),RVEC);
+        Mat ROT_X = new Mat(3,3,CvType.CV_64FC1);
+        Calib3d.Rodrigues(rot_x,ROT_X);
+        Mat ROT_Y = new Mat(3,3,CvType.CV_64FC1);
+        Calib3d.Rodrigues(rot_y,ROT_Y);
+        Mat ROT_PHONE = new Mat(3,3,CvType.CV_64FC1);
+        Core.gemm(ROT_X,ROT_Y,1,Mat.zeros(3,3,CvType.CV_64FC1),0,ROT_PHONE);
+        Mat ROT_FIN = new Mat(3,3,CvType.CV_64FC1);
+        Core.gemm(ROT_PHONE,RVEC,1,Mat.zeros(3,3,CvType.CV_64FC1),0,ROT_FIN);
+        Mat rot_fin = new Mat(3,1,CvType.CV_64FC1);
+        Calib3d.Rodrigues(ROT_FIN,rot_fin);
+
         // Create estimation of intrinsic camera matrix for the EyeCamera.
         //Mat EyeCamMatrix = createCameraMatrix(EyeResolution*mCoordinates[2],EyeResolution*mCoordinates[2],EyeResolution*(mCoordinates[0]+halfwidth),EyeResolution*(halfHeight-mCoordinates[1]));
-        Mat EyeCamMatrix = createCameraMatrix(EyeResolution*mCoordinates[2],EyeResolution*mCoordinates[2],ShiftResolution*(-mCoordinates[0]-halfwidth),ShiftResolution*(mCoordinates[1]-halfHeight));
+        Mat EyeCamMatrix = createCameraMatrix(EyeResolution*mCoordinates[2],EyeResolution*mCoordinates[2],0,0);
         Log.d("EyeCameraMatrix:", EyeCamMatrix.dump());
 
         // Project Aruco points onto the screen through the Eye Camera matrix.
         MatOfPoint2f cornerPointsEyeProj = new MatOfPoint2f();
-        Calib3d.projectPoints(cornerPointsCam, marker.getRvec(), tEye2Marker, EyeCamMatrix, new MatOfDouble(0,0,0,0,0,0,0,0), cornerPointsEyeProj); // camParams.getCameraMatrix()
+        Calib3d.projectPoints(cornerPointsCam, rot_fin, tEye2Marker, EyeCamMatrix, new MatOfDouble(0,0,0,0,0,0,0,0), cornerPointsEyeProj); // camParams.getCameraMatrix()
         Log.d("dstpoints",cornerPointsEyeProj.dump());
 
         // Use getPerspectiveTransform to get a transform matrix between phone image and EyeCamera image.
