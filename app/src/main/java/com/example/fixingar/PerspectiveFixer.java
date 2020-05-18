@@ -43,13 +43,13 @@ public class PerspectiveFixer {
     private double deltaT = 1/24;
 
     private KalmanFilter kalman;
+    private boolean kalmanInitialized = false;
 
     private boolean draw_cubes = true;
     private List<Scalar> colorsBase;
     private List<Scalar> colorsCube;
 
     public PerspectiveFixer(CameraParameters cp, String WHO) {
-        kalman = initKalman();
         camParams = cp;
         Variables variables = new Variables(WHO);
         halfHeight = variables.getHalfHeight();
@@ -280,7 +280,7 @@ public class PerspectiveFixer {
         return cornersDeviceTr_checked;
     }
 
-    public static KalmanFilter initKalman () {
+    public static KalmanFilter initKalman (Mat r0) {
         KalmanFilter kalman = new KalmanFilter(16, 16, 0, CvType.CV_64FC1);
         double deltaT = ((double) 1)/24;
 
@@ -315,6 +315,13 @@ public class PerspectiveFixer {
         Mat id2=Mat.eye(16,16,CvType.CV_64FC1);
         id2=id2.mul(id2,0.1); // again I hope this is in m
         kalman.set_errorCovPost(id2);
+
+        // Set initial state:
+        Mat x0 = Mat.zeros(16, 1, CvType.CV_64FC1);
+        for (int i = 0; i < 8; ++i) {
+            x0.put(i, 0, r0.get(i, 0));
+        }
+        kalman.set_statePost(x0);
 
         return kalman;
     }
@@ -406,16 +413,25 @@ public class PerspectiveFixer {
         kalman_corners.put(2,1, cornersDeviceTr.get(2,0)[1]);
         kalman_corners.put(3,0, cornersDeviceTr.get(3,0)[0]);
         kalman_corners.put(3,1, cornersDeviceTr.get(3,0)[1]);
-        Log.d("kalman correct",kalman_corners.reshape(0,8).dump());
-        kalman.correct(kalman_corners.reshape(0,8));
-        kalman_corners = kalman.predict();
-        Log.d("kalman predict",kalman_corners.dump());
+
+        Mat kalman_corners_vector = kalman_corners.reshape(0,8);
+        Log.d("kalman measurement", kalman_corners_vector.dump());
+        if (kalmanInitialized) {
+            kalman_corners_vector = kalman.correct(kalman_corners_vector);
+        } else {
+            kalman = initKalman(kalman_corners_vector);
+            kalmanInitialized = true;
+        }
+        Log.d("kalman correct", kalman_corners_vector.dump());
+
+        kalman.predict();
+
         MatOfPoint2f corr_corners = new MatOfPoint2f();
         Vector<Point> Points = new Vector<Point>();
-        Points.add(new Point(kalman_corners.get(0,0)[0], kalman_corners.get(1,0)[0]));
-        Points.add(new Point(kalman_corners.get(2,0)[0], kalman_corners.get(3,0)[0]));
-        Points.add(new Point(kalman_corners.get(4,0)[0], kalman_corners.get(5,0)[0]));
-        Points.add(new Point(kalman_corners.get(6,0)[0], kalman_corners.get(7,0)[0]));
+        Points.add(new Point(kalman_corners_vector.get(0,0)[0], kalman_corners_vector.get(1,0)[0]));
+        Points.add(new Point(kalman_corners_vector.get(2,0)[0], kalman_corners_vector.get(3,0)[0]));
+        Points.add(new Point(kalman_corners_vector.get(4,0)[0], kalman_corners_vector.get(5,0)[0]));
+        Points.add(new Point(kalman_corners_vector.get(6,0)[0], kalman_corners_vector.get(7,0)[0]));
         corr_corners.fromList(Points);
         cornersDeviceTr = CheckPerspectiveWrap(cornersDeviceTr, rgba);
 
