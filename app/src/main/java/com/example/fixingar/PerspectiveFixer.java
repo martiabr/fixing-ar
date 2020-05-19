@@ -44,7 +44,7 @@ public class PerspectiveFixer {
 
     private KalmanFilter kalman;
 
-    private boolean draw_cubes = true;
+    private boolean draw_cubes = false;
     private List<Scalar> colorsBase;
     private List<Scalar> colorsCube;
 
@@ -115,6 +115,18 @@ public class PerspectiveFixer {
         cornerOfDevice.fromList(DevicePoints);
         return cornerOfDevice;
     }
+
+    private MatOfPoint3f create4Points3d (double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4,double focal) {
+        MatOfPoint3f cornerOfDevice = new MatOfPoint3f();
+        Vector<Point3> DevicePoints = new Vector<Point3>();
+        DevicePoints.add(new Point3(x1, y1,focal));
+        DevicePoints.add(new Point3(x2, y2,focal));
+        DevicePoints.add(new Point3(x3, y3,focal));
+        DevicePoints.add(new Point3(x4, y4,focal));
+        cornerOfDevice.fromList(DevicePoints);
+        return cornerOfDevice;
+    }
+
 
     public Mat fixPerspective(Mat rgba, Marker marker, double markerSize, float[] mCoordinates) {
         Size rgbaSize = rgba.size();
@@ -322,7 +334,6 @@ public class PerspectiveFixer {
     public Mat fixPerspectiveMultipleMarker(Mat rgba, Vector<Marker> detectedMarkers, float markerSize,float[] mCoordinates) {
 
         Log.d("sizeofimage",rgba.size().toString());
-
         // 1. Get Pose from rvec and tvec of first marker.
         Marker marker = detectedMarkers.get(0);
         Mat rMatrix = new Mat();
@@ -344,22 +355,23 @@ public class PerspectiveFixer {
             Mat tVec_i = detectedMarkers.get(i).getTvec();
             points.add(new Point3(tVec_i.get(0,0)[0], tVec_i.get(1,0)[0], tVec_i.get(2,0)[0]));
         }
+
         markerPoints.fromList(points);
         Log.d("Vectorpoints",markerPoints.dump());
 
         // 3. Project points through eye camera to find marker points in eye projection.
         Mat tEye2Device = Mat.zeros(3, 1, CvType.CV_64FC1);
-        tEye2Device.put(0, 0, mCoordinates[0]+ShiftBackFront[0]);  // X
-        tEye2Device.put(1, 0, mCoordinates[1]+ShiftBackFront[1]); // Y
-        tEye2Device.put(2, 0, mCoordinates[2]+ShiftBackFront[2]);  // Z
+        tEye2Device.put(0, 0, (mCoordinates[0]+ShiftBackFront[0]));  // X
+        tEye2Device.put(1, 0, (mCoordinates[1]+ShiftBackFront[1])); // Y
+        tEye2Device.put(2, 0, (mCoordinates[2]+ShiftBackFront[2]));  // Z
         Mat EyeCamMatrix = createCameraMatrix(mCoordinates[2],mCoordinates[2], 0,0);
 
         // TODO: Insert parameters from eye detection here as well in some way.
         MatOfPoint2f markerPointsProjEye = new MatOfPoint2f();
-        Calib3d.projectPoints(markerPoints, Mat.zeros(3,1,marker.getRvec().type()), tEye2Device, EyeCamMatrix, new MatOfDouble(0,0,0,0,0,0,0,0), markerPointsProjEye); //
+        Calib3d.projectPoints(markerPoints, Mat.zeros(3,1,marker.getRvec().type()), tEye2Device, EyeCamMatrix, new MatOfDouble(0,0,0,0,0,0,0,0), markerPointsProjEye);
         Log.d("vectorPointsEye",markerPointsProjEye.dump());
 
-        // 4. Get perspective transform like before. Call it H.
+        // 4. Get perspective transform like before. Call it H1.
         MatOfPoint2f markerPointsIm = new MatOfPoint2f();
         Vector<Point> DevicePoints = new Vector<Point>();
         for (int i = 1; i < detectedMarkers.size(); i++) {
@@ -367,34 +379,19 @@ public class PerspectiveFixer {
         }
         markerPointsIm.fromList(DevicePoints);
         Log.d("markerpointsIm",markerPointsIm.dump());
-        Mat H1 = Calib3d.findHomography(markerPointsProjEye,markerPointsIm,8,1);
+        Mat H1 = Calib3d.findHomography(markerPointsProjEye,markerPointsIm,8,10);
         Log.d("H1",H1.dump());
 
+        // FRAM HIT HELT RÄTT!
+
         // 5. Enter corners of device into the transform H.
-        MatOfPoint2f cornersDevice = create4Points(mCoordinates[0]+halfwidth*2+camTo00CornerX, mCoordinates[1]+0+camTo00CornerY,mCoordinates[0]+0+camTo00CornerX, mCoordinates[1]+0+camTo00CornerY,mCoordinates[0]+0+camTo00CornerX,  mCoordinates[1]+halfHeight*2+camTo00CornerY,mCoordinates[0]+halfwidth*2+camTo00CornerX,  mCoordinates[1]+halfHeight*2+camTo00CornerY); // 0.0711,-0.03495,-0.0711,-0.03495, -0.0711, 0.03495, 0.0711,0.03495
+        MatOfPoint2f cornersDevice = create4Points((mCoordinates[0]+halfwidth*2+camTo00CornerX), (mCoordinates[1]+0+camTo00CornerY),(mCoordinates[0]+0+camTo00CornerX), (mCoordinates[1]+0+camTo00CornerY),(mCoordinates[0]+0+camTo00CornerX), (mCoordinates[1]+halfHeight*2+camTo00CornerY),(mCoordinates[0]+halfwidth*2+camTo00CornerX), (mCoordinates[1]+halfHeight*2+camTo00CornerY));
         MatOfPoint2f cornersDeviceTr = new MatOfPoint2f();
         Core.perspectiveTransform(cornersDevice,cornersDeviceTr, H1);
+        MatOfPoint2f markerpointsReprojected = new MatOfPoint2f();
+        Core.perspectiveTransform(markerPointsProjEye,markerpointsReprojected,H1);
         Log.d("cornersOfDeviceMulti",cornersDevice.dump());
         Log.d("cornersOfDeviceMultiTr",cornersDeviceTr.dump());
-
-        Mat inverseEyeMatrix = createCameraMatrix(1/mCoordinates[2],1/mCoordinates[2], 0,0);
-        MatOfPoint3f cornerToInv = new MatOfPoint3f();
-        Vector<Point3> dev = new Vector<Point3>();
-        dev.add(new Point3(cornersDeviceTr.get(0,0)[0],cornersDeviceTr.get(0,0)[1],1.0));
-        dev.add(new Point3(cornersDeviceTr.get(1,0)[0],cornersDeviceTr.get(1,0)[1],1.0));
-        dev.add(new Point3(cornersDeviceTr.get(2,0)[0],cornersDeviceTr.get(2,0)[1],1.0));
-        dev.add(new Point3(cornersDeviceTr.get(3,0)[0],cornersDeviceTr.get(3,0)[1],1.0));
-        cornerToInv.fromList(dev);
-        Log.d("cornersInv",cornerToInv.dump());
-
-        MatOfPoint3f cornersInv = new MatOfPoint3f();
-        Core.transform(cornersDevice, cornersInv,inverseEyeMatrix);
-        MatOfPoint2f inverseFinished = new MatOfPoint2f();
-        Mat tDevice2Eye = Mat.zeros(3, 1, CvType.CV_64FC1);
-        tDevice2Eye.put(0, 0, -(mCoordinates[0]+0.018));  // X
-        tDevice2Eye.put(1, 0, -(mCoordinates[1]+0.017)); // Y
-        tDevice2Eye.put(2, 0, -(mCoordinates[2]+0.005));  // Z
-        Calib3d.projectPoints(cornersInv,Mat.zeros(3,1,marker.getRvec().type()),tDevice2Eye,camParams.getCameraMatrix(), camParams.getDistCoeff(),inverseFinished);
 
         // 6. check that perspective transform is reasonable
         Mat kalman_corners = new Mat(4,2,CvType.CV_64FC1);
@@ -420,22 +417,28 @@ public class PerspectiveFixer {
         cornersDeviceTr = CheckPerspectiveWrap(cornersDeviceTr, rgba);
 
         // 7. Strech these points to the corners of the image.
-        if (H1.size().height > 0 && H1.size().width > 2) {
-            MatOfPoint2f cornersScreen = create4Points(rgba.size().width, 0, 0, 0, 0, rgba.size().height, rgba.size().width, rgba.size().height);
-            Mat point2CornersTransform = Imgproc.getPerspectiveTransform(corr_corners, cornersScreen);
+        MatOfPoint2f cornersScreen = create4Points(rgba.size().width, 0, 0, 0, 0, rgba.size().height, rgba.size().width, rgba.size().height);
+        Mat point2CornersTransform = Imgproc.getPerspectiveTransform(corr_corners, cornersScreen);
+        Log.d("lastthing",point2CornersTransform.dump());
+        if (H1.size().height > 0 && H1.size().width > 2 && point2CornersTransform.size().height>0)  {
             Mat dst = new Mat(rgba.size(), CvType.CV_64FC1);
             Imgproc.warpPerspective(rgba, dst, point2CornersTransform, rgba.size());
             //Following used for debugging, instead of
+
             Point[] coloredP = corr_corners.toArray();
             Point[] coloredP1 = cornersDeviceTr.toArray();
-            Point[] coloredP2 = inverseFinished.toArray();
+            Point[] coloredp123 = markerPointsIm.toArray();
+            Point[] coloredP0 = markerpointsReprojected.toArray();
             Log.d("ColoredP", coloredP[0].toString() + coloredP[1].toString() + coloredP[2].toString() + coloredP[3].toString());
             for (int i = 0; i < 4; i++) {
-                drawLine(rgba, coloredP2[i % 4], coloredP2[(i + 1) % 4],0,0,255);
                 drawLine(rgba, coloredP[i % 4], coloredP[(i + 1) % 4],255,0,0);
                 drawLine(rgba, coloredP1[i % 4], coloredP1[(i + 1) % 4],0,255,0);
             }
-            return rgba;
+            for (int i = 0; i < detectedMarkers.size()-1; i++) {
+                drawLine(rgba, coloredp123[i % (detectedMarkers.size()-1)], coloredp123[(i + 1) % (detectedMarkers.size()-1)], 255, 255, 255);
+                drawLine(rgba, coloredP0[i % (detectedMarkers.size()-1)], coloredP0[(i + 1) % (detectedMarkers.size()-1)], 255, 15, 255);
+            }
+            return dst;
         }
         else return rgba;
     }
