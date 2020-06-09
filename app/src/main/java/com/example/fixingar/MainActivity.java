@@ -314,7 +314,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             mDetector.detect(mRgba, detectedMarkers, camParamsBack, MARKER_SIZE);
 
             if (detectedMarkers.size() == 1) {
-                Mat dst = perspectiveFixer.fixPerspective(mRgba, detectedMarkers.get(0), MARKER_SIZE, mCoordinates);
+                Mat dst = perspectiveFixer.fixPerspectiveSingleMarker(mRgba, detectedMarkers.get(0), MARKER_SIZE, mCoordinates);
                 return dst;
             }
 
@@ -324,7 +324,10 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 Log.d("mcoooords", Float.toString(mCoordinates[2]));
                 if (mCoordinates != null) {
                     if (mCoordinates[3] != 0) {
-                Mat dst = perspectiveFixer.fixPerspectiveMultipleMarker(mRgba, detectedMarkers, MARKER_SIZE, mCoordinates);
+                        mCoordinates[0] = -0.062f;
+                        mCoordinates[1] = -0.0295f;
+                        mCoordinates[2] = 0.3f;
+                        Mat dst = perspectiveFixer.fixPerspectiveMultipleMarker(mRgba, detectedMarkers, MARKER_SIZE, mCoordinates);
                 return dst; }
                     else return mRgba;
                 }
