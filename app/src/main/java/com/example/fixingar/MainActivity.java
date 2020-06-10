@@ -328,9 +328,6 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 Log.d("mcoooords", Float.toString(mCoordinates[2]));
                 if (mCoordinates != null) {
                     if (mCoordinates[3] != 0) {
-                        mCoordinates[0] = -0.062f;
-                        mCoordinates[1] = -0.0295f;
-                        mCoordinates[2] = 0.3f;
                         Mat dst = perspectiveFixer.fixPerspectiveMultipleMarker(mRgba, detectedMarkers, MARKER_SIZE, mCoordinates);
                 return dst; }
                     else return mRgba;
