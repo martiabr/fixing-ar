@@ -87,6 +87,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.camera_view);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
+      //  mOpenCvCameraView.setMaxFrameSize(1280,720);
     }
 
     @Override
@@ -227,13 +228,13 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
+        Log.d("Inputframe",String.valueOf(inputFrame.rgba().height()) + " " + String.valueOf(inputFrame.rgba().width()));
         return mOnCameraFrameRender.render(inputFrame);
     }
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         Log.d(TAG, "onTouch invoked");
-
         mCalibrator.addCorners();
         return false;
     }
