@@ -240,6 +240,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.camera_view);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
+        mOpenCvCameraView.setMaxFrameSize(1280,720);
         mOpenCvCameraView.setCameraIndex(mCameraIndex);
     }
 
