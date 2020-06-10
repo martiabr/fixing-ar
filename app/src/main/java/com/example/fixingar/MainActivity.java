@@ -265,7 +265,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             variables = new Variables(WHO);
             MARKER_SIZE = variables.getMarkerSize();
 
-            camParamsBack = new CameraParameters("back");
+            camParamsBack = new CameraParameters("Back");
             camParamsBack.read(this);
             perspectiveFixer = new PerspectiveFixer(camParamsBack, WHO);
 
@@ -312,6 +312,8 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             Vector<Marker> detectedMarkers = new Vector<>();
 
             //Populate detectedMarkers
+            Log.d("camparamback",camParamsBack.getCameraMatrix().dump());
+            Log.d("camparamfront",camParamsFront.getCameraMatrix().dump());
             mDetector.detect(mRgba, detectedMarkers, camParamsBack, MARKER_SIZE);
 
             if (detectedMarkers.size() == 1) {
