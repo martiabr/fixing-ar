@@ -301,6 +301,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 
         mRgba = inputFrame.rgba();
+        Log.d("heightwidth",String.valueOf(mRgba.height()) + " " + String.valueOf(mRgba.width()));
         mGray = inputFrame.gray();
      
 
