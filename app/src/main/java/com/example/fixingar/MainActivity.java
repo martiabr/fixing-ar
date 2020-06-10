@@ -210,6 +210,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     public void onCameraViewStarted(int width, int height) {
         if (mWidth != width || mHeight != height) {
             mWidth = width;
+            Log.d("heightwidth", String.valueOf(width)+ " " + String.valueOf(height));
             mHeight = height;
             mCalibrator = new CameraCalibrator(mWidth, mHeight);
             if (CalibrationResult.tryLoad(this, mCalibrator.getCameraMatrix(), mCalibrator.getDistortionCoefficients())) {
