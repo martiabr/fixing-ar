@@ -374,7 +374,7 @@ public class PerspectiveFixer {
         else return rgba;
     }
 
-    // TODO Do we want to keep this?
+    // TODO Do we want to keep methods below this?
     /**
      * Method to restricts large changes in 4 input points in image rgba.
      * @param points
@@ -570,5 +570,4 @@ public class PerspectiveFixer {
 
         return frameCam2EyeTransformed;
     }
-
 }
