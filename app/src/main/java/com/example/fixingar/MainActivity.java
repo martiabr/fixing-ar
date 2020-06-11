@@ -318,7 +318,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             mDetector.detect(mRgba, detectedMarkers, camParamsBack, MARKER_SIZE);
 
             if (detectedMarkers.size() == 1) {
-                Mat dst = perspectiveFixer.fixPerspectiveSingleMarker(mRgba, detectedMarkers.get(0), MARKER_SIZE, mCoordinates);
+                Mat dst = perspectiveFixer.fixPerspectiveSingleMarker2(mRgba, detectedMarkers.get(0), MARKER_SIZE, mCoordinates);
                 return dst;
             }
 
