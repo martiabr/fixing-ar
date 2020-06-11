@@ -371,7 +371,7 @@ public class PerspectiveFixer {
         else return rgba;
     }
 
-    // TODO Do we want to keep this?s
+    // TODO Do we want to keep this?
     /**
      * Method to restricts large changes in 4 input points in image rgba.
      * @param points
