@@ -41,8 +41,8 @@ public class Variables {
     // Oskar
     // face detection variables
     private double focallength_O = 3.26*0.001;
-    private double resolution_O = 3840;
-    private double est_O = 1;
+    private double resolution_O = 1920;//3840;
+    private double est_O = 1.2  ;
     private float FaceWidth_O = 0.14f;
     private float EyeDist_O = 0.065f;
     // perspective fixer variables
