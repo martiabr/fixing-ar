@@ -46,7 +46,7 @@ public class Variables {
     private float FaceWidth_O = 0.14f;
     private float EyeDist_O = 0.067f;
     // perspective fixer variables
-    private float MarkerSize_O = 0.048f;
+    private float MarkerSize_O = 0.111f;
     private double halfwidth_O = 0.105/2;
     private double halfHeight_O = 0.059/2;
     private double EyeResolution_O = 15000; // magic number
