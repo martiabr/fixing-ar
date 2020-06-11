@@ -42,9 +42,9 @@ public class Variables {
     // face detection variables
     private double focallength_O = 3.26*0.001;
     private double resolution_O = 3840;
-    private double est_O = 1.5;
+    private double est_O = 1;
     private float FaceWidth_O = 0.14f;
-    private float EyeDist_O = 0.067f;
+    private float EyeDist_O = 0.065f;
     // perspective fixer variables
     private float MarkerSize_O = 0.111f;
     private double halfwidth_O = 0.105/2;
