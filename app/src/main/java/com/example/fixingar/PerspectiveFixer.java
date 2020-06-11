@@ -31,8 +31,6 @@ public class PerspectiveFixer {
     public double EyeResolution; //
     public int ShiftResolution;
     public double[] BackCameraShift;
-
-    // Position of front camera.
     public double camTo00CornerX; // x vector from front camera to (0,0)/top-left corner of image shown on screen. Changed in variables.
     public double camTo00CornerY; // y vector from front camera to (0,0)/top-left corner of image shown on screen. Changed in variables.
     private CameraParameters camParams; // Parameters of back camera.
@@ -46,7 +44,7 @@ public class PerspectiveFixer {
     private KalmanFilter kalman;
     private boolean kalmanInitialized = false;
 
-    private boolean draw_cubes = false;
+    private boolean draw_cubes = true;
     private List<Scalar> colorsBase;
     private List<Scalar> colorsCube;
 
@@ -279,6 +277,11 @@ public class PerspectiveFixer {
      * @return
      */
     public Mat fixPerspectiveSingleMarker2(Mat rgba, Marker marker, double markerSize, float[] mCoordinates) {
+        // 0. If you want, draw cube.
+        if (draw_cubes) {
+            marker.drawCubeBottom(rgba, camParams, colorsBase.get(0));
+            marker.draw3dCube(rgba, camParams, colorsCube.get(0));
+        }
 
         // 1. Find the 4 corner points in 3D marker frame:
         MatOfPoint3f markerPoints = getArucoPoints(markerSize, marker);
