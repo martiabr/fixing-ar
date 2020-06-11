@@ -373,13 +373,7 @@ public class PerspectiveFixer {
         return kalman;
     }
     public Mat fixPerspectiveMultipleMarker(Mat rgba, Vector<Marker> detectedMarkers, float markerSize,float[] mCoordinates) {
-
         Log.d("sizeofimage",rgba.size().toString());
-        // 1. Get Pose from rvec and tvec of first marker.
-        Marker marker = detectedMarkers.get(0);
-        Mat rMatrix = new Mat();
-        Calib3d.Rodrigues(marker.getRvec(),rMatrix);
-        Mat tVec = marker.getTvec();
 
         if (draw_cubes) {
             for (int i = 0; i < detectedMarkers.size(); i++) {
@@ -407,9 +401,10 @@ public class PerspectiveFixer {
         tEye2Device.put(2, 0, (mCoordinates[2]+ShiftBackFront[2]));  // Z
         Mat EyeCamMatrix = createCameraMatrix(mCoordinates[2],mCoordinates[2], 0,0);
 
+
         // TODO: Insert parameters from eye detection here as well in some way.
         MatOfPoint2f markerPointsProjEye = new MatOfPoint2f();
-        Calib3d.projectPoints(markerPoints, Mat.zeros(3,1,marker.getRvec().type()), tEye2Device, EyeCamMatrix, new MatOfDouble(0,0,0,0,0,0,0,0), markerPointsProjEye);
+        Calib3d.projectPoints(markerPoints, Mat.zeros(3,1,detectedMarkers.get(0).getRvec().type()), tEye2Device, EyeCamMatrix, new MatOfDouble(0,0,0,0,0,0,0,0), markerPointsProjEye);
         Log.d("vectorPointsEye",markerPointsProjEye.dump());
 
         // 4. Get perspective transform like before. Call it H1.
@@ -423,12 +418,16 @@ public class PerspectiveFixer {
         Mat H1 = Calib3d.findHomography(markerPointsProjEye,markerPointsIm,8,10);
         Log.d("H1",H1.dump());
 
+        Mat dst = correctCorners(rgba,H1,mCoordinates);
+        return dst;
+    }
+
+    public Mat correctCorners(Mat rgba, Mat H1, float[] mCoordinates) {
+
         // 5. Enter corners of device into the transform H.
         MatOfPoint2f cornersDevice = create4Points((mCoordinates[0]+halfwidth*2+camTo00CornerX), (mCoordinates[1]+0+camTo00CornerY),(mCoordinates[0]+0+camTo00CornerX), (mCoordinates[1]+0+camTo00CornerY),(mCoordinates[0]+0+camTo00CornerX), (mCoordinates[1]+halfHeight*2+camTo00CornerY),(mCoordinates[0]+halfwidth*2+camTo00CornerX), (mCoordinates[1]+halfHeight*2+camTo00CornerY));
         MatOfPoint2f cornersDeviceTr = new MatOfPoint2f();
         Core.perspectiveTransform(cornersDevice,cornersDeviceTr, H1);
-        MatOfPoint2f markerpointsReprojected = new MatOfPoint2f();
-        Core.perspectiveTransform(markerPointsProjEye,markerpointsReprojected,H1);
         Log.d("cornersOfDeviceMulti",cornersDevice.dump());
         Log.d("cornersOfDeviceMultiTr",cornersDeviceTr.dump());
 
@@ -474,5 +473,37 @@ public class PerspectiveFixer {
             return dst;
         }
         else return rgba;
+    }
+
+    public Mat fixPerspectiveSingleMarker2(Mat rgba, Marker marker, double markerSize, float[] mCoordinates) {
+
+        // The estimated 4 corner points in 3D marker frame:
+        MatOfPoint3f markerPoints = getArucoPoints(markerSize, marker);
+        Log.d("Marker corners 3D:",markerPoints.dump());
+
+        // Project points into camera image:
+        MatOfPoint2f markerPointsIm = new MatOfPoint2f();
+        Calib3d.projectPoints(markerPoints, marker.getRvec(), marker.getTvec(), camParams.getCameraMatrix(), camParams.getDistCoeff(), markerPointsIm);
+        Log.d("Marker corners proj:",markerPointsIm.dump());
+
+        // 3. Project points through eye camera to find marker points in eye projection.
+        Mat tEye2Device = Mat.zeros(3, 1, CvType.CV_64FC1);
+        tEye2Device.put(0, 0, (mCoordinates[0]+ShiftBackFront[0]));  // X
+        tEye2Device.put(1, 0, (mCoordinates[1]+ShiftBackFront[1])); // Y
+        tEye2Device.put(2, 0, (mCoordinates[2]+ShiftBackFront[2]));  // Z
+        Mat eye2Marker = new Mat();
+        Core.add(tEye2Device, marker.getTvec(), eye2Marker);
+
+        Mat EyeCamMatrix = createCameraMatrix(mCoordinates[2],mCoordinates[2], 0,0);
+
+        // TODO: Insert parameters from eye detection here as well in some way.
+        MatOfPoint2f markerPointsProjEye = new MatOfPoint2f();
+        Calib3d.projectPoints(markerPoints, marker.getRvec(), eye2Marker, EyeCamMatrix, new MatOfDouble(0,0,0,0,0,0,0,0), markerPointsProjEye);
+        Log.d("vectorPointsEye",markerPointsProjEye.dump());
+
+        Mat H1 = Calib3d.findHomography(markerPointsProjEye,markerPointsIm,8,10);
+        Log.d("H1",H1.dump());
+
+        return correctCorners(rgba,H1,mCoordinates);
     }
 }

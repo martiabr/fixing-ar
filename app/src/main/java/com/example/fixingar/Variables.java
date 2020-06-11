@@ -46,7 +46,7 @@ public class Variables {
     private float FaceWidth_O = 0.14f;
     private float EyeDist_O = 0.067f;
     // perspective fixer variables
-    private float MarkerSize_O = 0.035f;
+    private float MarkerSize_O = 0.111f;
     private double halfwidth_O = 0.105/2;
     private double halfHeight_O = 0.059/2;
     private double EyeResolution_O = 15000; // magic number
@@ -55,7 +55,7 @@ public class Variables {
     // Position of front camera.
     private double camTo00CornerX_O = 0.012 ;
     private double camTo00CornerY_O = -0.002; // y vector from camera to (0,0) image corner (top-left). Positive direction is downwards.
-    private double[] ShiftFrontBackCamera_O = {0.018, 0.016, 0};
+    private double[] ShiftFrontBackCamera_O = {0.018, 0.016, 0.005};
     // Caroline
     // face detection variables
     private double focallength_C = 3.75*0.001;
