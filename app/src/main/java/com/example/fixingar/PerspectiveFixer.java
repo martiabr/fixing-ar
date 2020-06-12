@@ -314,7 +314,7 @@ public class PerspectiveFixer {
 
         // 5. Call method to use H1 to correct perspective of image. Then return fixed perspective.
         Mat dst = correctCorners(rgba,H1,mCoordinates);
-        //double errorDist = evaluateTransform(dst,markerPointsProjEye,camParams,(float) markerSize,mCoordinates);
+        double errorDist = evaluateTransform(dst,markerPointsProjEye,camParams,(float) markerSize,mCoordinates);
         return dst;
     }
 
@@ -394,29 +394,39 @@ public class PerspectiveFixer {
         double yTransform = (halfHeight*2)/rgba.height();
         Mat xyTransform  = createCameraMatrix(xTransform,yTransform,mCoordinates[0]+camTo00CornerX,mCoordinates[1]+camTo00CornerY);
 
-        for (int i = 0; i < detectedMarkers.size(); ++i) {
-            MatOfPoint2f point = new MatOfPoint2f();
-            Vector<Point> pointInit = new Vector<Point>();
-            pointInit.add(getMeanPoint(detectedMarkers,i));
-            point.fromList(pointInit);
-            Log.d("pont",point.dump());
+        if (markerPointsEye != null) {
+            for (int i = 0; i < detectedMarkers.size(); ++i) {
+                MatOfPoint2f point = new MatOfPoint2f();
+                Vector<Point> pointInit = new Vector<Point>();
+                pointInit.add(getMeanPoint(detectedMarkers, i));
+                point.fromList(pointInit);
+                Log.d("pont", markerPointsEye.dump());
 
-            MatOfPoint2f markerPointsEye1 = new MatOfPoint2f();
-            Vector<Point> markerInit = new Vector<Point>();
-            markerInit.add(getMeanPoint(detectedMarkers,i));
-            markerPointsEye1.fromList(markerInit);
-            Log.d("pont1",markerPointsEye1.dump());
+                MatOfPoint2f markerPointsEye1 = new MatOfPoint2f();
+                Vector<Point> markerInit = new Vector<Point>();
+                double x = 0;
+                double y = 0;
+                for (int j = 0; i < 4; i++) {
+                    x = x + markerPointsEye.get(j, 0)[0];
+                    y = y + markerPointsEye.get(j, 0)[1];
+                }
+                x = x / 4;
+                y = y / 4;
+                markerInit.add(new Point(x, y));
+                markerPointsEye1.fromList(markerInit);
+                Log.d("pont1", markerPointsEye1.dump());
 
-            MatOfPoint2f pointTr = new MatOfPoint2f();
-            Core.perspectiveTransform(point, pointTr, xyTransform);
-            Log.d("error", String.valueOf(markerPointsEye1.get(i,0)[0]));
-            Log.d("error", String.valueOf(pointTr.get(0,0)[0]));
-            double deltax = (markerPointsEye1.get(0,0)[0] - pointTr.get(0,0)[0])*(markerPointsEye1.get(0,0)[0] - pointTr.get(0,0)[0]);
-            double deltay = (markerPointsEye1.get(0 ,0)[0] - pointTr.get(0,0)[0])*(markerPointsEye1.get(0,0)[0] - pointTr.get(0,0)[0]);
-            Log.d("errorstuffx", String.valueOf(Math.sqrt(deltax)));
-            Log.d("errorstuffy", String.valueOf(Math.sqrt(deltay)));
-            double errorDist = Math.sqrt(deltax+deltay);///(detectedMarkers.size());
-            Log.d("errorstuf2", String.valueOf(errorDist));
+                MatOfPoint2f pointTr = new MatOfPoint2f();
+                Core.perspectiveTransform(point, pointTr, xyTransform);
+                Log.d("pont2", pointTr.dump());
+
+                double deltax = (markerPointsEye1.get(0, 0)[0] - pointTr.get(0, 0)[0]) * (markerPointsEye1.get(0, 0)[0] - pointTr.get(0, 0)[0]);
+                double deltay = (markerPointsEye1.get(0, 0)[1] - pointTr.get(0, 0)[1]) * (markerPointsEye1.get(0, 0)[1] - pointTr.get(0, 0)[1]);
+                Log.d("errorstuffx", String.valueOf(Math.sqrt(deltax)));
+                Log.d("errorstuffy", String.valueOf(Math.sqrt(deltay)));
+                double errorDist = Math.sqrt(deltax + deltay);///(detectedMarkers.size());
+                Log.d("errorstuf2", String.valueOf(errorDist));
+            }
         }
         return 0.1;
     }
