@@ -7,6 +7,7 @@ import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfDouble;
+import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.MatOfPoint3f;
 import org.opencv.core.Point;
@@ -23,6 +24,7 @@ import java.util.Vector;
 
 import es.ava.aruco.CameraParameters;
 import es.ava.aruco.Marker;
+import es.ava.aruco.MarkerDetector;
 
 public class PerspectiveFixer {
     public double halfwidth; // Half width of image shown on screen.
@@ -44,7 +46,7 @@ public class PerspectiveFixer {
     private KalmanFilter kalman;
     private boolean kalmanInitialized = false;
 
-    private boolean draw_cubes = true;
+    private boolean draw_cubes = false;
     private List<Scalar> colorsBase;
     private List<Scalar> colorsCube;
 
@@ -276,7 +278,7 @@ public class PerspectiveFixer {
      * @param mCoordinates
      * @return
      */
-    public Mat fixPerspectiveSingleMarker2(Mat rgba, Marker marker, double markerSize, float[] mCoordinates) {
+    public Mat fixPerspectiveSingleMarker(Mat rgba, Marker marker, double markerSize, float[] mCoordinates) {
         // 0. If you want, draw cube.
         if (draw_cubes) {
             marker.drawCubeBottom(rgba, camParams, colorsBase.get(0));
@@ -311,7 +313,9 @@ public class PerspectiveFixer {
         Log.d("H1",H1.dump());
 
         // 5. Call method to use H1 to correct perspective of image. Then return fixed perspective.
-        return correctCorners(rgba,H1,mCoordinates);
+        Mat dst = correctCorners(rgba,H1,mCoordinates);
+        //double errorDist = evaluateTransform(dst,markerPointsProjEye,camParams,(float) markerSize,mCoordinates);
+        return dst;
     }
 
     /**
@@ -374,200 +378,46 @@ public class PerspectiveFixer {
         else return rgba;
     }
 
-    // TODO Do we want to keep methods below this?
     /**
-     * Method to restricts large changes in 4 input points in image rgba.
-     * @param points
+     * Evaluates transform by detecting markers in transformed image and check difference to 3d markers projected down through eye camera
      * @param rgba
-     * @return Return restricted points.
+     * @param markerPointsEye
+     * @return
      */
-    private MatOfPoint2f CheckPerspectiveWrap (MatOfPoint2f points, Mat rgba) {
-        Point[] corners = points.toArray();
-        Point[] corners_checked = new Point[4];
-        double penalty = rgba.rows()*0.2;
-        if (corners_b != null) { // check that earlier corners exist
-            double distb1 = Math.abs(Math.pow(Math.pow(corners[0].x - corners_b[0].x,2)+Math.pow(corners[0].y - corners_b[0].y,2),0.5));
-            double distb2 = Math.abs(Math.pow(Math.pow(corners[1].x - corners_b[1].x,2)+Math.pow(corners[1].y - corners_b[1].y,2),0.5));
-            double distb3 = Math.abs(Math.pow(Math.pow(corners[2].x - corners_b[2].x,2)+Math.pow(corners[2].y - corners_b[2].y,2),0.5));
-            double distb4 = Math.abs(Math.pow(Math.pow(corners[3].x - corners_b[3].x,2)+Math.pow(corners[3].y - corners_b[3].y,2),0.5));
-            if (distb1 > penalty || distb2 > penalty || distb3 > penalty || distb4 > penalty) { // check if distance from current corners to corners from before is too far
-                if (corners_bb != null) { // check if even earlier corners exist
-                    if (test_b == 0) { // corners_b and corners_bb were similar, but current corners too far --> current corners are wrong
-                        corners_checked = corners_b;
-                        test_bb = test_b;
-                        test_b = 1;
-                    }
-                    else { // corners_b were far from corners_bb --> check if current corners close to corners_bb
-                        double distbb1 = Math.abs(Math.pow(Math.pow(corners[0].x - corners_bb[0].x,2)+Math.pow(corners[0].y - corners_bb[0].y,2),0.5));
-                        double distbb2 = Math.abs(Math.pow(Math.pow(corners[1].x - corners_bb[1].x,2)+Math.pow(corners[1].y - corners_bb[1].y,2),0.5));
-                        double distbb3 = Math.abs(Math.pow(Math.pow(corners[2].x - corners_bb[2].x,2)+Math.pow(corners[2].y - corners_bb[2].y,2),0.5));
-                        double distbb4 = Math.abs(Math.pow(Math.pow(corners[3].x - corners_bb[3].x,2)+Math.pow(corners[3].y - corners_bb[3].y,2),0.5));
-                        if (distbb1 > penalty || distbb2 > penalty || distbb3 > penalty || distbb4 > penalty) { // check if current corners far from corners_bb
-                            corners_checked = corners;
-                            test_bb = test_b;
-                            test_b = 1;
-                            Log.d("Corners_check", "Noisy measurements, corners are very different from both iterations before");
-                        } else { // corners are similar to corners_bb and corners_b were wrong
-                            corners_checked = corners;
-                            test_bb = test_b;
-                            test_b = 0;
-                        }
-                    }
-                }
-                else {
-                    corners_checked = corners_b;
-                    test_bb = test_b;
-                    test_b = 1;
-                }
-            }
-            else { // current corners are close to corners from before
-                corners_checked = corners;
-                test_bb = test_b;
-                test_b = 0;
-            }
-            corners_bb = corners_b;
-        } else {
-            corners_checked = corners;
-            test_b = 0;
+    private double evaluateTransform(Mat rgba, MatOfPoint2f markerPointsEye, CameraParameters camParams, float markerSize, float[] mCoordinates) {
+        // 1. Find markers in transformed image.
+        MarkerDetector mDetector = new MarkerDetector();
+        Vector<Marker> detectedMarkers = new Vector<>();
+        mDetector.detect(rgba, detectedMarkers, camParams, markerSize);
+        Log.d("number",String.valueOf(detectedMarkers.size()));
+        double xTransform = (halfwidth*2)/rgba.width();
+        double yTransform = (halfHeight*2)/rgba.height();
+        Mat xyTransform  = createCameraMatrix(xTransform,yTransform,mCoordinates[0]+camTo00CornerX,mCoordinates[1]+camTo00CornerY);
+
+        for (int i = 0; i < detectedMarkers.size(); ++i) {
+            MatOfPoint2f point = new MatOfPoint2f();
+            Vector<Point> pointInit = new Vector<Point>();
+            pointInit.add(getMeanPoint(detectedMarkers,i));
+            point.fromList(pointInit);
+            Log.d("pont",point.dump());
+
+            MatOfPoint2f markerPointsEye1 = new MatOfPoint2f();
+            Vector<Point> markerInit = new Vector<Point>();
+            markerInit.add(getMeanPoint(detectedMarkers,i));
+            markerPointsEye1.fromList(markerInit);
+            Log.d("pont1",markerPointsEye1.dump());
+
+            MatOfPoint2f pointTr = new MatOfPoint2f();
+            Core.perspectiveTransform(point, pointTr, xyTransform);
+            Log.d("error", String.valueOf(markerPointsEye1.get(i,0)[0]));
+            Log.d("error", String.valueOf(pointTr.get(0,0)[0]));
+            double deltax = (markerPointsEye1.get(0,0)[0] - pointTr.get(0,0)[0])*(markerPointsEye1.get(0,0)[0] - pointTr.get(0,0)[0]);
+            double deltay = (markerPointsEye1.get(0 ,0)[0] - pointTr.get(0,0)[0])*(markerPointsEye1.get(0,0)[0] - pointTr.get(0,0)[0]);
+            Log.d("errorstuffx", String.valueOf(Math.sqrt(deltax)));
+            Log.d("errorstuffy", String.valueOf(Math.sqrt(deltay)));
+            double errorDist = Math.sqrt(deltax+deltay);///(detectedMarkers.size());
+            Log.d("errorstuf2", String.valueOf(errorDist));
         }
-        corners_b = corners;
-
-        Vector<Point> allcorners = new Vector<Point>();
-        allcorners.add(corners_checked[0]);
-        allcorners.add(corners_checked[1]);
-        allcorners.add(corners_checked[2]);
-        allcorners.add(corners_checked[3]);
-        MatOfPoint2f cornersDeviceTr_checked = new MatOfPoint2f();
-        cornersDeviceTr_checked.fromList(allcorners);
-        return cornersDeviceTr_checked;
-    }
-    private Mat getEye2CamTransform(Mat rgba, Marker marker, double markerSize, float[] mCoordinates) {
-        // The estimated 4 corner points in 3D marker frame:
-        MatOfPoint3f cornerPointsCam = getArucoPoints(markerSize, marker);
-        Log.d("Marker corners 3D:",cornerPointsCam.dump());
-
-        // Project points into camera image:
-        MatOfPoint2f cornerPointsCamProj = new MatOfPoint2f();
-        Calib3d.projectPoints(cornerPointsCam, marker.getRvec(), marker.getTvec(), camParams.getCameraMatrix(), camParams.getDistCoeff(), cornerPointsCamProj);
-        Log.d("Marker corners proj:",cornerPointsCamProj.dump());
-
-        Log.d("Camera matrix:", camParams.getCameraMatrix().dump());
-
-        // Create translation vector from camera to the focus point of the pinhole camera constituted by the eyes and camera screen.
-        Mat tEye2Device = Mat.zeros(3, 1, CvType.CV_64FC1);
-        //tEye2Device.put(0, 0, -halfwidth);  // X
-        //tEye2Device.put(1, 0, halfHeight);  // Y (mCoordinates is from camera view, y needs to be inversed)
-        tEye2Device.put(2, 0, mCoordinates[2]);  // Z (backwards)
-        Mat tDevice2Cam = Mat.zeros(3, 1, CvType.CV_64FC1);
-        tDevice2Cam.put(0, 0, ShiftBackFront[0]);  // X (shift from front to back camera)
-        tDevice2Cam.put(1, 0, ShiftBackFront[1]);  // Y
-        tDevice2Cam.put(2, 0, ShiftBackFront[2]);  // Z
-        Mat tEye2Cam = Mat.zeros(3, 1, CvType.CV_64FC1);
-        Core.add(tEye2Device, tDevice2Cam, tEye2Cam);
-
-        // Get translation vectors from marker to EyeCamera. Therefore we have the definite extrinsic matrix since the rotation vector.
-        Mat tEye2Marker = Mat.zeros(3, 1, CvType.CV_64FC1);
-        Core.add(tEye2Cam, marker.getTvec(), tEye2Marker);
-
-        // Get rotation of phone
-        double theta_x = Math.atan2(mCoordinates[1]-halfHeight,mCoordinates[2]);
-        double theta_y = Math.atan2(mCoordinates[0]+halfwidth,mCoordinates[2]);
-        Mat rot_x = Mat.zeros(3,1,CvType.CV_64FC1);
-        rot_x.put(0,0,theta_x);
-        Mat rot_y = Mat.zeros(3,1,CvType.CV_64FC1);
-        rot_y.put(1,0,theta_y);
-
-        // Get rotation from eye to marker
-        Mat RVEC = new Mat(3,3,CvType.CV_64FC1);
-        Calib3d.Rodrigues(marker.getRvec(),RVEC);
-        Mat ROT_X = new Mat(3,3,CvType.CV_64FC1);
-        Calib3d.Rodrigues(rot_x,ROT_X);
-        Mat ROT_Y = new Mat(3,3,CvType.CV_64FC1);
-        Calib3d.Rodrigues(rot_y,ROT_Y);
-        Mat ROT_PHONE = new Mat(3,3,CvType.CV_64FC1);
-        Core.gemm(ROT_X,ROT_Y,1,Mat.zeros(3,3,CvType.CV_64FC1),0,ROT_PHONE);
-        Mat ROT_FIN = new Mat(3,3,CvType.CV_64FC1);
-        Core.gemm(ROT_PHONE,RVEC,1,Mat.zeros(3,3,CvType.CV_64FC1),0,ROT_FIN);
-        Mat rot_fin = new Mat(3,1,CvType.CV_64FC1);
-        Calib3d.Rodrigues(ROT_FIN,rot_fin);
-
-        // Create estimation of intrinsic camera matrix for the EyeCamera.
-        //Mat EyeCamMatrix = createCameraMatrix(EyeResolution*mCoordinates[2],EyeResolution*mCoordinates[2],EyeResolution*(mCoordinates[0]+halfwidth),EyeResolution*(halfHeight-mCoordinates[1]));
-        Mat EyeCamMatrix = createCameraMatrix(EyeResolution*mCoordinates[2],EyeResolution*mCoordinates[2],0,0);
-        Log.d("EyeCameraMatrix:", EyeCamMatrix.dump());
-
-        // Project Aruco points onto the screen through the Eye Camera matrix.
-        MatOfPoint2f cornerPointsEyeProj = new MatOfPoint2f();
-        Calib3d.projectPoints(cornerPointsCam, rot_fin, tEye2Marker, EyeCamMatrix, new MatOfDouble(0,0,0,0,0,0,0,0), cornerPointsEyeProj); // camParams.getCameraMatrix()
-        Log.d("dstpoints",cornerPointsEyeProj.dump());
-
-        // Check corners with Kalman
-        Mat kalman_corners = new Mat(4,2,CvType.CV_64FC1);
-        kalman_corners.put(0,0, cornerPointsEyeProj.get(0,0)[0]);
-        kalman_corners.put(0,1, cornerPointsEyeProj.get(0,0)[1]);
-        kalman_corners.put(1,0, cornerPointsEyeProj.get(1,0)[0]);
-        kalman_corners.put(1,1, cornerPointsEyeProj.get(1,0)[1]);
-        kalman_corners.put(2,0, cornerPointsEyeProj.get(2,0)[0]);
-        kalman_corners.put(2,1, cornerPointsEyeProj.get(2,0)[1]);
-        kalman_corners.put(3,0, cornerPointsEyeProj.get(3,0)[0]);
-        kalman_corners.put(3,1, cornerPointsEyeProj.get(3,0)[1]);
-
-        Mat kalman_corners_vector = kalman_corners.reshape(0,8);
-        Log.d("kalman measurement", kalman_corners_vector.dump());
-        if (kalmanInitialized) {
-            kalman_corners_vector = kalman.correct(kalman_corners_vector);
-        } else {
-            kalman = initKalman(kalman_corners_vector);
-            kalmanInitialized = true;
-        }
-        Log.d("kalman correct", kalman_corners_vector.dump());
-
-        kalman.predict();
-
-        MatOfPoint2f corr_corners = new MatOfPoint2f();
-        Vector<Point> Points = new Vector<Point>();
-        Points.add(new Point(kalman_corners_vector.get(0,0)[0], kalman_corners_vector.get(1,0)[0]));
-        Points.add(new Point(kalman_corners_vector.get(2,0)[0], kalman_corners_vector.get(3,0)[0]));
-        Points.add(new Point(kalman_corners_vector.get(4,0)[0], kalman_corners_vector.get(5,0)[0]));
-        Points.add(new Point(kalman_corners_vector.get(6,0)[0], kalman_corners_vector.get(7,0)[0]));
-        corr_corners.fromList(Points);
-
-        // Use getPerspectiveTransform to get a transform matrix between phone image and EyeCamera image.
-        Mat cam2EyeTransform = Imgproc.getPerspectiveTransform(cornerPointsCamProj, corr_corners);
-        Log.d("Cam2EyeTransform",cam2EyeTransform.dump());
-
-        //Make this entire section about drawing squares into its own method.
-        List<Point> cornerPointsCamProjList = new Vector<Point>();
-        cornerPointsCamProjList = cornerPointsCamProj.toList();
-
-        List<Point> cornerPointsEyeProjList = new Vector<Point>();
-        cornerPointsEyeProjList = cornerPointsEyeProj.toList();
-
-        // Draw squares:
-        /*
-        Scalar color = new Scalar(255,255,0);
-        for (int i = 0; i < 4; i++){
-            Imgproc.line(rgba, cornerPointsCamProjList.get(i), cornerPointsCamProjList.get((i+1)%4), color, 2);
-            Imgproc.line(rgba, cornerPointsEyeProjList.get(i), cornerPointsEyeProjList.get((i+1)%4), color, 2);
-            Imgproc.line(rgba, cornerPointsEyeProjList.get(i), cornerPointsCamProjList.get(i), color, 2);
-        }
-       */
-        return cam2EyeTransform;
-    }
-    public Mat fixPerspectiveSingleMarker(Mat rgba, Marker marker, double markerSize, float[] mCoordinates) {
-        Size rgbaSize = rgba.size();
-
-        if (draw_cubes) {
-            marker.drawCubeBottom(rgba, camParams, colorsBase.get(0));
-            marker.draw3dCube(rgba, camParams, colorsCube.get(0));
-        }
-
-        Mat cam2EyeTransform = getEye2CamTransform(rgba, marker, markerSize,mCoordinates);
-
-        // Transform frame from camera to eye:
-        MatOfPoint2f frameCam2EyeTransformed = new MatOfPoint2f();
-        Imgproc.warpPerspective(rgba, frameCam2EyeTransformed, cam2EyeTransform, rgbaSize);
-
-        return frameCam2EyeTransformed;
+        return 0.1;
     }
 }
