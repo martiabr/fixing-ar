@@ -10,12 +10,9 @@ public class Variables {
     private float FaceWidth_J = 0.14f;
     private float EyeDist_J = 0.06f;
     // perspective fixer variables
-    private float MarkerSize_J = 0.08f;
+    private float MarkerSize_J = 0.03f;
     private double halfwidth_J = 0.14/2;
     private double halfHeight_J = 0.066/2;
-    private double EyeResolution_J = 12000; // magic number
-    private int ShiftResolution_J = 1000;
-    private double[] BackCameraShift_J = {0.052, -0.025};
     // Position of front camera.
     private double camTo00CornerX_J = 0;
     private double camTo00CornerY_J = 0.066/2; // y vector from camera to (0,0) image corner (top-left). Positive direction is downwards.
@@ -31,9 +28,6 @@ public class Variables {
     private float MarkerSize_M = 0.08f;
     private double halfwidth_M = 0.14/2;
     private double halfHeight_M = 0.066/2;
-    private double EyeResolution_M = 11000; // magic number
-    private int ShiftResolution_M = 1000;
-    private double[] BackCameraShift_M;
     // Position of front camera.
     private double camTo00CornerX_M = 0;
     private double camTo00CornerY_M = 0.066/2; // y vector from camera to (0,0) image corner (top-left). Positive direction is downwards.
@@ -49,9 +43,6 @@ public class Variables {
     private float MarkerSize_O = 0.111f;
     private double halfwidth_O = 0.105/2;
     private double halfHeight_O = 0.059/2;
-    private double EyeResolution_O = 15000; // magic number
-    private int ShiftResolution_O = 1000;
-    private double[] BackCameraShift_O;
     // Position of front camera.
     private double camTo00CornerX_O = 0.012 ;
     private double camTo00CornerY_O = -0.002; // y vector from camera to (0,0) image corner (top-left). Positive direction is downwards.
@@ -67,9 +58,6 @@ public class Variables {
     private float MarkerSize_C = 0.08f;
     private double halfwidth_C = 0.14/2;
     private double halfHeight_C = 0.066/2;
-    private double EyeResolution_C = 11000; // magic number
-    private int ShiftResolution_C = 1000;
-    private double[] BackCameraShift_C;
     // Position of front camera.
     private double camTo00CornerX_C = 0;
     private double camTo00CornerY_C = 0.066/2; // y vector from camera to (0,0) image corner (top-left). Positive direction is downwards.
@@ -79,34 +67,6 @@ public class Variables {
 
     public Variables(String WHO){
         who = WHO;
-    }
-
-    public double getEyeResolution(){
-        double EyeResolution = EyeResolution_J;
-        if (who == "Martin") {
-            EyeResolution = EyeResolution_M;
-        }
-        if (who == "Caroline") {
-            EyeResolution = EyeResolution_C;
-        }
-        if (who == "Oskar") {
-            EyeResolution = EyeResolution_O;
-        }
-        return EyeResolution;
-    }
-
-    public int getShiftResolution(){
-        int ShiftResolution = ShiftResolution_J;
-        if (who == "Martin") {
-            ShiftResolution = ShiftResolution_M;
-        }
-        if (who == "Caroline") {
-            ShiftResolution = ShiftResolution_C;
-        }
-        if (who == "Oskar") {
-            ShiftResolution = ShiftResolution_O;
-        }
-        return ShiftResolution;
     }
 
     public double[] getShiftFrontBackCamera(){
@@ -121,20 +81,6 @@ public class Variables {
             Shift = ShiftFrontBackCamera_O;
         }
         return Shift;
-    }
-
-    public double[] getBackCameraShift(){
-        double[] BackCameraShift = BackCameraShift_J;
-        if (who == "Martin") {
-            BackCameraShift = BackCameraShift_M;
-        }
-        if (who == "Caroline") {
-            BackCameraShift = BackCameraShift_C;
-        }
-        if (who == "Oskar") {
-            BackCameraShift = BackCameraShift_O;
-        }
-        return BackCameraShift;
     }
 
     public double getCamTo00CornerY(){

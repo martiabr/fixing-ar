@@ -26,7 +26,6 @@ public class FaceDetection {
     //You must run a calibration prior to detection
     // The activity to run calibration is provided in the repository
 
-    private static final Scalar     COLOR1     = new Scalar(0, 150, 0, 150);
     private static final Scalar     COLOR2     = new Scalar(150, 0, 150, 0);
     public static final int        JAVA_DETECTOR       = 0;
     public static final int        NATIVE_DETECTOR     = 1;
@@ -115,7 +114,6 @@ public class FaceDetection {
         int NumEyes = eyesArray.length;
         int[][] AllEyeCoordinates = new int[NumEyes][2];
         for (int i = 0; i < NumEyes; i++) {
-            Imgproc.rectangle(mRgba, eyesArray[i].tl(), eyesArray[i].br(), COLOR1, 3);
             if (NumEyes > 0) {
                 AllEyeCoordinates[i][0] = eyesArray[i].x;
                 AllEyeCoordinates[i][1] = eyesArray[i].y;
@@ -182,7 +180,6 @@ public class FaceDetection {
         int NumFaces = facesArray.length;
         int[][] AllFaceCoordinates = new int[NumFaces][3];
         for (int i = 0; i < NumFaces; i++) {
-            Imgproc.rectangle(mRgba, facesArray[i].tl(), facesArray[i].br(), COLOR1, 3);
             if (NumFaces > 0) {
                 AllFaceCoordinates[i][0] = facesArray[i].x;
                 AllFaceCoordinates[i][1] = facesArray[i].y;

@@ -30,18 +30,9 @@ public class PerspectiveFixer {
     public double halfwidth; // Half width of image shown on screen.
     public double halfHeight; // Half height of image shown on screen.
     public double[] ShiftBackFront;
-    public double EyeResolution; //
-    public int ShiftResolution;
-    public double[] BackCameraShift;
     public double camTo00CornerX; // x vector from front camera to (0,0)/top-left corner of image shown on screen. Changed in variables.
     public double camTo00CornerY; // y vector from front camera to (0,0)/top-left corner of image shown on screen. Changed in variables.
     private CameraParameters camParams; // Parameters of back camera.
-
-    private Point[] corners_b;
-    private Point[] corners_bb;
-    private int test_b = 0;
-    private int test_bb = 0;
-    private double deltaT = 1/24;
 
     private KalmanFilter kalman;
     private boolean kalmanInitialized = false;
@@ -58,9 +49,6 @@ public class PerspectiveFixer {
         camTo00CornerX = variables.getCamTo00CornerX();
         camTo00CornerY = variables.getCamTo00CornerY();
         ShiftBackFront = variables.getShiftFrontBackCamera();
-        EyeResolution = variables.getEyeResolution();
-        ShiftResolution = variables.getShiftResolution();
-        BackCameraShift = variables.getBackCameraShift();
         kalmanInitialized = false;
 
         colorsBase = new ArrayList<>();
