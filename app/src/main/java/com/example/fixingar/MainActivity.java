@@ -110,6 +110,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     private int mCameraIndex = CameraBridgeViewBase.CAMERA_ID_FRONT;
     private TextView mDebugText;
     private Button mCameraButton;
+    private Button mSettingsButton;
     private CameraParameters camParamsBack;
     private CameraParameters camParamsFront;
     private PerspectiveFixer perspectiveFixer;
@@ -192,6 +193,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
                     mOpenCvCameraView.enableView();
                     mCameraButton.setOnClickListener(MainActivity.this);
+                    mSettingsButton.setOnClickListener(MainActivity.this);
 
                     if (timerRunning) {
                         mHandler.postDelayed(mCameraSwitchRunnable, DELAY);
@@ -236,6 +238,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         mDebugText = (TextView) findViewById(R.id.debug_text);
 
         mCameraButton = (Button) findViewById(R.id.camera_button);
+        mSettingsButton = (Button) findViewById(R.id.settings_button);
 
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.camera_view);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
