@@ -34,7 +34,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".Calibration"></activity>
+        <activity android:name=".FrontCalibration"></activity>
+        <activity android:name=".Calibration" />
         <activity android:name=".Settings" />
         <activity
             android:name=".MainActivity"
