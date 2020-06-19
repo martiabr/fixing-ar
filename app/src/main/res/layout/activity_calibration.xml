@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Calibration">
+
+    <TextView
+            android:id="@+id/calibration_steps2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2. Once the calibration has started, click on the touch screen when all dots are visible on camera."
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.493"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/calibration_steps" />
+
+    <TextView
+            android:id="@+id/calibration_steps"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="1. Please prepare calibration sheet (see read me file)."
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+            android:id="@+id/calibration_steps3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="3. After at least 3 dot recordings, click on calibrate."
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.493"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/calibration_steps2" />
+
+    <TextView
+            android:id="@+id/calib_size_info"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="64dp"
+            android:layout_marginEnd="8dp"
+            android:text="Half distance in between dots (m):"
+            app:layout_constraintBottom_toBottomOf="@+id/calibration_dot_distance"
+            app:layout_constraintEnd_toStartOf="@+id/calibration_dot_distance"
+            app:layout_constraintStart_toStartOf="parent" />
+
+    <EditText
+            android:id="@+id/calibration_dot_distance"
+            android:layout_width="64dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="64dp"
+            android:ems="10"
+            android:inputType="numberDecimal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/calibration_steps3" />
+
+    <Button
+            android:id="@+id/calibrate_front"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="64dp"
+            android:layout_marginTop="32dp"
+            android:text="Calibrate Front Camera"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/calibration_dot_distance" />
+
+    <Button
+            android:id="@+id/calibrate_back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="Calibrate Back Camera"
+            app:layout_constraintBottom_toBottomOf="@+id/calibrate_front"
+            app:layout_constraintStart_toEndOf="@+id/calibrate_front" />
+
+</android.support.constraint.ConstraintLayout>
