@@ -30,11 +30,11 @@ import android.widget.Toast;
 import java.util.Collections;
 import java.util.List;
 
-public class FrontCalibration extends CameraActivity implements CvCameraViewListener2, OnTouchListener {
+public class BackCalibration extends CameraActivity implements CvCameraViewListener2, OnTouchListener {
     private static final String TAG = "CameraCalibrator";
 
     private CameraBridgeViewBase mOpenCvCameraView;
-    private int mCameraIndex = CameraBridgeViewBase.CAMERA_ID_FRONT;
+    private int mCameraIndex = CameraBridgeViewBase.CAMERA_ID_BACK;
     private CameraCalibrator mCalibrator;
     private OnCameraFrameRender mOnCameraFrameRender;
     private Menu mMenu;
@@ -50,7 +50,7 @@ public class FrontCalibration extends CameraActivity implements CvCameraViewList
                     Log.i(TAG, "OpenCV loaded successfully");
                     mOpenCvCameraView.setCameraIndex(mCameraIndex);
                     mOpenCvCameraView.enableView();
-                    mOpenCvCameraView.setOnTouchListener(FrontCalibration.this);
+                    mOpenCvCameraView.setOnTouchListener(BackCalibration.this);
                 } break;
                 default:
                 {
@@ -60,7 +60,7 @@ public class FrontCalibration extends CameraActivity implements CvCameraViewList
         }
     };
 
-    public FrontCalibration() {
+    public BackCalibration() {
         Log.i(TAG, "Instantiated new " + this.getClass());
     }
 
@@ -148,7 +148,7 @@ public class FrontCalibration extends CameraActivity implements CvCameraViewList
             case R.id.calibrate:
                 final Resources res = getResources();
                 if (mCalibrator.getCornersBufferSize() < 2) {
-                    (Toast.makeText(FrontCalibration.this, res.getString(R.string.more_samples), Toast.LENGTH_SHORT)).show();
+                    (Toast.makeText(BackCalibration.this, res.getString(R.string.more_samples), Toast.LENGTH_SHORT)).show();
                     return true;
                 }
 
@@ -158,7 +158,7 @@ public class FrontCalibration extends CameraActivity implements CvCameraViewList
 
                     @Override
                     protected void onPreExecute() {
-                        calibrationProgress = new ProgressDialog(FrontCalibration.this);
+                        calibrationProgress = new ProgressDialog(BackCalibration.this);
                         calibrationProgress.setTitle(res.getString(R.string.calibrating));
                         calibrationProgress.setMessage(res.getString(R.string.please_wait));
                         calibrationProgress.setCancelable(false);
@@ -180,11 +180,11 @@ public class FrontCalibration extends CameraActivity implements CvCameraViewList
                         String resultMessage = (mCalibrator.isCalibrated()) ?
                                 res.getString(R.string.calibration_successful)  + " " + mCalibrator.getAvgReprojectionError() :
                                 res.getString(R.string.calibration_unsuccessful);
-                        (Toast.makeText(FrontCalibration.this, resultMessage, Toast.LENGTH_SHORT)).show();
+                        (Toast.makeText(BackCalibration.this, resultMessage, Toast.LENGTH_SHORT)).show();
 
                         if (mCalibrator.isCalibrated()) {
-                            CalibrationResult.save(FrontCalibration.this,
-                                    mCalibrator.getCameraMatrix(), mCalibrator.getDistortionCoefficients(), "front");
+                            CalibrationResult.save(BackCalibration.this,
+                                    mCalibrator.getCameraMatrix(), mCalibrator.getDistortionCoefficients(), "back");
                         }
                     }
                 }.execute();
@@ -199,7 +199,7 @@ public class FrontCalibration extends CameraActivity implements CvCameraViewList
             mWidth = width;
             mHeight = height;
             mCalibrator = new CameraCalibrator(mWidth, mHeight);
-            if (CalibrationResult.tryLoad(FrontCalibration.this, mCalibrator.getCameraMatrix(), mCalibrator.getDistortionCoefficients(), "front")) {
+            if (CalibrationResult.tryLoad(BackCalibration.this, mCalibrator.getCameraMatrix(), mCalibrator.getDistortionCoefficients(), "back")) {
                 mCalibrator.setCalibrated();
             } else {
                 if (mMenu != null && !mCalibrator.isCalibrated()) {

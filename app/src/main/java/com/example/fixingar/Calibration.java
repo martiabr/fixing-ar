@@ -9,6 +9,7 @@ import android.widget.Button;
 public class Calibration extends AppCompatActivity {
     private Button mReturnButton;
     private Button mFrontCalibButton;
+    private Button mBackCalibButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,6 +30,13 @@ public class Calibration extends AppCompatActivity {
                 GoToFrontCalibration();
             }
         });
+        mBackCalibButton = findViewById(R.id.calibrate_back);
+        mBackCalibButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                GoToBackCalibration();
+            }
+        });
     }
 
     public void ReturnToSettings() {
@@ -38,6 +46,11 @@ public class Calibration extends AppCompatActivity {
 
     public void GoToFrontCalibration() {
         Intent intent = new Intent(this, FrontCalibration.class);
+        startActivity(intent);
+    }
+
+    public void GoToBackCalibration() {
+        Intent intent = new Intent(this, BackCalibration.class);
         startActivity(intent);
     }
 }
