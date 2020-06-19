@@ -16,6 +16,7 @@ import org.opencv.core.Scalar;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -67,7 +68,7 @@ import es.ava.aruco.CameraParameters;
 import es.ava.aruco.Marker;
 import es.ava.aruco.MarkerDetector;
 
-public class MainActivity extends CameraActivity implements CvCameraViewListener2, View.OnClickListener {
+public class MainActivity extends CameraActivity implements CvCameraViewListener2 {
 
     //Constants
     private static final String TAG = "Main";
@@ -192,8 +193,18 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                     }
 
                     mOpenCvCameraView.enableView();
-                    mCameraButton.setOnClickListener(MainActivity.this);
-                    mSettingsButton.setOnClickListener(MainActivity.this);
+                    mCameraButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            TurnOnSwitchCamera();
+                        }
+                    });
+                    mSettingsButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            openSettings();
+                        }
+                    });
 
                     if (timerRunning) {
                         mHandler.postDelayed(mCameraSwitchRunnable, DELAY);
@@ -399,9 +410,8 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         return true;  // TODO: check success somehow?
     }
 
-    @Override
-    public void onClick(View v) {
-        Log.d(TAG, "onClick invoked");
+    public void TurnOnSwitchCamera() {
+        Log.d(TAG, "onClick Switch Camera Button invoked");
 
         if (timerRunning) {
             Toast.makeText(this, "Turning off", Toast.LENGTH_SHORT).show();
@@ -415,6 +425,10 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
         timerRunning = !timerRunning;
 }
+    public void openSettings() {
+        Intent intent = new Intent(this, Settings.class);
+        startActivity(intent);
+    }
 
     public boolean onOptionsItemSelected(MenuItem item) {
         Log.i(TAG, "called onOptionsItemSelected; selected item: " + item);
