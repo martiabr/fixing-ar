@@ -1,8 +1,12 @@
 package com.example.fixingar;
 
+import android.Manifest;
 import android.app.ProgressDialog;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.os.AsyncTask;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -24,7 +28,7 @@ import org.opencv.core.Mat;
 import java.util.Collections;
 import java.util.List;
 
-public class FrontCalibration extends CameraActivity implements CameraBridgeViewBase.CvCameraViewListener2, View.OnTouchListener {
+public class FrontCalibration extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2, View.OnTouchListener {
     private static final String TAG = "CameraCalibrator";
 
     private CameraBridgeViewBase mOpenCvCameraView;
@@ -35,7 +39,7 @@ public class FrontCalibration extends CameraActivity implements CameraBridgeView
     private int mWidth;
     private int mHeight;
 
-    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
+    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(FrontCalibration.this) {
         @Override
         public void onManagerConnected(int status) {
             switch (status) {
@@ -55,9 +59,23 @@ public class FrontCalibration extends CameraActivity implements CameraBridgeView
     };
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
+        Log.i(TAG, "called onCreate");
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 1);
+        }
+
         setContentView(R.layout.activity_calibration2);
 
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.camera_view);
@@ -79,7 +97,7 @@ public class FrontCalibration extends CameraActivity implements CameraBridgeView
         super.onResume();
         if (!OpenCVLoader.initDebug()) {
             Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
-            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION, this, mLoaderCallback);
+            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION, FrontCalibration.this, mLoaderCallback);
         } else {
             Log.d(TAG, "OpenCV library found inside package. Using it!");
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
@@ -131,7 +149,7 @@ public class FrontCalibration extends CameraActivity implements CameraBridgeView
             case R.id.calibrate:
                 final Resources res = getResources();
                 if (mCalibrator.getCornersBufferSize() < 2) {
-                    (Toast.makeText(this, res.getString(R.string.more_samples), Toast.LENGTH_SHORT)).show();
+                    (Toast.makeText(FrontCalibration.this, res.getString(R.string.more_samples), Toast.LENGTH_SHORT)).show();
                     return true;
                 }
 
