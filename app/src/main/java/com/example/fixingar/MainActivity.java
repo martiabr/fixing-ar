@@ -282,10 +282,20 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
             camParamsBack = new CameraParameters("back");
             camParamsBack.read(this);
-            perspectiveFixer = new PerspectiveFixer(camParamsBack, WHO);
 
             camParamsFront = new CameraParameters("front");
             camParamsFront.read(this);
+
+            if (CheckIfCalibrated() == false) {
+                Intent intent = new Intent(this, Calibration.class);
+                startActivity(intent);
+            }
+            if (CheckVariables() == false) {
+                Intent intent = new Intent(this, Settings.class);
+                startActivity(intent);
+            }
+
+            perspectiveFixer = new PerspectiveFixer(camParamsBack, WHO);
             faceDetection = new FaceDetection(camParamsFront.getCameraMatrix(), mJavaDetector1, mJavaDetector2, mNativeDetector1, mNativeDetector2,WHO);
         }
     }
@@ -472,5 +482,43 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             }
         }
 
+    }
+
+    public boolean CheckIfCalibrated() {
+        Mat cpf = camParamsFront.getCameraMatrix();
+        if (cpf.get(1,1)[0] == -1 &&  cpf.get(2,2)[0] == -1){
+            return false;
+        }
+        else {
+            Mat cpb = camParamsBack.getCameraMatrix();
+            if (cpb.get(1,1)[0] == -1 &&  cpb.get(2,2)[0] == -1){
+                return false;
+            }
+            else {
+                return true;
+            }
+        }
+
+    }
+
+    public boolean CheckVariables() {
+        Settings settings = new Settings();
+        float[] variables = settings.GetVariables();
+        if (variables[0] == 0) {
+            return false;
+        }
+        else {
+            if (variables[1] == 0) {
+                return false;
+            }
+            else {
+                if (variables[2] == 0) {
+                    return false;
+                }
+                else {
+                    return true;
+                }
+            }
+        }
     }
 }

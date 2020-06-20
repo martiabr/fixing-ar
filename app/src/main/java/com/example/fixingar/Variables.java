@@ -182,44 +182,23 @@ public class Variables {
     }
 
     public float getFaceWidth(){
-        float FaceWidth = FaceWidth_J;
-        if (who == "Martin") {
-            FaceWidth = FaceWidth_M;
-        }
-        if (who == "Caroline") {
-            FaceWidth = FaceWidth_C;
-        }
-        if (who == "Oskar") {
-            FaceWidth = FaceWidth_O;
-        }
+        Settings settings = new Settings();
+        float[] variables = settings.GetVariables();
+        float FaceWidth = variables[1];
         return FaceWidth;
     }
 
     public float getEyeDist(){
-        float EyeDist = EyeDist_J;
-        if (who == "Martin") {
-            EyeDist = EyeDist_M;
-        }
-        if (who == "Caroline") {
-            EyeDist = EyeDist_C;
-        }
-        if (who == "Oskar") {
-            EyeDist = EyeDist_O;
-        }
+        Settings settings = new Settings();
+        float[] variables = settings.GetVariables();
+        float EyeDist = variables[2];
         return EyeDist;
     }
 
     public float getMarkerSize(){
-        float MarkerSize = MarkerSize_J;
-        if (who == "Martin") {
-            MarkerSize = MarkerSize_M;
-        }
-        if (who == "Caroline") {
-            MarkerSize = MarkerSize_C;
-        }
-        if (who == "Oskar") {
-            MarkerSize = MarkerSize_O;
-        }
+        Settings settings = new Settings();
+        float[] variables = settings.GetVariables();
+        float MarkerSize = variables[0];
         return MarkerSize;
     }
 
