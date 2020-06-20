@@ -184,7 +184,7 @@ public class FrontCalibration extends CameraActivity implements CvCameraViewList
 
                         if (mCalibrator.isCalibrated()) {
                             CalibrationResult.save(FrontCalibration.this,
-                                    mCalibrator.getCameraMatrix(), mCalibrator.getDistortionCoefficients(), "front");
+                                    mCalibrator.getCameraMatrix(), mCalibrator.getDistortionCoefficients(), "Front");
                         }
                     }
                 }.execute();
@@ -199,7 +199,7 @@ public class FrontCalibration extends CameraActivity implements CvCameraViewList
             mWidth = width;
             mHeight = height;
             mCalibrator = new CameraCalibrator(mWidth, mHeight);
-            if (CalibrationResult.tryLoad(FrontCalibration.this, mCalibrator.getCameraMatrix(), mCalibrator.getDistortionCoefficients(), "front")) {
+            if (CalibrationResult.tryLoad(FrontCalibration.this, mCalibrator.getCameraMatrix(), mCalibrator.getDistortionCoefficients(), "Front")) {
                 mCalibrator.setCalibrated();
             } else {
                 if (mMenu != null && !mCalibrator.isCalibrated()) {

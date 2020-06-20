@@ -184,7 +184,7 @@ public class BackCalibration extends CameraActivity implements CvCameraViewListe
 
                         if (mCalibrator.isCalibrated()) {
                             CalibrationResult.save(BackCalibration.this,
-                                    mCalibrator.getCameraMatrix(), mCalibrator.getDistortionCoefficients(), "back");
+                                    mCalibrator.getCameraMatrix(), mCalibrator.getDistortionCoefficients(), "Back");
                         }
                     }
                 }.execute();
@@ -199,7 +199,7 @@ public class BackCalibration extends CameraActivity implements CvCameraViewListe
             mWidth = width;
             mHeight = height;
             mCalibrator = new CameraCalibrator(mWidth, mHeight);
-            if (CalibrationResult.tryLoad(BackCalibration.this, mCalibrator.getCameraMatrix(), mCalibrator.getDistortionCoefficients(), "back")) {
+            if (CalibrationResult.tryLoad(BackCalibration.this, mCalibrator.getCameraMatrix(), mCalibrator.getDistortionCoefficients(), "Back")) {
                 mCalibrator.setCalibrated();
             } else {
                 if (mMenu != null && !mCalibrator.isCalibrated()) {
