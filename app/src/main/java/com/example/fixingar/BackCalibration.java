@@ -11,6 +11,7 @@ import org.opencv.core.Mat;
 
 import android.Manifest;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.os.AsyncTask;
@@ -188,6 +189,10 @@ public class BackCalibration extends CameraActivity implements CvCameraViewListe
                         }
                     }
                 }.execute();
+                if (mCalibrator.isCalibrated()) {
+                    Intent intent = new Intent(this, Calibration.class);
+                    startActivity(intent);
+                }
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
