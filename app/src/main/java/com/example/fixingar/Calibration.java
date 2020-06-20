@@ -1,6 +1,8 @@
 package com.example.fixingar;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
@@ -9,6 +11,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+
+import org.opencv.core.Mat;
 
 import es.ava.aruco.CameraParameters;
 
@@ -19,8 +23,8 @@ public class Calibration extends AppCompatActivity {
     private double DotDist = 0;
     private TextView CalibInfo;
     private EditText DotDistText;
-    private CameraParameters camParamsBack;
     private CameraParameters camParamsFront;
+    private CameraParameters camParamsBack;
 
 
     @Override
@@ -77,22 +81,23 @@ public class Calibration extends AppCompatActivity {
     }
 
     public void ReturnToSettings() {
-        camParamsFront = new CameraParameters("Front");
+        camParamsFront = new CameraParameters("front");
         camParamsFront.read(this);
-        if (camParamsFront == null){
-            CalibInfo.setText(R.string.CalibrateFront);
+        Mat cpf = camParamsFront.getCameraMatrix();
+        if (cpf.get(1,1)[0] == -1 &&  cpf.get(2,2)[0] == -1) {
+            CalibInfo.setText("Please calibrate the front camera.");
         }
         else {
             camParamsBack = new CameraParameters("Back");
             camParamsBack.read(this);
-            if (camParamsBack == null) {
-                CalibInfo.setText(R.string.CalibrateBack);
-            }
-            else {
+            Mat cpb = camParamsBack.getCameraMatrix();
+            if (cpb.get(1,1)[0] == -1 &&  cpb.get(2,2)[0] == -1) {
+                CalibInfo.setText("Please calibrate the back camera.");
+            } else {
                 Intent intent = new Intent(this, Settings.class);
                 startActivity(intent);
             }
-        }
+            }
     }
 
     public void GoToFrontCalibration() {
