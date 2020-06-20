@@ -15,6 +15,8 @@ import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 
 // Average re-projection error: 0.226845
@@ -35,13 +37,13 @@ public class CameraCalibrator {
     private boolean mPatternWasFound = false;
     private MatOfPoint2f mCorners = new MatOfPoint2f();
     private List<Mat> mCornersBuffer = new ArrayList<Mat>();
-    private boolean mIsCalibrated = false;
+    private boolean mIsCalibrated;
 
     private Mat mCameraMatrix = new Mat();
     private Mat mDistortionCoefficients = new Mat();
     private int mFlags;
     private double mRms;
-    private double mSquareSize = 0.04;
+    private double mSquareSize;
     private Size mImageSize;
 
     public CameraCalibrator(int width, int height) {
@@ -54,6 +56,9 @@ public class CameraCalibrator {
         Mat.eye(3, 3, CvType.CV_64FC1).copyTo(mCameraMatrix);
         mCameraMatrix.put(0, 0, 1.0);
         Mat.zeros(5, 1, CvType.CV_64FC1).copyTo(mDistortionCoefficients);
+        Calibration calibration = new Calibration();
+        mSquareSize = calibration.getDotDist();
+        mIsCalibrated = false;
         Log.i(TAG, "Instantiated new " + this.getClass());
     }
 

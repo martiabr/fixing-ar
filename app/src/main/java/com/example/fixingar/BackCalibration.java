@@ -39,7 +39,6 @@ public class BackCalibration extends CameraActivity implements CvCameraViewListe
     private int mCameraIndex = CameraBridgeViewBase.CAMERA_ID_BACK;
     private CameraCalibrator mCalibrator;
     private OnCameraFrameRender mOnCameraFrameRender;
-    private Menu mMenu;
     private int mWidth;
     private int mHeight;
     private Button mCalibrate;
@@ -174,14 +173,6 @@ public class BackCalibration extends CameraActivity implements CvCameraViewListe
             mWidth = width;
             mHeight = height;
             mCalibrator = new CameraCalibrator(mWidth, mHeight);
-            if (CalibrationResult.tryLoad(BackCalibration.this, mCalibrator.getCameraMatrix(), mCalibrator.getDistortionCoefficients(), "back")) {
-                mCalibrator.setCalibrated();
-            } else {
-                if (mMenu != null && !mCalibrator.isCalibrated()) {
-                    mMenu.findItem(R.id.preview_mode).setEnabled(false);
-                }
-            }
-
             mOnCameraFrameRender = new OnCameraFrameRender(new CalibrationFrameRender(mCalibrator));
         }
     }

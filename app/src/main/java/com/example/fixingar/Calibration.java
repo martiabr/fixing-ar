@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -27,6 +28,9 @@ public class Calibration extends AppCompatActivity {
     SharedPreferences sharedPref;
     SharedPreferences.Editor editor;
 
+    public Calibration() {
+        sharedPref = getApplicationContext().getSharedPreferences("variables", Context.MODE_PRIVATE);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,5 +124,10 @@ public class Calibration extends AppCompatActivity {
         else {
             CalibInfo.setText("Please specify half the distance in between dots on the calibration sheet.");
         }
+    }
+
+    public float getDotDist() {
+        float DotDist = sharedPref.getFloat("DotDist", 0);
+        return DotDist;
     }
 }
