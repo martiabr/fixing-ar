@@ -26,6 +26,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.Toast;
 
 import java.util.Collections;
@@ -41,6 +42,7 @@ public class BackCalibration extends CameraActivity implements CvCameraViewListe
     private Menu mMenu;
     private int mWidth;
     private int mHeight;
+    private Button mCalibrate;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -76,6 +78,14 @@ public class BackCalibration extends CameraActivity implements CvCameraViewListe
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.camera_view2);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
+
+        mCalibrate = findViewById(R.id.button_calibrate);
+        mCalibrate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Calibrate();
+            }
+        });
     }
 
     @Override
@@ -110,92 +120,52 @@ public class BackCalibration extends CameraActivity implements CvCameraViewListe
             mOpenCvCameraView.disableView();
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        super.onCreateOptionsMenu(menu);
-        getMenuInflater().inflate(R.menu.calibration, menu);
-        mMenu = menu;
-        return true;
-    }
-
-    @Override
-    public boolean onPrepareOptionsMenu (Menu menu) {
-        super.onPrepareOptionsMenu(menu);
-        menu.findItem(R.id.preview_mode).setEnabled(true);
-        if (mCalibrator != null && !mCalibrator.isCalibrated()) {
-            menu.findItem(R.id.preview_mode).setEnabled(false);
+    public void Calibrate() {
+        final Resources res = getResources();
+        if (mCalibrator.getCornersBufferSize() < 2) {
+            (Toast.makeText(this, res.getString(R.string.more_samples), Toast.LENGTH_SHORT)).show();
+            return;
         }
-        return true;
-    }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.calibration:
-                mOnCameraFrameRender =
-                        new OnCameraFrameRender(new CalibrationFrameRender(mCalibrator));
-                item.setChecked(true);
-                return true;
-            case R.id.undistortion:
-                mOnCameraFrameRender =
-                        new OnCameraFrameRender(new UndistortionFrameRender(mCalibrator));
-                item.setChecked(true);
-                return true;
-            case R.id.comparison:
-                mOnCameraFrameRender =
-                        new OnCameraFrameRender(new ComparisonFrameRender(mCalibrator, mWidth, mHeight, getResources()));
-                item.setChecked(true);
-                return true;
-            case R.id.calibrate:
-                final Resources res = getResources();
-                if (mCalibrator.getCornersBufferSize() < 2) {
-                    (Toast.makeText(BackCalibration.this, res.getString(R.string.more_samples), Toast.LENGTH_SHORT)).show();
-                    return true;
-                }
+        mOnCameraFrameRender = new OnCameraFrameRender(new PreviewFrameRender());
+        new AsyncTask<Void, Void, Void>() {
+            private ProgressDialog calibrationProgress;
 
-                mOnCameraFrameRender = new OnCameraFrameRender(new PreviewFrameRender());
-                new AsyncTask<Void, Void, Void>() {
-                    private ProgressDialog calibrationProgress;
+            @Override
+            protected void onPreExecute() {
+                calibrationProgress = new ProgressDialog(BackCalibration.this);
+                calibrationProgress.setTitle(res.getString(R.string.calibrating));
+                calibrationProgress.setMessage(res.getString(R.string.please_wait));
+                calibrationProgress.setCancelable(false);
+                calibrationProgress.setIndeterminate(true);
+                calibrationProgress.show();
+            }
 
-                    @Override
-                    protected void onPreExecute() {
-                        calibrationProgress = new ProgressDialog(BackCalibration.this);
-                        calibrationProgress.setTitle(res.getString(R.string.calibrating));
-                        calibrationProgress.setMessage(res.getString(R.string.please_wait));
-                        calibrationProgress.setCancelable(false);
-                        calibrationProgress.setIndeterminate(true);
-                        calibrationProgress.show();
-                    }
+            @Override
+            protected Void doInBackground(Void... arg0) {
+                mCalibrator.calibrate();
+                return null;
+            }
 
-                    @Override
-                    protected Void doInBackground(Void... arg0) {
-                        mCalibrator.calibrate();
-                        return null;
-                    }
+            @Override
+            protected void onPostExecute(Void result) {
+                calibrationProgress.dismiss();
+                mCalibrator.clearCorners();
+                mOnCameraFrameRender = new OnCameraFrameRender(new CalibrationFrameRender(mCalibrator));
+                String resultMessage = (mCalibrator.isCalibrated()) ?
+                        res.getString(R.string.calibration_successful)  + " " + mCalibrator.getAvgReprojectionError() :
+                        res.getString(R.string.calibration_unsuccessful);
+                (Toast.makeText(BackCalibration.this, resultMessage, Toast.LENGTH_SHORT)).show();
 
-                    @Override
-                    protected void onPostExecute(Void result) {
-                        calibrationProgress.dismiss();
-                        mCalibrator.clearCorners();
-                        mOnCameraFrameRender = new OnCameraFrameRender(new CalibrationFrameRender(mCalibrator));
-                        String resultMessage = (mCalibrator.isCalibrated()) ?
-                                res.getString(R.string.calibration_successful)  + " " + mCalibrator.getAvgReprojectionError() :
-                                res.getString(R.string.calibration_unsuccessful);
-                        (Toast.makeText(BackCalibration.this, resultMessage, Toast.LENGTH_SHORT)).show();
-
-                        if (mCalibrator.isCalibrated()) {
-                            CalibrationResult.save(BackCalibration.this,
-                                    mCalibrator.getCameraMatrix(), mCalibrator.getDistortionCoefficients(), "back");
-                        }
-                    }
-                }.execute();
                 if (mCalibrator.isCalibrated()) {
-                    Intent intent = new Intent(this, Calibration.class);
-                    startActivity(intent);
+                    CalibrationResult.save(BackCalibration.this,
+                            mCalibrator.getCameraMatrix(), mCalibrator.getDistortionCoefficients(), "back");
                 }
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+            }
+        }.execute();
+        if (mCalibrator.isCalibrated()) {
+            Intent intent = new Intent(this, Calibration.class);
+            startActivity(intent);
         }
     }
 
