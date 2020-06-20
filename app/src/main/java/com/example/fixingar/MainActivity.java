@@ -280,11 +280,11 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             variables = new Variables(WHO);
             MARKER_SIZE = variables.getMarkerSize();
 
-            camParamsBack = new CameraParameters("Back");
+            camParamsBack = new CameraParameters("back");
             camParamsBack.read(this);
             perspectiveFixer = new PerspectiveFixer(camParamsBack, WHO);
 
-            camParamsFront = new CameraParameters("Front");
+            camParamsFront = new CameraParameters("front");
             camParamsFront.read(this);
             faceDetection = new FaceDetection(camParamsFront.getCameraMatrix(), mJavaDetector1, mJavaDetector2, mNativeDetector1, mNativeDetector2,WHO);
         }

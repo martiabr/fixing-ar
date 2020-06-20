@@ -20,17 +20,21 @@ public class Calibration extends AppCompatActivity {
     private Button mReturnButton;
     private Button mFrontCalibButton;
     private Button mBackCalibButton;
-    private double DotDist = 0;
     private TextView CalibInfo;
     private EditText DotDistText;
     private CameraParameters camParamsFront;
     private CameraParameters camParamsBack;
+    SharedPreferences sharedPref;
+    SharedPreferences.Editor editor;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_calibration);
+
+        sharedPref = getApplicationContext().getSharedPreferences("variables", Context.MODE_PRIVATE);
+        editor = sharedPref.edit();
 
         mReturnButton = findViewById(R.id.button_return2);
         mReturnButton.setOnClickListener(new View.OnClickListener() {
@@ -54,13 +58,9 @@ public class Calibration extends AppCompatActivity {
             }
         });
         DotDistText = findViewById(R.id.calibration_dot_distance);
-        if (DotDistText.getText().toString().isEmpty() == false) {
-        DotDist = Double.parseDouble(DotDistText.getText().toString());
-        }
-        else {
-            if (DotDist != 0){
-                DotDistText.setText(Double.toString(DotDist));
-            }
+        // TODO: there is a bug if i delete the decimal point of the dot distance. It is not possible to write afterwards
+        if (DotDistText.getText().toString().isEmpty() && sharedPref.contains("DotDist")) {
+            DotDistText.setText(Float.toString(sharedPref.getFloat("DotDist", 0)));
         }
         DotDistText.addTextChangedListener(new TextWatcher() {
             @Override
@@ -72,8 +72,10 @@ public class Calibration extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 if (DotDistText != null) {
-                    DotDist = Double.parseDouble(DotDistText.getText().toString());}
-                else {DotDist = 0;}
+                    editor.putFloat("DotDist", Float.parseFloat(DotDistText.getText().toString()));
+                }
+                else {editor.remove("DotDist");}
+                editor.commit();
             }
         });
         CalibInfo = findViewById(R.id.calibrate_warning);
@@ -88,7 +90,7 @@ public class Calibration extends AppCompatActivity {
             CalibInfo.setText("Please calibrate the front camera.");
         }
         else {
-            camParamsBack = new CameraParameters("Back");
+            camParamsBack = new CameraParameters("back");
             camParamsBack.read(this);
             Mat cpb = camParamsBack.getCameraMatrix();
             if (cpb.get(1,1)[0] == -1 &&  cpb.get(2,2)[0] == -1) {
@@ -101,20 +103,22 @@ public class Calibration extends AppCompatActivity {
     }
 
     public void GoToFrontCalibration() {
-        if (DotDist == 0){
-            CalibInfo.setText("Please specify half the distance in between dots on the calibration sheet.");
+        if (sharedPref.contains("DotDist") && sharedPref.getFloat("DotDist", 0) != 0){
+            Intent intent = new Intent(this, FrontCalibration.class);
+            startActivity(intent);
         }
         else {
-        Intent intent = new Intent(this, FrontCalibration.class);
-        startActivity(intent);}
+            CalibInfo.setText("Please specify half the distance in between dots on the calibration sheet.");
+        }
     }
 
     public void GoToBackCalibration() {
-        if (DotDist == 0){
-            CalibInfo.setText("Please specify half the distance in between dots on the calibration sheet.");
+        if (sharedPref.contains("DotDist") && sharedPref.getFloat("DotDist", 0) != 0){
+            Intent intent = new Intent(this, BackCalibration.class);
+            startActivity(intent);
         }
         else {
-        Intent intent = new Intent(this, BackCalibration.class);
-        startActivity(intent);}
+            CalibInfo.setText("Please specify half the distance in between dots on the calibration sheet.");
+        }
     }
 }
