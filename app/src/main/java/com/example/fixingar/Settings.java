@@ -1,5 +1,6 @@
 package com.example.fixingar;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -23,7 +24,6 @@ public class Settings extends AppCompatActivity {
     SharedPreferences.Editor editor;
 
     public Settings() {
-        sharedPref = getApplicationContext().getSharedPreferences("variables", Context.MODE_PRIVATE);
     }
 
     @Override
@@ -31,7 +31,7 @@ public class Settings extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
-        sharedPref = getApplicationContext().getSharedPreferences("variables", Context.MODE_PRIVATE);
+        sharedPref = this.getSharedPreferences("variables", Context.MODE_PRIVATE);
         editor = sharedPref.edit();
 
         mCalibrateButton = findViewById(R.id.button_calibrate);
@@ -141,7 +141,8 @@ public class Settings extends AppCompatActivity {
         }
     }
 
-    public float[] GetVariables() {
+    public float[] GetVariables(Activity activity) {
+        sharedPref = activity.getSharedPreferences("variables", Context.MODE_PRIVATE);
         float[] variables = new float[3];
         variables[0] = sharedPref.getFloat("MarkerSize", 0);
         variables[1] = sharedPref.getFloat("FaceWidth", 0);

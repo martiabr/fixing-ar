@@ -1,5 +1,6 @@
 package com.example.fixingar;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -29,7 +30,6 @@ public class Calibration extends AppCompatActivity {
     SharedPreferences.Editor editor;
 
     public Calibration() {
-        sharedPref = getApplicationContext().getSharedPreferences("variables", Context.MODE_PRIVATE);
     }
 
     @Override
@@ -37,7 +37,7 @@ public class Calibration extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_calibration);
 
-        sharedPref = getApplicationContext().getSharedPreferences("variables", Context.MODE_PRIVATE);
+        sharedPref = this.getSharedPreferences("variables", Context.MODE_PRIVATE);
         editor = sharedPref.edit();
 
         mReturnButton = findViewById(R.id.button_return2);
@@ -127,6 +127,7 @@ public class Calibration extends AppCompatActivity {
     }
 
     public float getDotDist() {
+        sharedPref = this.getSharedPreferences("variables", Context.MODE_PRIVATE);
         float DotDist = sharedPref.getFloat("DotDist", 0);
         return DotDist;
     }

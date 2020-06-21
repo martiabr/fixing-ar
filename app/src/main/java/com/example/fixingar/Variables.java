@@ -1,5 +1,7 @@
 package com.example.fixingar;
 
+import android.app.Activity;
+
 public class Variables {
     private String who;
     // Julia
@@ -181,23 +183,23 @@ public class Variables {
         return est;
     }
 
-    public float getFaceWidth(){
+    public float getFaceWidth(Activity activity){
         Settings settings = new Settings();
-        float[] variables = settings.GetVariables();
+        float[] variables = settings.GetVariables(activity);
         float FaceWidth = variables[1];
         return FaceWidth;
     }
 
-    public float getEyeDist(){
+    public float getEyeDist(Activity activity){
         Settings settings = new Settings();
-        float[] variables = settings.GetVariables();
+        float[] variables = settings.GetVariables(activity);
         float EyeDist = variables[2];
         return EyeDist;
     }
 
-    public float getMarkerSize(){
+    public float getMarkerSize(Activity activity){
         Settings settings = new Settings();
-        float[] variables = settings.GetVariables();
+        float[] variables = settings.GetVariables(activity);
         float MarkerSize = variables[0];
         return MarkerSize;
     }
