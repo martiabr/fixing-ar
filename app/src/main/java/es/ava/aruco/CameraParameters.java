@@ -167,5 +167,21 @@ public class CameraParameters {
 		}
 		distorsionMatrix.fromArray(distortionCoefficientsArray);
 	}
+
+	public boolean CheckIfItExists(Activity activity) {
+    	boolean check = true;
+		SharedPreferences sharedPref = activity.getSharedPreferences(FrontBack, Context.MODE_PRIVATE);
+		double[] cameraMatrixArray = new double[3 * 3];
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				Integer id = i * 3 + j;
+				cameraMatrixArray[id] = sharedPref.getFloat(id.toString(), -1);
+			}
+		}
+		if (cameraMatrixArray[0] == -1 && cameraMatrixArray[1] == -1 && cameraMatrixArray[5] == -1) {
+			check = false;
+		}
+		return check;
+	}
 }
 

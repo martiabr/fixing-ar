@@ -14,23 +14,43 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import org.opencv.android.BaseLoaderCallback;
+import org.opencv.android.LoaderCallbackInterface;
+import org.opencv.android.OpenCVLoader;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 
 import es.ava.aruco.CameraParameters;
 
 public class Calibration extends AppCompatActivity {
+    private static final String TAG = "CalibrationMenu";
     private Button mReturnButton;
     private Button mFrontCalibButton;
     private Button mBackCalibButton;
     private TextView CalibInfo;
     private EditText DotDistText;
-    private CameraParameters camParamsFront;
-    private CameraParameters camParamsBack;
     SharedPreferences sharedPref;
     SharedPreferences.Editor editor;
 
     public Calibration() {
     }
+
+    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
+        @Override
+        public void onManagerConnected(int status) {
+            switch (status) {
+                case LoaderCallbackInterface.SUCCESS:
+                {
+                    Log.i("OpenCV", "OpenCV loaded successfully");
+                    Mat MatTest=new Mat();
+                } break;
+                default:
+                {
+                    super.onManagerConnected(status);
+                } break;
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,10 +95,12 @@ public class Calibration extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                if (DotDistText != null) {
+                if (DotDistText.getText().toString().isEmpty()) {
+                    editor.remove("DotDist");
+                }
+                else {
                     editor.putFloat("DotDist", Float.parseFloat(DotDistText.getText().toString()));
                 }
-                else {editor.remove("DotDist");}
                 editor.commit();
             }
         });
@@ -86,23 +108,32 @@ public class Calibration extends AppCompatActivity {
         CalibInfo.setText("");
     }
 
-    public void ReturnToSettings() {
-        camParamsFront = new CameraParameters("front");
-        camParamsFront.read(this);
-        Mat cpf = camParamsFront.getCameraMatrix();
-        if (cpf.get(1,1)[0] == -1 &&  cpf.get(2,2)[0] == -1) {
-            CalibInfo.setText("Please calibrate the front camera.");
+    @Override
+    public void onResume()
+    {
+        super.onResume();
+        if (!OpenCVLoader.initDebug()) {
+            Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
+            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION, this, mLoaderCallback);
+        } else {
+            Log.d(TAG, "OpenCV library found inside package. Using it!");
+            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
         }
-        else {
-            camParamsBack = new CameraParameters("back");
-            camParamsBack.read(this);
-            Mat cpb = camParamsBack.getCameraMatrix();
-            if (cpb.get(1,1)[0] == -1 &&  cpb.get(2,2)[0] == -1) {
-                CalibInfo.setText("Please calibrate the back camera.");
-            } else {
+    }
+
+    public void ReturnToSettings() {
+        CameraParameters camParamsFront = new CameraParameters("front");
+        if (camParamsFront.CheckIfItExists(this)) {
+            CameraParameters camParamsBack = new CameraParameters("back");
+            if (camParamsBack.CheckIfItExists(this)) {
                 Intent intent = new Intent(this, Settings.class);
                 startActivity(intent);
+            } else {
+                CalibInfo.setText("Please calibrate the back camera.");
             }
+        }
+        else {
+            CalibInfo.setText("Please calibrate the front camera.");
             }
     }
 

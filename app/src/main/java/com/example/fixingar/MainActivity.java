@@ -17,6 +17,7 @@ import org.opencv.core.Scalar;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -245,6 +246,22 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
         setContentView(R.layout.activity_main);
 
+/*
+        // This section deletes the front and back camera matrix and our variables. It is here for testing purposes.
+        SharedPreferences sharedPref = this.getSharedPreferences("front", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.clear();
+        editor.commit();
+        SharedPreferences sharedPref2 = this.getSharedPreferences("back", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor2 = sharedPref2.edit();
+        editor2.clear();
+        editor2.commit();
+        SharedPreferences sharedPref3 = this.getSharedPreferences("variables", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor3 = sharedPref3.edit();
+        editor3.clear();
+        editor3.commit();
+*/
+
         mDebugText = (TextView) findViewById(R.id.debug_text);
 
         mCameraButton = (Button) findViewById(R.id.camera_button);
@@ -280,10 +297,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             MARKER_SIZE = variables.getMarkerSize(this);
 
             camParamsBack = new CameraParameters("back");
-            camParamsBack.read(this);
-
             camParamsFront = new CameraParameters("front");
-            camParamsFront.read(this);
 
             if (CheckIfCalibrated() == false) {
                 Intent intent = new Intent(this, Calibration.class);
@@ -294,6 +308,8 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 startActivity(intent);
             }
 
+            camParamsBack.read(this);
+            camParamsFront.read(this);
             perspectiveFixer = new PerspectiveFixer(camParamsBack, WHO);
             faceDetection = new FaceDetection(camParamsFront.getCameraMatrix(), mJavaDetector1, mJavaDetector2, mNativeDetector1, mNativeDetector2, WHO, this);
         }
@@ -485,16 +501,14 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     }
 
     public boolean CheckIfCalibrated() {
-        Mat cpf = camParamsFront.getCameraMatrix();
-        if (cpf.get(1, 1)[0] == -1 && cpf.get(2, 2)[0] == -1) {
-            return false;
-        } else {
-            Mat cpb = camParamsBack.getCameraMatrix();
-            if (cpb.get(1, 1)[0] == -1 && cpb.get(2, 2)[0] == -1) {
-                return false;
-            } else {
+        if (camParamsFront.CheckIfItExists(this)) {
+            if (camParamsBack.CheckIfItExists(this)) {
                 return true;
+            } else {
+                return false;
             }
+        } else {
+            return false;
         }
 
     }
