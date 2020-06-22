@@ -157,8 +157,8 @@ public class Calibration extends AppCompatActivity {
         }
     }
 
-    public float getDotDist() {
-        sharedPref = this.getSharedPreferences("variables", Context.MODE_PRIVATE);
+    public float getDotDist(Activity activity) {
+        sharedPref = activity.getSharedPreferences("variables", Context.MODE_PRIVATE);
         float DotDist = sharedPref.getFloat("DotDist", 0);
         return DotDist;
     }

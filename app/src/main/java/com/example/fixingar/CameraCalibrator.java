@@ -15,6 +15,7 @@ import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
@@ -46,7 +47,7 @@ public class CameraCalibrator {
     private double mSquareSize;
     private Size mImageSize;
 
-    public CameraCalibrator(int width, int height) {
+    public CameraCalibrator(int width, int height, Activity activity) {
         mImageSize = new Size(width, height);
         mFlags = Calib3d.CALIB_FIX_PRINCIPAL_POINT +
                  Calib3d.CALIB_ZERO_TANGENT_DIST +
@@ -57,9 +58,10 @@ public class CameraCalibrator {
         mCameraMatrix.put(0, 0, 1.0);
         Mat.zeros(5, 1, CvType.CV_64FC1).copyTo(mDistortionCoefficients);
         Calibration calibration = new Calibration();
-        mSquareSize = calibration.getDotDist();
+        mSquareSize = calibration.getDotDist(activity);
         mIsCalibrated = false;
         Log.i(TAG, "Instantiated new " + this.getClass());
+        Log.i(TAG, "Half Dot Distance" + mSquareSize);
     }
 
     public void processFrame(Mat grayFrame, Mat rgbaFrame) {

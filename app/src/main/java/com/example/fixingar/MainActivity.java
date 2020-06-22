@@ -260,7 +260,8 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         SharedPreferences.Editor editor3 = sharedPref3.edit();
         editor3.clear();
         editor3.commit();
-*/
+
+ */
 
         mDebugText = (TextView) findViewById(R.id.debug_text);
 

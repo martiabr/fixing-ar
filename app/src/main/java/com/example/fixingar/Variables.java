@@ -13,8 +13,8 @@ public class Variables {
     private float EyeDist_J = 0.06f;
     // perspective fixer variables
     private float MarkerSize_J = 0.03f;
-    private double halfwidth_J = 0.14/2;
-    private double halfHeight_J = 0.066/2;
+    private double halfwidth_J = 0.103/2;
+    private double halfHeight_J = 0.058/2;
     // Position of front camera.
     private double camTo00CornerX_J = 0;
     private double camTo00CornerY_J = 0.066/2; // y vector from camera to (0,0) image corner (top-left). Positive direction is downwards.

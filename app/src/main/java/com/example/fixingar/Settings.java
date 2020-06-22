@@ -62,7 +62,7 @@ public class Settings extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                if (MarkerSize != null) {
+                if (MarkerSize.getText().toString() != "") {
                     editor.putFloat("MarkerSize", Float.parseFloat(MarkerSize.getText().toString()));
                 }
                 else {editor.remove("MarkerSize");}
@@ -83,7 +83,7 @@ public class Settings extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                if (FaceWidth != null) {
+                if (FaceWidth.getText().toString() != "") {
                     editor.putFloat("FaceWidth", Float.parseFloat(FaceWidth.getText().toString()));
                 }
                 else {editor.remove("FaceWidth");}
@@ -104,7 +104,7 @@ public class Settings extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                if (EyeDist != null) {
+                if (EyeDist.getText().toString() != "") {
                     editor.putFloat("EyeDist", Float.parseFloat(EyeDist.getText().toString()));
                 }
                 else {editor.remove("EyeDist");}

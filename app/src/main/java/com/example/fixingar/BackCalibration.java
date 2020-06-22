@@ -42,6 +42,7 @@ public class BackCalibration extends CameraActivity implements CvCameraViewListe
     private int mWidth;
     private int mHeight;
     private Button mCalibrate;
+    private Button mReturn;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -95,6 +96,14 @@ public class BackCalibration extends CameraActivity implements CvCameraViewListe
             @Override
             public void onClick(View v) {
                 Calibrate();
+            }
+        });
+
+        mReturn = findViewById(R.id.button_return3);
+        mReturn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ReturnToMenu();
             }
         });
     }
@@ -174,17 +183,13 @@ public class BackCalibration extends CameraActivity implements CvCameraViewListe
                 }
             }
         }.execute();
-        if (mCalibrator.isCalibrated()) {
-            Intent intent = new Intent(this, Calibration.class);
-            startActivity(intent);
-        }
     }
 
     public void onCameraViewStarted(int width, int height) {
         if (mWidth != width || mHeight != height) {
             mWidth = width;
             mHeight = height;
-            mCalibrator = new CameraCalibrator(mWidth, mHeight);
+            mCalibrator = new CameraCalibrator(mWidth, mHeight, this);
             mOnCameraFrameRender = new OnCameraFrameRender(new CalibrationFrameRender(mCalibrator));
         }
     }
@@ -202,6 +207,11 @@ public class BackCalibration extends CameraActivity implements CvCameraViewListe
 
         mCalibrator.addCorners();
         return false;
+    }
+
+    private void ReturnToMenu() {
+        Intent intent = new Intent(this, Calibration.class);
+        startActivity(intent);
     }
 
 }
