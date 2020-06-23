@@ -290,6 +290,10 @@ public class PerspectiveFixer {
         Mat eye2Marker = new Mat();
         Core.add(tEye2Device, marker.getTvec(), eye2Marker);
 
+        // Lines for evaluation of marker pose estimation.
+        Log.d("evaluateT",marker.getTvec().dump());
+        Log.d("evaluateR",marker.getRvec().dump());
+
         // 3. Project points through eye camera matrix to find marker points in eye projection.
         Mat EyeCamMatrix = createCameraMatrix(mCoordinates[2],mCoordinates[2], 0,0);
         MatOfPoint2f markerPointsProjEye = new MatOfPoint2f();
