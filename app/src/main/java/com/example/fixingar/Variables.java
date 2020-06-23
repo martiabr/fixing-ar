@@ -40,7 +40,7 @@ public class Variables {
     private float FaceWidth_O = 0.14f;
     private float EyeDist_O = 0.065f;
     // perspective fixer variables
-    private float MarkerSize_O = 0.111f;
+    private float MarkerSize_O = 0.131f;
     private double halfwidth_O = 0.105/2;
     private double halfHeight_O = 0.059/2;
     // Position of front camera.
