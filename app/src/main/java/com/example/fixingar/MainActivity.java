@@ -412,9 +412,23 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     }
 
     private void WriteToFile() throws IOException {
-        SharedPreferences sharedP = getSharedPreferences("Testing", MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedP.edit();
-        
+        String NextLine = System.getProperty("line.separator");
+        String filename = "TestingEye_30_true.txt";
+        String path = this.getFilesDir().getAbsolutePath();
+        File file = new File(path+ File.pathSeparator + filename);
+        FileOutputStream fOut = new FileOutputStream(file, true);
+        if (!file.exists()) {
+            file.createNewFile();
+        }
+        for (int j = 0; j<300; j++) {
+            float info = TestingVar[j][0];
+            float x = TestingVar[j][1];
+            float y = TestingVar[j][2];
+            float z = TestingVar[j][3];
+            String string = Float.toString(info) + " " + Float.toString(x) + " " + Float.toString(y) + " " + Float.toString(z) + NextLine;
+            fOut.write(string.getBytes());
+        }
+        fOut.close();
     }
 
     @Override
