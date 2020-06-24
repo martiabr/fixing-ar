@@ -129,8 +129,10 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     private static final int DELAY = 5000;
 
     private float[][] TestingVar;
-    private int i;
+    private int i = -1;
     private Button save;
+    private Button measure;
+    private boolean measuring = false;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -256,8 +258,8 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         mOpenCvCameraView.setMaxFrameSize(1280,720);
         mOpenCvCameraView.setCameraIndex(mCameraIndex);
 
-        i = -600;
         TestingVar = new float[300][4];
+        measuring = false;
 
         save = findViewById(R.id.button_save);
         save.setOnClickListener(new View.OnClickListener() {
@@ -270,6 +272,15 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                     e.printStackTrace();
                     Log.d(TAG, "File could not be saved");
                 }
+            }
+        });
+
+        measure = findViewById(R.id.button_measure);
+        measure.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                i = -1;
+                measuring = !measuring;
             }
         });
     }
@@ -382,20 +393,10 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                         TestingVar[i][2] = mCoordinates[1];
                         TestingVar[i][3] = mCoordinates[2];
                     }
-                    else {
-                        TestingVar[i][0] = 0;
-                        TestingVar[i][1] = 0;
-                        TestingVar[i][2] = 0;
-                        TestingVar[i][3] = 0;
-                    }
-                } else {
-                    TestingVar[i][0] = 0;
-                    TestingVar[i][1] = 0;
-                    TestingVar[i][2] = 0;
-                    TestingVar[i][3] = 0;
                 }
             }
-            i = i+1;
+            if (measuring == true){
+            i = i+1;}
         }
 
         return mRgba;
