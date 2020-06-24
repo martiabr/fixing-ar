@@ -16,8 +16,12 @@ import org.opencv.core.Scalar;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -54,10 +58,15 @@ import org.opencv.objdetect.CascadeClassifier;
 import org.opencv.samples.facedetect.DetectionBasedTracker;
 
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Vector;
@@ -118,6 +127,10 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     private Handler mHandler = new Handler();
     private boolean timerRunning = false;
     private static final int DELAY = 5000;
+
+    private float[][] TestingVar;
+    private int i;
+    private Button save;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -242,6 +255,23 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         mOpenCvCameraView.setCvCameraViewListener(this);
         mOpenCvCameraView.setMaxFrameSize(1280,720);
         mOpenCvCameraView.setCameraIndex(mCameraIndex);
+
+        i = -600;
+        TestingVar = new float[300][4];
+
+        save = findViewById(R.id.button_save);
+        save.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    WriteToFile();
+                    Log.d(TAG, "File saved");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Log.d(TAG, "File could not be saved");
+                }
+            }
+        });
     }
 
     @Override
@@ -344,6 +374,28 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             String mess = mess1 + "Dist: " + Float.toString(mCoordinates[2]) + "m, x: " + Float.toString(mCoordinates[0]) + "m, y: " + Float.toString(mCoordinates[1]) + "m";
             debugMsg(mess);
             }
+            if (i>=0 && i<300) {
+                if (mCoordinates != null) {
+                    if (mCoordinates[3] != 0) {
+                        TestingVar[i][0] = mCoordinates[3];
+                        TestingVar[i][1] = mCoordinates[0];
+                        TestingVar[i][2] = mCoordinates[1];
+                        TestingVar[i][3] = mCoordinates[2];
+                    }
+                    else {
+                        TestingVar[i][0] = 0;
+                        TestingVar[i][1] = 0;
+                        TestingVar[i][2] = 0;
+                        TestingVar[i][3] = 0;
+                    }
+                } else {
+                    TestingVar[i][0] = 0;
+                    TestingVar[i][1] = 0;
+                    TestingVar[i][2] = 0;
+                    TestingVar[i][3] = 0;
+                }
+            }
+            i = i+1;
         }
 
         return mRgba;
@@ -357,6 +409,12 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 mDebugText.setText(str);
             }
         });
+    }
+
+    private void WriteToFile() throws IOException {
+        SharedPreferences sharedP = getSharedPreferences("Testing", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedP.edit();
+        
     }
 
     @Override
