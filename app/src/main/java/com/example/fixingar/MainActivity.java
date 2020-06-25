@@ -414,7 +414,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
     private void WriteToFile() throws IOException {
         String NextLine = System.getProperty("line.separator");
-        String filename = "TestingFace_30_false.txt";
+        String filename = "TestingFace_30_false2.txt";
         String path = this.getFilesDir().getAbsolutePath();
         File file = new File(path+ File.pathSeparator + filename);
         FileOutputStream fOut = new FileOutputStream(file, true);

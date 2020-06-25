@@ -7,8 +7,8 @@ public class Variables {
     private double focallength_J = 3.75*0.001;
     private double resolution_J = 1920;
     private double est_J = 1.3;
-    private float FaceWidth_J = 0.154f;
-    private float EyeDist_J = 0.066f;
+    private float FaceWidth_J = 0.14f;
+    private float EyeDist_J = 0.06f;
     // perspective fixer variables
     private float MarkerSize_J = 0.03f;
     private double halfwidth_J = 0.14/2;
