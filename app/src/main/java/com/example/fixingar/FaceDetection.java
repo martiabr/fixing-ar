@@ -199,6 +199,7 @@ public class FaceDetection {
             Coordinates[0] = AllFaceCoordinates[index1][0];
             Coordinates[1] = AllFaceCoordinates[index1][1];
             Coordinates[2] = AllFaceCoordinates[index1][2];
+            Coordinates[3] = 1;
         }
     }
 
