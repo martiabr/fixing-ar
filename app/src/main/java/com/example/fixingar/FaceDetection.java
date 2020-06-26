@@ -119,8 +119,7 @@ public class FaceDetection {
                 AllEyeCoordinates[i][1] = eyesArray[i].y;
             }
         }
-        Coordinates[3] = 0;
-        if (NumEyes > 1) {
+        if (NumEyes > 1 && Coordinates[3] != 1) {
             if (NumEyes == 2) {
                 int x1 = AllEyeCoordinates[0][0];
                 int x2 = AllEyeCoordinates[1][0];
@@ -239,8 +238,8 @@ public class FaceDetection {
         mCoordinates = new float[4];
         // start with eye and face detection
         Coordinates[3] = 0;
-        EyeDetection();
         FaceDetection();
+        EyeDetection();
 
         if (Coordinates[3] !=0) {
             float ObjSize = RealObjSize(Coordinates);
