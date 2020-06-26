@@ -10,7 +10,9 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.Switch;
 import android.widget.TextView;
 
 public class Settings extends AppCompatActivity {
@@ -20,6 +22,7 @@ public class Settings extends AppCompatActivity {
     private EditText MarkerSize;
     private EditText FaceWidth;
     private EditText EyeDist;
+    private Switch DrawCubes;
     SharedPreferences sharedPref;
     SharedPreferences.Editor editor;
 
@@ -112,6 +115,16 @@ public class Settings extends AppCompatActivity {
             }
         });
 
+        DrawCubes = findViewById(R.id.switch_draw_cubes);
+        DrawCubes.setChecked(sharedPref.getBoolean("DrawCubes", false));
+        DrawCubes.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                editor.putBoolean("DrawCubes", isChecked);
+                editor.commit();
+            }
+        });
+
         VarInfo = findViewById(R.id.warning_variables);
         VarInfo.setText("");
     }
@@ -148,6 +161,11 @@ public class Settings extends AppCompatActivity {
         variables[1] = sharedPref.getFloat("FaceWidth", 0);
         variables[2] = sharedPref.getFloat("EyeDist", 0);
         return variables;
+    }
+
+    public boolean GetDrawCubes(Activity activity) {
+        sharedPref = activity.getSharedPreferences("variables", Context.MODE_PRIVATE);
+        return sharedPref.getBoolean("DrawCubes", false);
     }
 
 }

@@ -311,7 +311,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
             camParamsBack.read(this);
             camParamsFront.read(this);
-            perspectiveFixer = new PerspectiveFixer(camParamsBack, WHO);
+            perspectiveFixer = new PerspectiveFixer(camParamsBack, WHO, this);
             faceDetection = new FaceDetection(camParamsFront.getCameraMatrix(), mJavaDetector1, mJavaDetector2, mNativeDetector1, mNativeDetector2, WHO, this);
         }
     }
@@ -423,7 +423,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
         } else if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_FRONT) {
             mCameraIndex = CameraBridgeViewBase.CAMERA_ID_BACK;
-            perspectiveFixer = new PerspectiveFixer(camParamsBack, WHO);
+            perspectiveFixer = new PerspectiveFixer(camParamsBack, WHO, this);
         }
 
         Toast.makeText(MainActivity.this, "Switching camera to " + mCameraIndex, Toast.LENGTH_SHORT).show();

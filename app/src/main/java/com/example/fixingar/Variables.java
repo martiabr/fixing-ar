@@ -16,9 +16,9 @@ public class Variables {
     private double halfwidth_J = 0.103/2;
     private double halfHeight_J = 0.058/2;
     // Position of front camera.
-    private double camTo00CornerX_J = 0;
-    private double camTo00CornerY_J = 0.066/2; // y vector from camera to (0,0) image corner (top-left). Positive direction is downwards.
-    private double[] ShiftFrontBackCamera_J = {0.012, -0.025, 0.008};
+    private double camTo00CornerX_J = 0.012;
+    private double camTo00CornerY_J = -0.027; // y vector from camera to (0,0) image corner (top-left). Positive direction is downwards.
+    private double[] ShiftFrontBackCamera_J = {0.012, 0.025, 0.008};
     // Martin
     // face detection variables
     private double focallength_M = 2.95*0.001;

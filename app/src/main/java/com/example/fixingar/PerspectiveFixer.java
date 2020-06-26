@@ -1,5 +1,6 @@
 package com.example.fixingar;
 
+import android.app.Activity;
 import android.util.Log;
 
 import org.opencv.calib3d.Calib3d;
@@ -41,7 +42,7 @@ public class PerspectiveFixer {
     private List<Scalar> colorsBase;
     private List<Scalar> colorsCube;
 
-    public PerspectiveFixer(CameraParameters cp, String WHO) {
+    public PerspectiveFixer(CameraParameters cp, String WHO, Activity activity) {
         camParams = cp;
         Variables variables = new Variables(WHO);
         halfHeight = variables.getHalfHeight();
@@ -61,6 +62,8 @@ public class PerspectiveFixer {
             colorsBase.add(new Scalar(r, g, b));
             colorsCube.add(new Scalar(0.7*r, 0.7*g, 0.7*b));
         }
+        Settings settings = new Settings();
+        draw_cubes = settings.GetDrawCubes(activity);
     }
 
     /**
