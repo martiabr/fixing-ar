@@ -228,7 +228,7 @@ public class PerspectiveFixer {
         markerPoints.fromList(points);
         Log.d("markerPoints3D",markerPoints.dump());
 
-        // 2. Create a translation vector from eye poisition to back camera position. This is to translate coordinates for correct camera projection.
+        // 2. Create a translation vector from eye position to back camera position. This is to translate coordinates for correct camera projection.
         Mat tEye2Device = Mat.zeros(3, 1, CvType.CV_64FC1);
         tEye2Device.put(0, 0, (mCoordinates[0]+ShiftBackFront[0]));  // X
         tEye2Device.put(1, 0, (mCoordinates[1]+ShiftBackFront[1])); // Y
