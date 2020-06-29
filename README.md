@@ -42,7 +42,9 @@ Below a short description of the source code in ...\src\main\java\ :
     -Code, Marker and MarkerDetector are the markers for the aruco detection
     -Utils contains various functions used in the other classes
 
--min3d: Is it to draw AR features ???????
+-min3d: 
+ 	a minimal 3D framework for Android used by the Aruco marker tracker module.
+
 -org.opencv.examples.facedetect:
     -DetectionBasedTracker comes with the example imported from OpenCV for face tracking.
 
