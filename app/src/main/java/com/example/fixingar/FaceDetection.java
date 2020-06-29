@@ -70,6 +70,14 @@ public class FaceDetection {
         EstimatedFaceWidth = variables.getFaceWidth();
     }
 
+    /**
+     *
+     * @param mAbsoluteSize
+     * @param image_height
+     * @param mRelativeSize
+     * @param mNativeDetector
+     * @return the absolute size of the image
+     */
     private int CheckAbsoluteSize(int mAbsoluteSize, int image_height, float mRelativeSize, DetectionBasedTracker mNativeDetector) {
         if (mAbsoluteSize == 0) {
             if (Math.round(image_height * mRelativeSize) > 0) {
@@ -79,6 +87,15 @@ public class FaceDetection {
         }
         return mAbsoluteSize;
     }
+
+    /**
+     *
+     * @param mJavaDetector
+     * @param mNativeDetector
+     * @param eyes
+     * @param i
+     * @return the detection method
+     */
 
     private MatOfRect detect(CascadeClassifier mJavaDetector, DetectionBasedTracker mNativeDetector, MatOfRect eyes, int i){
         if (mDetectorType == JAVA_DETECTOR) {
@@ -98,13 +115,14 @@ public class FaceDetection {
         }
         return eyes;
     }
-    // Here the coordinates and distance are found in bits in the array "Coordinates".
-    // If two eyes are found:
-    // Coordinates[0] = (x1+x2)/2 (eye positions)
-    // Coordinates[1] = (y1+y2)/2
-    // Coordinates[2] = distance between eyes
-    // Coordinates[3] = 2 (to indicate two eyes were found)
-
+    /**
+     * Here the coordinates and distance are found in bits in the array "Coordinates".
+     * If two eyes are found:
+     * Coordinates[0] = (x1+x2)/2 (eye positions)
+     * Coordinates[1] = (y1+y2)/2
+     * Coordinates[2] = distance between eyes
+     * Coordinates[3] = 2 (to indicate two eyes were found)
+     */
     private void EyeDetection() {
         mAbsoluteEyeSize = CheckAbsoluteSize(mAbsoluteEyeSize, mGray.rows(), mRelativeEyeSize, mNativeDetector1);
         MatOfRect eyes = new MatOfRect();
@@ -163,13 +181,16 @@ public class FaceDetection {
         }
     }
 
-    // If only one eye was found (or several eyes, but they weren't matching)
-    // Coordinates[0] = x (face position)
-    // Coordinates[1] = y
-    // Coordinates[2] = width (width of face according to rectangle width)
-    // Coordinates[3] = 1 (to indicate one face was found)
-    // if nothing is found:
-    // Coordinates[3] = 0
+    /**
+     * If only one eye was found (or several eyes, but they weren't matching)
+     * Coordinates[0] = x (face position)
+     * Coordinates[1] = y
+     * Coordinates[2] = width (width of face according to rectangle width)
+     * Coordinates[3] = 1 (to indicate one face was found)
+     * if nothing is found:
+     * Coordinates[3] = 0
+     */
+
     private void FaceDetection(){
         mAbsoluteFaceSize = CheckAbsoluteSize(mAbsoluteFaceSize, mGray.rows(), mRelativeFaceSize, mNativeDetector2);
         MatOfRect faces = new MatOfRect();
@@ -202,6 +223,12 @@ public class FaceDetection {
         }
     }
 
+    /**
+     *
+     * @param Coordinates
+     * @return the object detected
+     */
+
     public String ObjDetect(float[] Coordinates) {
         String mess1 = "";
         if (Coordinates[3] != 0) {
@@ -218,6 +245,12 @@ public class FaceDetection {
         return mess1;
     }
 
+    /**
+     *
+     * @param Coordinates
+     * @return the size of the detected object
+     */
+
     private float RealObjSize(int[] Coordinates) {
             double ObjSize = 0;
             // case for 2 eyes detected
@@ -231,6 +264,12 @@ public class FaceDetection {
         return (float) ObjSize;
     }
 
+    /**
+     *
+     * @param Rgba
+     * @param Gray
+     * @return the coordinates of the frame and the estimated phone-face distance
+     */
     public float[] getmCoordinates(Mat Rgba, Mat Gray){
         // use this one as the main, which will go through everything
         mRgba = Rgba;
@@ -247,9 +286,7 @@ public class FaceDetection {
             double[] fy = CameraMatrix.get(2, 2);// in pix
             double f = Math.round((fx[0] + fy[0]) / 2); // round fct to get an integer
             double m = f / focallength;// from fx = f*mx
-            double conv = m * resolution / mGray.cols();// conversion of resolution in px/m
-            //width of the image, Julia's phone resolution for video recording with front camera
-            // : 1920*1080
+            double conv = m * resolution / mGray.cols();
             double objImSensor = Coordinates[2] / conv;// object size in pix/conv in px/m => m
 
             mCoordinates[2] = (float) (ObjSize * focallength / objImSensor * est);// in m and conv from
