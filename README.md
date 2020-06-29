@@ -1,5 +1,4 @@
-# fixing-ar
-Fixing Augmented Reality 3D Vision Project
+# Fixing Augmented Reality 3D Vision Project
 
 This project was conducted by Oskar Keding, Martin Brandt, Caroline Sauget, Julia Kenel.
 
@@ -10,6 +9,8 @@ For the aruco markers, these pictures were used: "\fixing-ar\aruco4.pdf" in the 
 and "\fixing-ar\aruco12.pdf" for the multiple marker case
 
 The application was developed on Android Studio, Version 3.6.1. OpenCV version 4.2.0 was imported. 
+
+## Modules
 
 Below a short description of the source code in ...\src\main\java\ :
 - aruco.min3d: 
@@ -34,17 +35,17 @@ Below a short description of the source code in ...\src\main\java\ :
 	- Variables includes device specific variables of the 4 group members.
 
 - es.ava.aruco:
-    -debug
-    -exceptions
-    -Board, BoardConfiguraiton and BoardDetector are for the calibration of the cameras. They contain all the
+    - debug
+    - exceptions
+    - Board, BoardConfiguraiton and BoardDetector are for the calibration of the cameras. They contain all the
     informations regarding the pattern used to calibrate.
-    -CameraParameters gives the camera matrix and camera distorsion matrix
-    -Code, Marker and MarkerDetector are the markers for the aruco detection
-    -Utils contains various functions used in the other classes
+    - CameraParameters gives the camera matrix and camera distorsion matrix
+    - Code, Marker and MarkerDetector are the markers for the aruco detection
+    - Utils contains various functions used in the other classes
 
--min3d: 
- 	a minimal 3D framework for Android used by the Aruco marker tracker module.
+- min3d: 
+ 	- a minimal 3D framework for Android used by the Aruco marker tracker module.
 
--org.opencv.examples.facedetect:
-    -DetectionBasedTracker comes with the example imported from OpenCV for face tracking.
+- org.opencv.examples.facedetect:
+    - DetectionBasedTracker comes with the example imported from OpenCV for face tracking.
 
