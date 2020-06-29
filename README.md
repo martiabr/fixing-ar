@@ -6,6 +6,8 @@ This project was conducted by Oskar Keding, Martin Brandt, Caroline Sauget, Juli
 The app was designed and tested on a Samsung Galaxy S10e. The app was designed for Android devices.
 
 For the calibration, this file is needed: "\fixing-ar\acircles_pattern.png"
+For the aruco markers, these pictures were used: "\fixing-ar\aruco4.pdf" in the single marker case
+and "\fixing-ar\aruco12.pdf" for the multiple marker case
 
 The application was developed on Android Studio, Version 3.6.1. OpenCV version 4.2.0 was imported. 
 
