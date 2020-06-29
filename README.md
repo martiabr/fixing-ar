@@ -32,3 +32,17 @@ Below a short description of the source code in ...\src\main\java\ :
 	 the homography in between pinhole cameras and warps the perspective.
 	- Settings is the activity file for the settings menu, created by Julia.
 	- Variables includes device specific variables of the 4 group members.
+
+- es.ava.aruco:
+    -debug
+    -exceptions
+    -Board, BoardConfiguraiton and BoardDetector are for the calibration of the cameras. They contain all the
+    informations regarding the pattern used to calibrate.
+    -CameraParameters gives the camera matrix and camera distorsion matrix
+    -Code, Marker and MarkerDetector are the markers for the aruco detection
+    -Utils contains various functions used in the other classes
+
+-min3d: Is it to draw AR features ???????
+-org.opencv.examples.facedetect:
+    -DetectionBasedTracker comes with the example imported from OpenCV for face tracking.
+
