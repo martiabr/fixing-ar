@@ -3,20 +3,30 @@ Fixing Augmented Reality 3D Vision Project
 
 This project was conducted by Oskar Keding, Martin Brandt, Caroline Sauget, Julia Kenel.
 
-The app was designed and tested on a Samsung Galaxy S10e.
+The app was designed and tested on a Samsung Galaxy S10e. The app was designed for Android devices.
 
 For the calibration, this file is needed: "\fixing-ar\acircles_pattern.png"
 
-Individual contributions of the different modules in the application:
-- Settings Menu: Julia
-- Calibration: Martin
-- Aruco Marker Tracking: Martin and Oskar
-- Face and Eye Detection: Caroline and Julia
-- Draw cubes on markers: Martin
-- PerspectiveFixer (1st attempt): Martin and Julia. In this version, the method Imgproc.warpPerspective was applied to the image, 
-using the transform between the Marker corners as seen by the user and the Marker corners from the camera perspective. Rotation of the phone with respect to
-the user was considered. However, the second method yielded better results, so this method was dropped.
-- PerspectiveFixer (2nd attempt and final version): Oskar. In this version, the device corners are projected in the user's perspective and 
-transformed to the camera perspective. Then they are defined as the new image corners. Julia and Martin helped with the Kalman filter.
+The application was developed on Android Studio, Version 3.6.1. OpenCV version 4.2.0 was imported. 
 
-
+Below a short description of the source code in ...\src\main\java\ :
+- aruco.min3d: 
+- com.example.fixingar:
+	- BackCalibration and FrontCalibration are based on the Calibration algorithm by OpenCV and
+	 were adjusted to our needs. They are the calibration activity files.
+	- CalibrationResult, CameraCalibrator and OnCameraFrameRender are complementing the BackCalibration
+	 and FrontCalibration activity. They originate from the Calibration algorithm by OpenCV and were barely changed.
+	- Calibration is activity file for the calibration settings menu and was created by Julia.
+	- FaceDetection includes all code related to face and eye tracking and is used within the main
+	 activity when the front camera is active. The face detection is based on an example project by
+	 OpenCV. However, FaceDetection has been elaborated to include eye detection, to extract the 
+	 coordinates and width of the eyes/face and to calculate the distance and shift of user-device. Most
+	 of the code was therefore created by Caroline and Julia.
+	- MainActivity was created by all group members. It includes the switching between cameras and uses
+	 FaceDetection if the front camera is active and PerspectiveFixer when the back camera is active. It
+	 also includes the Aruco Marker Tracking, which is originally from ...
+	- PerspectiveFixer was created mainly by Oskar and Martin, later Julia added onto it. The final version
+	 includes Oskar's version of "fixing the perspective". It defines the Eye-to-Device-Camera, finds
+	 the homography in between pinhole cameras and warps the perspective.
+	- Settings is the activity file for the settings menu, created by Julia.
+	- Variables includes device specific variables of the 4 group members.
