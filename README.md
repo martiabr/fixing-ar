@@ -14,9 +14,6 @@ The application was developed on Android Studio, Version 3.6.1. OpenCV version 4
 ## Modules
 
 Below a short description of the source code in ...\src\main\java\ :
-- aruco.min3d: 
-	Martin, Oskar could you specify please
-
 - com.example.fixingar:
 	- BackCalibration and FrontCalibration are based on the Calibration algorithm by OpenCV and
 	 were adjusted to our needs. They are the calibration activity files.
