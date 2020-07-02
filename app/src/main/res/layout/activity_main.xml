@@ -39,4 +39,14 @@
         android:background="#FFFF00"
         android:padding="15dp"
         android:text="Turn on/off camera switching"/>
+
+    <Button
+        android:id="@+id/settings_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="0dp"
+        android:layout_marginEnd="0dp"
+        android:text="Settings" />
 </RelativeLayout>

@@ -3,6 +3,8 @@ package com.example.fixingar;
 
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
+
+import android.app.Activity;
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.TextView;
@@ -56,7 +58,7 @@ public class FaceDetection {
 
     private TextView mDebugText;
 
-    public FaceDetection(Mat Cmat, CascadeClassifier mJavaDetector_eye, CascadeClassifier mJavaDetector_face, DetectionBasedTracker mNativeDetector_eye, DetectionBasedTracker mNativeDetector_face, String who){
+    public FaceDetection(Mat Cmat, CascadeClassifier mJavaDetector_eye, CascadeClassifier mJavaDetector_face, DetectionBasedTracker mNativeDetector_eye, DetectionBasedTracker mNativeDetector_face, String who, Activity activity){
         CameraMatrix = Cmat;
         mJavaDetector1 = mJavaDetector_eye;
         mJavaDetector2 = mJavaDetector_face;
@@ -66,8 +68,8 @@ public class FaceDetection {
         focallength = variables.getFocallength();
         resolution = variables.getResolution();
         est = variables.getEst();
-        EstimatedEyeDist = variables.getEyeDist();
-        EstimatedFaceWidth = variables.getFaceWidth();
+        EstimatedEyeDist = variables.getEyeDist(activity);
+        EstimatedFaceWidth = variables.getFaceWidth(activity);
     }
 
     /**

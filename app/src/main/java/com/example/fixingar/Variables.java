@@ -1,5 +1,7 @@
 package com.example.fixingar;
 
+import android.app.Activity;
+
 public class Variables {
     private String who;
     // Julia
@@ -11,12 +13,12 @@ public class Variables {
     private float EyeDist_J = 0.06f;
     // perspective fixer variables
     private float MarkerSize_J = 0.03f;
-    private double halfwidth_J = 0.14/2;
-    private double halfHeight_J = 0.066/2;
+    private double halfwidth_J = 0.103/2;
+    private double halfHeight_J = 0.058/2;
     // Position of front camera.
-    private double camTo00CornerX_J = 0;
-    private double camTo00CornerY_J = 0.066/2; // y vector from camera to (0,0) image corner (top-left). Positive direction is downwards.
-    private double[] ShiftFrontBackCamera_J = {0.012, -0.025, 0.008};
+    private double camTo00CornerX_J = 0.012;
+    private double camTo00CornerY_J = -0.027; // y vector from camera to (0,0) image corner (top-left). Positive direction is downwards.
+    private double[] ShiftFrontBackCamera_J = {0.012, 0.025, 0.008};
     // Martin
     // face detection variables
     private double focallength_M = 2.95*0.001;
@@ -181,45 +183,24 @@ public class Variables {
         return est;
     }
 
-    public float getFaceWidth(){
-        float FaceWidth = FaceWidth_J;
-        if (who == "Martin") {
-            FaceWidth = FaceWidth_M;
-        }
-        if (who == "Caroline") {
-            FaceWidth = FaceWidth_C;
-        }
-        if (who == "Oskar") {
-            FaceWidth = FaceWidth_O;
-        }
+    public float getFaceWidth(Activity activity){
+        Settings settings = new Settings();
+        float[] variables = settings.GetVariables(activity);
+        float FaceWidth = variables[1];
         return FaceWidth;
     }
 
-    public float getEyeDist(){
-        float EyeDist = EyeDist_J;
-        if (who == "Martin") {
-            EyeDist = EyeDist_M;
-        }
-        if (who == "Caroline") {
-            EyeDist = EyeDist_C;
-        }
-        if (who == "Oskar") {
-            EyeDist = EyeDist_O;
-        }
+    public float getEyeDist(Activity activity){
+        Settings settings = new Settings();
+        float[] variables = settings.GetVariables(activity);
+        float EyeDist = variables[2];
         return EyeDist;
     }
 
-    public float getMarkerSize(){
-        float MarkerSize = MarkerSize_J;
-        if (who == "Martin") {
-            MarkerSize = MarkerSize_M;
-        }
-        if (who == "Caroline") {
-            MarkerSize = MarkerSize_C;
-        }
-        if (who == "Oskar") {
-            MarkerSize = MarkerSize_O;
-        }
+    public float getMarkerSize(Activity activity){
+        Settings settings = new Settings();
+        float[] variables = settings.GetVariables(activity);
+        float MarkerSize = variables[0];
         return MarkerSize;
     }
 

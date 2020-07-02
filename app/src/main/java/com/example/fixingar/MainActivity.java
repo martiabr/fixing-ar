@@ -16,6 +16,8 @@ import org.opencv.core.Scalar;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -67,15 +69,12 @@ import es.ava.aruco.CameraParameters;
 import es.ava.aruco.Marker;
 import es.ava.aruco.MarkerDetector;
 
-public class MainActivity extends CameraActivity implements CvCameraViewListener2, View.OnClickListener {
+public class MainActivity extends CameraActivity implements CvCameraViewListener2 {
 
     //Constants
     private static final String TAG = "Main";
-    private String WHO = "Julia";
+    private String WHO = "Oskar";
     private float MARKER_SIZE;
-
-    //You must run a calibration prior to detection
-    // The activity to run calibration is provided in the repository
 
     public static final int        JAVA_DETECTOR       = 0;
     public static final int        NATIVE_DETECTOR     = 1;
@@ -86,11 +85,11 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     private File                   mCascadeFile2;
     private CascadeClassifier      mJavaDetector1;
     private DetectionBasedTracker mNativeDetector1;
-    private CascadeClassifier      mJavaDetector2;
+    private CascadeClassifier mJavaDetector2;
     private DetectionBasedTracker mNativeDetector2;
 
-    private int                    mDetectorType       = JAVA_DETECTOR;
-    private String[]               mDetectorName;
+    private int mDetectorType = JAVA_DETECTOR;
+    private String[] mDetectorName;
 
     private float[]                mCoordinates = new float[4]; //x and y position in m
     private FaceDetection          faceDetection;
@@ -99,6 +98,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     private int mCameraIndex = CameraBridgeViewBase.CAMERA_ID_FRONT;
     private TextView mDebugText;
     private Button mCameraButton;
+    private Button mSettingsButton;
     private CameraParameters camParamsBack;
     private CameraParameters camParamsFront;
     private PerspectiveFixer perspectiveFixer;
@@ -112,8 +112,7 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         @Override
         public void onManagerConnected(int status) {
             switch (status) {
-                case LoaderCallbackInterface.SUCCESS:
-                {
+                case LoaderCallbackInterface.SUCCESS: {
                     Log.i(TAG, "OpenCV loaded successfully");
                     // Load native library after(!) OpenCV initialization
                     System.loadLibrary("detection_based_tracker");
@@ -180,16 +179,28 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                     }
 
                     mOpenCvCameraView.enableView();
-                    mCameraButton.setOnClickListener(MainActivity.this);
+                    mCameraButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            TurnOnSwitchCamera();
+                        }
+                    });
+                    mSettingsButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            openSettings();
+                        }
+                    });
 
                     if (timerRunning) {
                         mHandler.postDelayed(mCameraSwitchRunnable, DELAY);
                     }
-                } break;
-                default:
-                {
+                }
+                break;
+                default: {
                     super.onManagerConnected(status);
-                } break;
+                }
+                break;
             }
         }
     };
@@ -222,14 +233,32 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
 
         setContentView(R.layout.activity_main);
 
+/*
+        // This section deletes the front and back camera matrix and our variables. It is here for testing purposes.
+        SharedPreferences sharedPref = this.getSharedPreferences("front", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.clear();
+        editor.commit();
+        SharedPreferences sharedPref2 = this.getSharedPreferences("back", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor2 = sharedPref2.edit();
+        editor2.clear();
+        editor2.commit();
+        SharedPreferences sharedPref3 = this.getSharedPreferences("variables", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor3 = sharedPref3.edit();
+        editor3.clear();
+        editor3.commit();
+
+ */
+
         mDebugText = (TextView) findViewById(R.id.debug_text);
 
         mCameraButton = (Button) findViewById(R.id.camera_button);
+        mSettingsButton = (Button) findViewById(R.id.settings_button);
 
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.camera_view);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
-        mOpenCvCameraView.setMaxFrameSize(1280,720);
+        mOpenCvCameraView.setMaxFrameSize(1280, 720);
         mOpenCvCameraView.setCameraIndex(mCameraIndex);
     }
 
@@ -253,15 +282,24 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
 
             variables = new Variables(WHO);
-            MARKER_SIZE = variables.getMarkerSize();
+            MARKER_SIZE = variables.getMarkerSize(this);
 
-            camParamsBack = new CameraParameters("Back");
-            camParamsBack.read(this);
-            perspectiveFixer = new PerspectiveFixer(camParamsBack, WHO);
-
+            camParamsBack = new CameraParameters("back");
             camParamsFront = new CameraParameters("front");
+
+            if (CheckIfCalibrated() == false) {
+                Intent intent = new Intent(this, Calibration.class);
+                startActivity(intent);
+            }
+            if (CheckVariables() == false) {
+                Intent intent = new Intent(this, Settings.class);
+                startActivity(intent);
+            }
+
+            camParamsBack.read(this);
             camParamsFront.read(this);
-            faceDetection = new FaceDetection(camParamsFront.getCameraMatrix(), mJavaDetector1, mJavaDetector2, mNativeDetector1, mNativeDetector2,WHO);
+            perspectiveFixer = new PerspectiveFixer(camParamsBack, WHO, this);
+            faceDetection = new FaceDetection(camParamsFront.getCameraMatrix(), mJavaDetector1, mJavaDetector2, mNativeDetector1, mNativeDetector2, WHO, this);
         }
     }
 
@@ -291,9 +329,9 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 
         mRgba = inputFrame.rgba();
-        Log.d("heightwidth",String.valueOf(mRgba.height()) + " " + String.valueOf(mRgba.width()));
+        Log.d("heightwidth", String.valueOf(mRgba.height()) + " " + String.valueOf(mRgba.width()));
         mGray = inputFrame.gray();
-     
+
 
         // Do marker detection if we use the back camera:
         if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_BACK) {
@@ -302,11 +340,11 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             Vector<Marker> detectedMarkers = new Vector<>();
 
             //Populate detectedMarkers
-            Log.d("camparamback",camParamsBack.getCameraMatrix().dump());
-            Log.d("camparamfront",camParamsFront.getCameraMatrix().dump());
+            Log.d("camparamback", camParamsBack.getCameraMatrix().dump());
+            Log.d("camparamfront", camParamsFront.getCameraMatrix().dump());
             mDetector.detect(mRgba, detectedMarkers, camParamsBack, MARKER_SIZE);
 
-            if (detectedMarkers.size() >= 1 && detectedMarkers.size()<4) {
+            if (detectedMarkers.size() >= 1 && detectedMarkers.size() < 4) {
                 Mat dst = perspectiveFixer.fixPerspectiveSingleMarker(mRgba, detectedMarkers.get(0), MARKER_SIZE, mCoordinates);
                 return dst;
             }
@@ -316,12 +354,11 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
                 if (mCoordinates != null) {
                     if (mCoordinates[3] != 0) {
                         Mat dst = perspectiveFixer.fixPerspectiveMultipleMarker(mRgba, detectedMarkers, MARKER_SIZE, mCoordinates);
-                return dst; }
-                    else return mRgba;
-                }
-                else return mRgba;
+                        return dst;
+                    } else return mRgba;
+                } else return mRgba;
             }
-          
+
         } else if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_FRONT) {
             mCoordinates = faceDetection.getmCoordinates(mRgba, mGray);
             // mCoordinates[0] = x
@@ -329,16 +366,16 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             // mCoordinates[2] = z
             // mCoordinates[3] = 1 or 2 if face or eyes were found, it's 0 if nothing was found
             if (mCoordinates != null) {
-            String mess1 = faceDetection.ObjDetect(mCoordinates);
-            String mess = mess1 + "Dist: " + Float.toString(mCoordinates[2]) + "m, x: " + Float.toString(mCoordinates[0]) + "m, y: " + Float.toString(mCoordinates[1]) + "m";
-            debugMsg(mess);
+                String mess1 = faceDetection.ObjDetect(mCoordinates);
+                String mess = mess1 + "Dist: " + Float.toString(mCoordinates[2]) + "m, x: " + Float.toString(mCoordinates[0]) + "m, y: " + Float.toString(mCoordinates[1]) + "m";
+                debugMsg(mess);
             }
         }
 
         return mRgba;
     }
-  
-      public void debugMsg(String msg) {
+
+    public void debugMsg(String msg) {
         final String str = msg;
         runOnUiThread(new Runnable() {
             @Override
@@ -360,9 +397,9 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_BACK) {
             mCameraIndex = CameraBridgeViewBase.CAMERA_ID_FRONT;
 
-        } else if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_FRONT){
+        } else if (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_FRONT) {
             mCameraIndex = CameraBridgeViewBase.CAMERA_ID_BACK;
-            perspectiveFixer = new PerspectiveFixer(camParamsBack, WHO);
+            perspectiveFixer = new PerspectiveFixer(camParamsBack, WHO, this);
         }
 
         Toast.makeText(MainActivity.this, "Switching camera to " + mCameraIndex, Toast.LENGTH_SHORT).show();
@@ -371,12 +408,11 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         mOpenCvCameraView.setCameraIndex(mCameraIndex);
         mOpenCvCameraView.enableView();
 
-        return true;  // TODO: check success somehow?
+        return true;
     }
 
-    @Override
-    public void onClick(View v) {
-        Log.d(TAG, "onClick invoked");
+    public void TurnOnSwitchCamera() {
+        Log.d(TAG, "onClick Switch Camera Button invoked");
 
         if (timerRunning) {
             Toast.makeText(this, "Turning off", Toast.LENGTH_SHORT).show();
@@ -389,6 +425,11 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
         }
 
         timerRunning = !timerRunning;
+    }
+
+    public void openSettings() {
+        Intent intent = new Intent(this, Settings.class);
+        startActivity(intent);
     }
 
     private void setDetectorType(int type) {
@@ -406,5 +447,28 @@ public class MainActivity extends CameraActivity implements CvCameraViewListener
             }
         }
 
+    }
+
+    public boolean CheckIfCalibrated() {
+        if (camParamsFront.CheckIfItExists(this)) {
+            if (camParamsBack.CheckIfItExists(this)) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+
+    }
+
+    public boolean CheckVariables() {
+        Settings settings = new Settings();
+        float[] variables = settings.GetVariables(this);
+        if (variables[0] != 0 && variables[1] != 0 && variables[2] != 0) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
