@@ -38,6 +38,7 @@ Below a short description of the source code in ...\src\main\java\ :
 	- Variables includes device specific variables of the 4 group members.
 
 - es.ava.aruco:
+	- All files were part of the Marker Tracking repository.
 	- debug
 	- exceptions
 	- Board, BoardConfiguraiton and BoardDetector are for the calibration of the cameras. They contain all the
