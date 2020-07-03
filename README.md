@@ -13,6 +13,8 @@ and "\fixing-ar\aruco12.pdf" for the multiple marker case
 
 The application was developed on Android Studio, Version 3.6.1. OpenCV version 4.2.0 was imported. 
 
+Example videos of application in use are upoaded and named "exampleVideo_" and "exampleVideo_2".
+
 ## Modules
 
 Below a short description of the source code in ...\src\main\java\ :
