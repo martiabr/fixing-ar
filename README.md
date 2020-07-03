@@ -2,7 +2,7 @@
 
 This project was conducted by Oskar Keding, Martin Brandt, Caroline Sauget, Julia Kenel.
 
-The app was designed and tested on a Samsung Galaxy S10e. The app was designed for Android devices.
+The app was designed and tested on a Samsung Galaxy S10e. Multiple constants are set in code to suit this device. The app was designed for Android devices.
 
 In order to compile Cpp code, the NDK tool needs to be installed.
 
